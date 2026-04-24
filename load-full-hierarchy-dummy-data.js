@@ -121,10 +121,11 @@ async function main() {
       });
     }
 
-    // Crear 121 agentes (3 por coach, excepto Coach 1 que tiene Agente Franco)
+    // Crear 121 agentes (4 para Coach 1, 3 para los demás)
     let agentNum = 0;
     for (let c = 1; c <= 40; c++) {
-      for (let a = 0; a < 3; a++) {
+      const agentsPerCoach = c === 1 ? 4 : 3;
+      for (let a = 0; a < agentsPerCoach; a++) {
         if (c === 1 && a === 0) {
           // Coach 1 primer agente es "Agente Franco"
           structure.agentes.push({
