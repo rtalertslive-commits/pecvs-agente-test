@@ -91,8 +91,9 @@ async function main() {
     console.log("📥 Generando estructura jerárquica completa...\n");
 
     // Estructura: 1 Director, 4 Promotores, 40 Coaches, 120+ Agentes
+    const directorTeamCode = "TEAM-DIRECTOR";
     const structure = {
-      director: { email: "rtalertslive@gmail.com", name: "Franco Director" },
+      director: { email: "rtalertslive@gmail.com", name: "Franco Director", teamCode: directorTeamCode },
       promotores: [],
       coaches: [],
       agentes: []
@@ -103,7 +104,8 @@ async function main() {
       structure.promotores.push({
         email: p === 1 ? "rtalertslive@gmail.com" : `promotor${p}@test.com`,
         name: p === 1 ? "Franco Promotor" : `Promotor ${p}`,
-        promotorNum: p
+        promotorNum: p,
+        teamCode: directorTeamCode
       });
     }
 
@@ -115,7 +117,7 @@ async function main() {
         name: c === 1 ? "Franco Coach" : `Coach ${c}`,
         coachNum: c,
         promotorNum,
-        teamCode: `TEAM-COACH-${c}`
+        teamCode: `TEAM-PROMOTOR-${promotorNum}`
       });
     }
 
@@ -182,6 +184,7 @@ async function main() {
         coachName: coach.name,
         email: coach.email,
         teamCode: coach.teamCode,
+        promotorTeamCode: coach.teamCode,
         promotorNum: coach.promotorNum,
         coachNum: coach.coachNum,
         agentes: coachAgentes.map(a => ({ email: a.email, name: a.name })),
@@ -199,6 +202,7 @@ async function main() {
       const promotorData = {
         promoterName: promotor.name,
         email: promotor.email,
+        teamCode: promotor.teamCode,
         promotorNum: promotor.promotorNum,
         coaches: promotorCoaches.map(c => ({ email: c.email, name: c.name, coachNum: c.coachNum })),
         type: "promoter"
@@ -213,6 +217,7 @@ async function main() {
     const directorData = {
       directorName: structure.director.name,
       email: structure.director.email,
+      teamCode: structure.director.teamCode,
       promoters: structure.promotores.map(p => ({ email: p.email, name: p.name, promotorNum: p.promotorNum })),
       type: "director"
     };
