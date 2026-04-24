@@ -1283,39 +1283,53 @@
 
         window.renderCharts = function () {
             const period = document.getElementById('chart-period-sel').value;
-            const today = new Date();
             let entries = [];
 
-            if (period === '12m' || period === '1y') {
-                // Últimos 12 meses (por defecto)
-                const last12Months = new Date(today.getFullYear(), today.getMonth() - 11, 1);
-                entries = state.entries.filter(e => {
-                    const [mes, year] = e.mes.split(' ');
-                    const monthIdx = MONTHS_ES.indexOf(mes) + 1;
-                    const entryDate = new Date(parseInt(year), monthIdx - 1, 1);
-                    return entryDate >= last12Months;
-                });
-            } else if (period === '3m') {
-                // Últimos 3 meses
-                const last3Months = new Date(today.getFullYear(), today.getMonth() - 2, 1);
-                entries = state.entries.filter(e => {
-                    const [mes, year] = e.mes.split(' ');
-                    const monthIdx = MONTHS_ES.indexOf(mes) + 1;
-                    const entryDate = new Date(parseInt(year), monthIdx - 1, 1);
-                    return entryDate >= last3Months;
-                });
-            } else if (period === '6m') {
-                // Últimos 6 meses
-                const last6Months = new Date(today.getFullYear(), today.getMonth() - 5, 1);
-                entries = state.entries.filter(e => {
-                    const [mes, year] = e.mes.split(' ');
-                    const monthIdx = MONTHS_ES.indexOf(mes) + 1;
-                    const entryDate = new Date(parseInt(year), monthIdx - 1, 1);
-                    return entryDate >= last6Months;
-                });
-            } else {
-                // Todos los meses
+            // Find the latest month in the data
+            let latestDate = null;
+            state.entries.forEach(e => {
+                const [mes, year] = e.mes.split(' ');
+                const monthIdx = MONTHS_ES.indexOf(mes) + 1;
+                const entryDate = new Date(parseInt(year), monthIdx - 1, 1);
+                if (!latestDate || entryDate > latestDate) {
+                    latestDate = entryDate;
+                }
+            });
+
+            if (!latestDate) {
                 entries = state.entries;
+            } else {
+                if (period === '12m' || period === '1y') {
+                    // Últimos 12 meses desde la última fecha disponible
+                    const last12Months = new Date(latestDate.getFullYear(), latestDate.getMonth() - 11, 1);
+                    entries = state.entries.filter(e => {
+                        const [mes, year] = e.mes.split(' ');
+                        const monthIdx = MONTHS_ES.indexOf(mes) + 1;
+                        const entryDate = new Date(parseInt(year), monthIdx - 1, 1);
+                        return entryDate >= last12Months;
+                    });
+                } else if (period === '3m') {
+                    // Últimos 3 meses desde la última fecha disponible
+                    const last3Months = new Date(latestDate.getFullYear(), latestDate.getMonth() - 2, 1);
+                    entries = state.entries.filter(e => {
+                        const [mes, year] = e.mes.split(' ');
+                        const monthIdx = MONTHS_ES.indexOf(mes) + 1;
+                        const entryDate = new Date(parseInt(year), monthIdx - 1, 1);
+                        return entryDate >= last3Months;
+                    });
+                } else if (period === '6m') {
+                    // Últimos 6 meses desde la última fecha disponible
+                    const last6Months = new Date(latestDate.getFullYear(), latestDate.getMonth() - 5, 1);
+                    entries = state.entries.filter(e => {
+                        const [mes, year] = e.mes.split(' ');
+                        const monthIdx = MONTHS_ES.indexOf(mes) + 1;
+                        const entryDate = new Date(parseInt(year), monthIdx - 1, 1);
+                        return entryDate >= last6Months;
+                    });
+                } else {
+                    // Todos los meses
+                    entries = state.entries;
+                }
             }
 
             entries.sort((a, b) => {
