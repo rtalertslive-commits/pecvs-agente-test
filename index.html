@@ -850,6 +850,42 @@
             } catch (err) { console.error("Sync error:", err); }
         }
 
+        window.loadLastWeekWithData = function () {
+            if (!state.entries || state.entries.length === 0) {
+                // Sin datos, usar defaults
+                updateBitacoraCalendar();
+                return;
+            }
+
+            // Encontrar la última entrada disponible
+            let lastEntry = state.entries[0];
+            state.entries.forEach(entry => {
+                const [lastMes, lastYear] = lastEntry.mes.split(' ');
+                const [entryMes, entryYear] = entry.mes.split(' ');
+                const lastYearNum = parseInt(lastYear);
+                const entryYearNum = parseInt(entryYear);
+                const lastMonthIdx = MONTHS_ES.indexOf(lastMes);
+                const entryMonthIdx = MONTHS_ES.indexOf(entryMes);
+
+                // Comparar: año primero, luego mes, luego semana
+                if (entryYearNum > lastYearNum ||
+                    (entryYearNum === lastYearNum && entryMonthIdx > lastMonthIdx) ||
+                    (entryYearNum === lastYearNum && entryMonthIdx === lastMonthIdx && parseInt(entry.semana) > parseInt(lastEntry.semana))) {
+                    lastEntry = entry;
+                }
+            });
+
+            // Establecer selectores a la última entrada encontrada
+            const [mes, year] = lastEntry.mes.split(' ');
+            const monthIdx = MONTHS_ES.indexOf(mes) + 1;
+            document.getElementById('sel-month').value = monthIdx;
+            document.getElementById('inp-year').value = year;
+            updateBitacoraCalendar();
+            document.getElementById('sel-semana').value = lastEntry.semana;
+            updateWeekTable();
+            autoLoadBitacora();
+        }
+
         window.init = function () {
             // Priority: if Cloud data didn't have a name/teamCode, check DISPLAY NAME from Google as fallback
             if (!state.agentName && user && user.displayName) {
@@ -857,7 +893,7 @@
                 saveState(); // Persist Google name to cloud immediately
             }
 
-            updateBitacoraCalendar();
+            loadLastWeekWithData();
             refreshUI();
 
             // ONLY show config if BOTH critical fields are still missing after Cloud + Google fallback
