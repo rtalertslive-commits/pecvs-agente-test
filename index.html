@@ -784,16 +784,22 @@
         <div class="login-card" style="max-width:420px;">
             <div style="font-size:40px; margin-bottom:16px;">📝</div>
             <h2 style="color:var(--gold); font-family:'Playfair Display',serif; margin-bottom:8px;">Solicitar Acceso</h2>
-            <p style="color:var(--slate); font-size:13px; margin-bottom:24px;">Tu cuenta de Google no está registrada en el sistema. Ingresa tu nombre para solicitar acceso como Agente.</p>
-            <div style="text-align:left; margin-bottom:16px;">
-                <label style="font-size:11px; color:var(--slate); font-weight:700; display:block; margin-bottom:6px;">TU NOMBRE COMPLETO</label>
-                <input type="text" id="reg-name" placeholder="Ej. Juan Pérez García" style="width:100%;">
+            <p style="color:var(--slate); font-size:13px; margin-bottom:24px;">Tu cuenta de Google no está registrada. Ingresa tus datos para solicitar acceso al sistema.</p>
+            <div style="text-align:left; display:flex; flex-direction:column; gap:14px; margin-bottom:20px;">
+                <div>
+                    <label style="font-size:11px; color:var(--slate); font-weight:700; display:block; margin-bottom:6px;">TU NOMBRE COMPLETO</label>
+                    <input type="text" id="reg-name" placeholder="Ej. Juan Pérez García" style="width:100%;">
+                </div>
+                <div>
+                    <label style="font-size:11px; color:var(--slate); font-weight:700; display:block; margin-bottom:6px;">TU CLAVE DE AGENTE (4 dígitos)</label>
+                    <input type="text" id="reg-code" placeholder="Ej. 1234" maxlength="4" inputmode="numeric" style="width:100%; letter-spacing:6px; font-size:18px; font-weight:700; text-align:center;">
+                </div>
             </div>
             <div style="background:rgba(212,175,55,0.1); border:1px solid rgba(212,175,55,0.3); border-radius:8px; padding:12px; font-size:12px; color:var(--gold-l); margin-bottom:20px; text-align:left; line-height:1.6;">
-                <i class="fa fa-circle-info"></i> Tu solicitud será revisada por el director. Recibirás acceso una vez sea aprobada.
+                <i class="fa fa-circle-info"></i> Tu solicitud será revisada por el director, quien te asignará tu rol y equipo.
             </div>
             <button id="reg-submit-btn" onclick="submitRegistration()" style="width:100%; padding:13px; border-radius:10px; background:var(--green); color:#fff; border:none; font-size:14px; font-weight:700; cursor:pointer;">
-                <i class="fa fa-paper-plane"></i> Solicitar Acceso como Agente
+                <i class="fa fa-paper-plane"></i> Enviar Solicitud de Acceso
             </button>
             <button onclick="auth.signOut().then(()=>location.reload())" style="width:100%; margin-top:10px; padding:10px; border-radius:10px; background:none; border:1px solid rgba(255,255,255,0.15); color:var(--slate); font-size:13px; cursor:pointer;">Salir</button>
         </div>
@@ -900,7 +906,9 @@
 
         window.submitRegistration = async function () {
             const name = document.getElementById('reg-name').value.trim();
+            const code = document.getElementById('reg-code').value.trim();
             if (!name) { alert('Por favor ingresa tu nombre completo.'); return; }
+            if (!/^\d{4}$/.test(code)) { alert('La clave de agente debe ser exactamente 4 dígitos numéricos.'); return; }
             const btn = document.getElementById('reg-submit-btn');
             btn.disabled = true;
             btn.textContent = 'Enviando...';
@@ -908,7 +916,7 @@
                 await setDoc(doc(db, "pending_users", user.email), {
                     name,
                     email: user.email,
-                    requestedRole: 'agent',
+                    companyCode: code,
                     timestamp: new Date().toISOString()
                 });
                 document.getElementById('register-overlay').style.display = 'none';
@@ -916,7 +924,7 @@
             } catch (err) {
                 alert('Error al enviar solicitud: ' + err.message);
                 btn.disabled = false;
-                btn.textContent = 'Solicitar Acceso como Agente';
+                btn.textContent = 'Enviar Solicitud de Acceso';
             }
         };
 
