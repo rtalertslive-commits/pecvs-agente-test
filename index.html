@@ -462,6 +462,7 @@
                 <h1><i class="fa-solid fa-user-tie" style="font-size:22px;margin-right:10px;"></i>PECVS$ Agente <small
                         style="font-size:10px; color:var(--slate);">v1.3.0</small></h1>
                 <p id="agent-display">Agente: —</p>
+                <p id="karma-display" style="color:var(--gold);font-weight:700;font-size:13px;margin:2px 0 0;letter-spacing:1px;">⭐ 0 karma</p>
             </div>
             <div class="header-right">
                 <button class="btn btn-sm" onclick="openConfig()"><i class="fa fa-user-gear"></i>Mi Perfil</button>
@@ -853,9 +854,11 @@
         const MONTHS_ES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
         const CHART_COLORS = { P: '#3b82f6', E: '#06b6d4', C: '#a855f7', V: '#10b981', S: '#f59e0b' };
 
-        let state = { agentName: '', teamCode: '', entries: [] };
+        let state = { agentName: '', teamCode: '', entries: [], karma: 0, karmaLog: [] };
         let currentWeeks = [];
         let user = null;
+        let serverNow = null;
+        let pointsConfig = { agentDailyPoints: 10 };
 
         // --- AUTH LOGIC ---
         document.getElementById('login-btn').addEventListener('click', () => {
@@ -943,6 +946,8 @@
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
                 state = docSnap.data();
+                state.karma = state.karma || 0;
+                state.karmaLog = state.karmaLog || [];
                 console.log("Cloud data loaded");
             }
         }
@@ -991,14 +996,17 @@
             autoLoadBitacora();
         }
 
-        window.init = function () {
+        window.init = async function () {
             // Priority: if Cloud data didn't have a name/teamCode, check DISPLAY NAME from Google as fallback
             if (!state.agentName && user && user.displayName) {
                 state.agentName = user.displayName;
                 saveState(); // Persist Google name to cloud immediately
             }
 
-            loadLastWeekWithData();
+            serverNow = await getServerTime();
+            await loadPointsConfig();
+            lockToCurrentWeek();
+            updateWeekTable();
             refreshUI();
 
             // ONLY show config if BOTH critical fields are still missing after Cloud + Google fallback
@@ -1022,12 +1030,148 @@
             }
         }
 
+        // ─── SERVER TIME ──────────────────────────────────────────────────────────────
+        async function getServerTime() {
+            try {
+                const r = await fetch('https://timeapi.io/api/time/current/zone?timeZone=America/Monterrey',
+                    { signal: AbortSignal.timeout(3000) });
+                const d = await r.json();
+                return new Date(d.year, d.month - 1, d.day, d.hour, d.minute, d.seconds);
+            } catch {}
+            try {
+                const r = await fetch('https://worldtimeapi.org/api/timezone/America/Monterrey',
+                    { signal: AbortSignal.timeout(3000) });
+                const { datetime } = await r.json();
+                return new Date(datetime);
+            } catch {}
+            console.warn('⚠️ No se pudo verificar hora del servidor, usando reloj local');
+            return new Date();
+        }
+
+        async function loadPointsConfig() {
+            try {
+                const snap = await getDoc(doc(db, 'config', 'pointsConfig'));
+                if (snap.exists()) pointsConfig = { ...pointsConfig, ...snap.data() };
+            } catch (e) { console.warn('No se pudo cargar pointsConfig', e); }
+        }
+
+        // ─── WEEK LOCK (solo semana actual) ───────────────────────────────────────────
+        function lockToCurrentWeek() {
+            if (!serverNow) return;
+            const today = new Date(serverNow.getFullYear(), serverNow.getMonth(), serverNow.getDate());
+            const dayOfWeek = (today.getDay() + 6) % 7; // 0=Mon...6=Sun
+            const monday = new Date(today);
+            monday.setDate(today.getDate() - dayOfWeek);
+
+            const wkYear = monday.getFullYear();
+            const wkMonth = monday.getMonth() + 1;
+
+            const monthSel = document.getElementById('sel-month');
+            const yearInp = document.getElementById('inp-year');
+            const semanaSel = document.getElementById('sel-semana');
+
+            monthSel.value = wkMonth;
+            monthSel.disabled = true;
+            yearInp.value = wkYear;
+            yearInp.disabled = true;
+
+            currentWeeks = getMonthCalendar(wkYear, wkMonth);
+
+            const mondayDate = monday.getDate();
+            let weekIdx = currentWeeks.findIndex(w => w[0] && w[0].date === mondayDate);
+            if (weekIdx < 0) weekIdx = currentWeeks.findIndex(w => w.some(d => d.date === mondayDate));
+            if (weekIdx < 0) weekIdx = 0;
+
+            const w = currentWeeks[weekIdx];
+            const first = w[0], last = w[w.length - 1];
+            semanaSel.innerHTML = `<option value="${weekIdx + 1}">Sem ${weekIdx + 1} &mdash; ${first.dayName.slice(0, 3)} ${first.date} al ${last.dayName.slice(0, 3)} ${last.date}</option>`;
+            semanaSel.value = weekIdx + 1;
+            semanaSel.disabled = true;
+
+            const wkInfo = document.getElementById('week-info');
+            if (wkInfo) {
+                const dayNames = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+                const MONTHS_ESP = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+                const todayName = dayNames[serverNow.getDay()];
+                const todayStr = `${todayName} ${serverNow.getDate()} de ${MONTHS_ESP[serverNow.getMonth()]} ${serverNow.getFullYear()}`;
+                wkInfo.innerHTML = `📅 Semana actual &nbsp;|&nbsp; Hoy: <strong style="color:var(--gold)">${todayStr}</strong>`;
+            }
+        }
+
+        function disableFutureDays() {
+            if (!serverNow) return;
+            const month = parseInt(document.getElementById('sel-month').value);
+            const year = parseInt(document.getElementById('inp-year').value);
+            const semIdx = parseInt(document.getElementById('sel-semana').value) - 1;
+            const weekDays = currentWeeks[semIdx] || [];
+            const today = new Date(serverNow.getFullYear(), serverNow.getMonth(), serverNow.getDate());
+
+            weekDays.forEach(({ dayName, date }) => {
+                const dayDate = new Date(year, month - 1, date);
+                const isFuture = dayDate > today;
+                const row = document.querySelector(`tr[data-day="${dayName}"]`);
+                if (!row) return;
+                const inputs = row.querySelectorAll('input');
+                inputs.forEach(inp => {
+                    inp.disabled = isFuture;
+                    inp.style.opacity = isFuture ? '0.25' : '';
+                    inp.style.cursor = isFuture ? 'not-allowed' : '';
+                });
+                if (row) row.style.opacity = isFuture ? '0.4' : '';
+            });
+        }
+
+        // ─── KARMA ────────────────────────────────────────────────────────────────────
+        function updateKarmaDisplay() {
+            const el = document.getElementById('karma-display');
+            if (el) el.textContent = '⭐ ' + (state.karma || 0) + ' karma';
+        }
+
+        async function awardKarma() {
+            if (!serverNow) return;
+            const m = parseInt(document.getElementById('sel-month').value);
+            const y = parseInt(document.getElementById('inp-year').value);
+            const mes = MONTHS_ES[m - 1] + ' ' + y;
+            const semana = document.getElementById('sel-semana').value;
+            const entry = state.entries.find(e => e.mes === mes && e.semana == semana);
+            if (!entry) return;
+
+            const semIdx = parseInt(semana) - 1;
+            const weekDays = currentWeeks[semIdx] || [];
+            const today = new Date(serverNow.getFullYear(), serverNow.getMonth(), serverNow.getDate());
+            const pts = (pointsConfig && pointsConfig.agentDailyPoints) || 10;
+
+            if (!state.karma) state.karma = 0;
+            if (!state.karmaLog) state.karmaLog = [];
+
+            let changed = false;
+            entry.dias.forEach(d => {
+                const dayInfo = weekDays.find(w => w.dayName === d.dia);
+                if (!dayInfo) return;
+                const dayDate = new Date(y, m - 1, dayInfo.date);
+                if (dayDate > today) return;
+                const dateKey = `${y}-${String(m).padStart(2, '0')}-${String(dayInfo.date).padStart(2, '0')}`;
+                if (state.karmaLog.some(k => k.date === dateKey)) return;
+                const hasData = (d.P + d.E + d.C + d.V + d.S) > 0 || parseFloat(d.prima) > 0;
+                if (!hasData) return;
+                state.karma += pts;
+                state.karmaLog.push({ date: dateKey, points: pts });
+                changed = true;
+            });
+
+            if (changed) {
+                await syncToCloud();
+                updateKarmaDisplay();
+            }
+        }
+
         window.saveState = function () {
             syncToCloud();
         }
 
         window.refreshUI = function () {
             document.getElementById('agent-display').textContent = 'Agente: ' + (state.agentName || '—');
+            updateKarmaDisplay();
         }
 
         window.switchTab = function (name, btn) {
@@ -1109,6 +1253,7 @@
                     <td id="funnel-${dayName}" style="font-size:16px;text-align:center;">—</td>
                 </tr>`).join('');
             autoLoadBitacora();
+            disableFutureDays();
         }
 
         window.updateTotals = function (autoSave = true) {
@@ -1178,6 +1323,7 @@
                 const msg = document.getElementById('save-msg');
                 msg.style.display = 'inline-flex'; setTimeout(() => msg.style.display = 'none', 2000);
             }
+            awardKarma();
         }
 
         window.autoLoadBitacora = function () {
