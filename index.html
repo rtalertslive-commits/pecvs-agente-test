@@ -893,24 +893,25 @@
             <p style="color:var(--slate); font-size:13px; margin-bottom:20px;">Tu acceso al sistema ha sido revocado. Contacta al director si crees que es un error.</p>
             <button onclick="auth.signOut().then(()=>location.reload())" style="width:100%; padding:12px; border-radius:10px; background:none; border:1px solid rgba(255,255,255,0.15); color:var(--slate); font-size:13px; cursor:pointer;">Salir</button>
         </div>
-    </div>
 
-    <!-- TAB: TIENDA -->
-    <div id="tab-tienda" class="tab-panel">
-        <div class="card" style="margin-bottom:16px;">
-            <p class="card-title"><i class="fa fa-store"></i> Tienda — Canjea tu Karma</p>
-            <p style="font-size:12px;color:var(--slate);margin-bottom:12px;">Selecciona un item y solicita el canje. El director lo aprobará.</p>
-            <div id="tienda-items" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;">
-                <div class="empty-state"><i class="fa fa-spinner fa-spin"></i> Cargando...</div>
+        <!-- TAB: TIENDA -->
+        <div id="tab-tienda" class="tab-panel">
+            <div class="card" style="margin-bottom:16px;">
+                <p class="card-title"><i class="fa fa-store"></i> Tienda — Canjea tu Karma</p>
+                <p style="font-size:12px;color:var(--slate);margin-bottom:12px;">Selecciona un item y solicita el canje. El director lo aprobará.</p>
+                <div id="tienda-items" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;">
+                    <div class="empty-state"><i class="fa fa-spinner fa-spin"></i> Cargando...</div>
+                </div>
+            </div>
+            <div class="card">
+                <p class="card-title"><i class="fa fa-clock-rotate-left"></i> Mis Solicitudes</p>
+                <div id="tienda-mis-solicitudes" style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;">
+                    <div class="empty-state"><i class="fa fa-inbox"></i> Sin solicitudes aún.</div>
+                </div>
             </div>
         </div>
-        <div class="card">
-            <p class="card-title"><i class="fa fa-clock-rotate-left"></i> Mis Solicitudes</p>
-            <div id="tienda-mis-solicitudes" style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;">
-                <div class="empty-state"><i class="fa fa-inbox"></i> Sin solicitudes aún.</div>
-            </div>
-        </div>
-    </div>
+
+    </div><!-- /app -->
 
     <!-- KARMA CELEBRATION MODAL -->
     <div id="karma-celebration">
