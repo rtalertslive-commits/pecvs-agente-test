@@ -1118,6 +1118,53 @@
             }
         }
 
+        // ─── VISIBILITY (app minimizada / regresa al foco) ────────────────────────────
+        document.addEventListener('visibilitychange', async () => {
+            if (document.visibilityState !== 'visible') return;
+            if (!user) return;
+
+            // Refrescar hora del servidor (puede haber cambiado de semana mientras estaba minimizada)
+            const prevNow = serverNow ? new Date(serverNow) : null;
+            serverNow = await getServerTime();
+
+            // Detectar si cambió la semana (ej: domingo 11pm → lunes 12:01am)
+            const weekChanged = prevNow && getISOWeek(serverNow) !== getISOWeek(prevNow);
+
+            if (weekChanged) {
+                // Re-bloquear a la nueva semana actual y refrescar tabla
+                lockToCurrentWeek();
+                updateWeekTable();
+            } else {
+                // Misma semana: solo actualizar días futuros (el día de hoy pudo haber "desbloqueado")
+                disableFutureDays();
+            }
+
+            // Recargar karma desde Firestore (otro dispositivo pudo haber guardado puntos)
+            const docSnap = await getDoc(doc(db, 'users', user.email));
+            if (docSnap.exists()) {
+                const fresh = docSnap.data();
+                state.karma = fresh.karma || 0;
+                state.karmaLog = fresh.karmaLog || [];
+                state.karmaLastNotified = fresh.karmaLastNotified || 0;
+                updateKarmaDisplay();
+            }
+
+            // Mostrar celebración si hay karma nuevo sin notificar
+            const uncelebrated = (state.karma || 0) - (state.karmaLastNotified || 0);
+            if (uncelebrated > 0) {
+                setTimeout(() => showKarmaCelebration(uncelebrated), 400);
+            }
+        });
+
+        // Helper: número de semana ISO (Mon=start) para detectar cambio de semana
+        function getISOWeek(date) {
+            const d = new Date(date);
+            d.setHours(0, 0, 0, 0);
+            d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+            const week1 = new Date(d.getFullYear(), 0, 4);
+            return `${d.getFullYear()}-W${Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7) + 1}`;
+        }
+
         // ─── SERVER TIME ──────────────────────────────────────────────────────────────
         async function getServerTime() {
             try {
