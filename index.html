@@ -1495,6 +1495,7 @@
                     emailSolicitante: user.email,
                     nombreSolicitante: state.agentName || user.displayName || user.email,
                     rol: 'agente',
+                    coachTeamCode: state.teamCode || '',
                     itemId, itemNombre, costo, emoji, catalogDoc,
                     status: 'pending',
                     fechaSolicitud: new Date().toISOString()
