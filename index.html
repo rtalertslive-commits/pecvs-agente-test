@@ -549,6 +549,7 @@
                 Tendencias</button>
             <button class="tab-btn" onclick="switchTab('conceptos',this)"><i class="fa fa-lightbulb"></i>
                 Conceptos</button>
+            <button class="tab-btn" onclick="switchTab('tienda',this);initAgenteTienda()"><i class="fa fa-store"></i> Tienda</button>
         </div>
 
         <!-- TAB: BITACORA -->
@@ -894,6 +895,23 @@
         </div>
     </div>
 
+    <!-- TAB: TIENDA -->
+    <div id="tab-tienda" class="tab-panel" style="display:none;">
+        <div class="card" style="margin-bottom:16px;">
+            <p class="card-title"><i class="fa fa-store"></i> Tienda — Canjea tu Karma</p>
+            <p style="font-size:12px;color:var(--slate);margin-bottom:12px;">Selecciona un item y solicita el canje. El director lo aprobará.</p>
+            <div id="tienda-items" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;">
+                <div class="empty-state"><i class="fa fa-spinner fa-spin"></i> Cargando...</div>
+            </div>
+        </div>
+        <div class="card">
+            <p class="card-title"><i class="fa fa-clock-rotate-left"></i> Mis Solicitudes</p>
+            <div id="tienda-mis-solicitudes" style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;">
+                <div class="empty-state"><i class="fa fa-inbox"></i> Sin solicitudes aún.</div>
+            </div>
+        </div>
+    </div>
+
     <!-- KARMA CELEBRATION MODAL -->
     <div id="karma-celebration">
         <div id="karma-particles"></div>
@@ -922,7 +940,7 @@
         // --- IMPORT FIREBASE ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, addDoc, getDocs, collection, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // Initialize
         const app = initializeApp(firebaseConfig);
@@ -1416,6 +1434,75 @@
         window.saveState = function () {
             syncToCloud();
         }
+
+        // ─── TIENDA ───────────────────────────────────────────────────────────────────
+        window.initAgenteTienda = async function() {
+            await renderTiendaItems();
+            await renderMisSolicitudes();
+        };
+
+        async function renderTiendaItems() {
+            const container = document.getElementById('tienda-items');
+            if (!container) return;
+            try {
+                const snap = await getDoc(doc(db, 'store', 'agentCatalog'));
+                const items = snap.exists() ? (snap.data().items || []).filter(i => i.activo) : [];
+                if (!items.length) { container.innerHTML = '<div class="empty-state"><i class="fa fa-box-open"></i> Sin items disponibles por ahora.</div>'; return; }
+                container.innerHTML = items.map(item => {
+                    const puedo = (state.karma || 0) >= item.costo;
+                    const sinStock = item.stock === 0;
+                    return `<div style="background:var(--panel2);border-radius:12px;padding:16px;border:1px solid rgba(212,175,55,0.15);display:flex;flex-direction:column;gap:8px;">
+                        <div style="font-size:36px;text-align:center;">${item.emoji||'🎁'}</div>
+                        <div style="font-weight:700;font-size:14px;text-align:center;">${item.nombre}</div>
+                        <div style="font-size:12px;color:var(--slate);text-align:center;">${item.descripcion||''}</div>
+                        <div style="text-align:center;font-weight:800;color:var(--gold);">⭐ ${item.costo} karma</div>
+                        ${item.stock >= 0 ? `<div style="text-align:center;font-size:11px;color:var(--slate);">Stock: ${item.stock}</div>` : ''}
+                        <button class="btn btn-sm ${puedo&&!sinStock?'btn-green':''}" ${(!puedo||sinStock)?'disabled':''} onclick="solicitarCanje('${item.id}','${item.nombre}',${item.costo},'${item.emoji||'🎁'}','agentCatalog')" style="${sinStock?'opacity:0.4':''}">
+                            ${sinStock ? 'Sin stock' : !puedo ? 'Karma insuficiente' : '🛒 Solicitar canje'}
+                        </button>
+                    </div>`;
+                }).join('');
+            } catch(e) { container.innerHTML = '<div class="empty-state">Error cargando tienda.</div>'; }
+        }
+
+        async function renderMisSolicitudes() {
+            const container = document.getElementById('tienda-mis-solicitudes');
+            if (!container || !user) return;
+            try {
+                const q = query(collection(db, 'redemptionRequests'), where('emailSolicitante', '==', user.email));
+                const snap = await getDocs(q);
+                const reqs = snap.docs.map(d => d.data()).sort((a,b) => (b.fechaSolicitud||'').localeCompare(a.fechaSolicitud||''));
+                container.innerHTML = reqs.length ? reqs.map(r => {
+                    const color = r.status==='approved'?'var(--green)':r.status==='rejected'?'var(--red)':'var(--orange)';
+                    const label = r.status==='approved'?'✓ Aprobado':r.status==='rejected'?'✗ Rechazado':'⏳ Pendiente';
+                    return `<div style="padding:10px 14px;background:var(--panel);border-radius:8px;border-left:3px solid ${color};display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                        <div>
+                            <div style="font-weight:600;font-size:13px;">${r.emoji||'🎁'} ${r.itemNombre}</div>
+                            <div style="font-size:11px;color:var(--slate);">⭐ ${r.costo} karma &nbsp;·&nbsp; ${new Date(r.fechaSolicitud).toLocaleDateString('es-MX')}</div>
+                        </div>
+                        <span style="color:${color};font-size:11px;font-weight:700;white-space:nowrap;">${label}</span>
+                    </div>`;
+                }).join('') : '<div class="empty-state"><i class="fa fa-inbox"></i> Sin solicitudes aún.</div>';
+            } catch(e) {}
+        }
+
+        window.solicitarCanje = async function(itemId, itemNombre, costo, emoji, catalogDoc) {
+            if ((state.karma || 0) < costo) { alert('Karma insuficiente.'); return; }
+            if (!confirm(`¿Solicitar canje de "${itemNombre}" por ⭐ ${costo} karma? El karma se descontará si el director aprueba.`)) return;
+            try {
+                await addDoc(collection(db, 'redemptionRequests'), {
+                    emailSolicitante: user.email,
+                    nombreSolicitante: state.agentName || user.displayName || user.email,
+                    rol: 'agente',
+                    itemId, itemNombre, costo, emoji, catalogDoc,
+                    status: 'pending',
+                    fechaSolicitud: new Date().toISOString()
+                });
+                alert(`✅ Solicitud enviada. El director la revisará pronto.`);
+                await renderMisSolicitudes();
+                await renderTiendaItems();
+            } catch(e) { alert('Error: ' + e.message); }
+        };
 
         window.refreshUI = function () {
             document.getElementById('agent-display').textContent = 'Agente: ' + (state.agentName || '—');
