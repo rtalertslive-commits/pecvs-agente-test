@@ -1131,6 +1131,8 @@
             const weekChanged = prevNow && getISOWeek(serverNow) !== getISOWeek(prevNow);
 
             if (weekChanged) {
+                // Otorgar karma por la semana que acaba de terminar ANTES de cambiar la UI
+                await awardKarmaForPreviousWeek(prevNow);
                 // Re-bloquear a la nueva semana actual y refrescar tabla
                 lockToCurrentWeek();
                 updateWeekTable();
@@ -1354,6 +1356,58 @@
             if (changed) {
                 await syncToCloud();
                 updateKarmaDisplay();
+            }
+        }
+
+        // Otorga karma por todos los días con datos de la semana que acaba de terminar.
+        // Se llama en visibilitychange cuando se detecta un cambio de semana ISO.
+        async function awardKarmaForPreviousWeek(prevNow) {
+            if (!prevNow) return;
+
+            // Encontrar el lunes de la semana de prevNow
+            const monday = new Date(prevNow);
+            monday.setHours(0, 0, 0, 0);
+            const dow = (monday.getDay() + 6) % 7; // Lun=0 … Dom=6
+            monday.setDate(monday.getDate() - dow);
+
+            const wkYear  = monday.getFullYear();
+            const wkMonth = monday.getMonth() + 1;
+            const mes     = MONTHS_ES[wkMonth - 1] + ' ' + wkYear;
+
+            // Construir el calendario del mes en que cae el lunes
+            const prevCalendar = getMonthCalendar(wkYear, wkMonth);
+            const mondayDate   = monday.getDate();
+            let weekIdx = prevCalendar.findIndex(w => w[0] && w[0].date === mondayDate);
+            if (weekIdx < 0) weekIdx = prevCalendar.findIndex(w => w.some(d => d.date === mondayDate));
+            if (weekIdx < 0) return; // semana no encontrada en el calendario
+
+            const semana   = weekIdx + 1;
+            const entry    = state.entries.find(e => e.mes === mes && e.semana == semana);
+            if (!entry || !entry.dias) return; // sin datos para esa semana
+
+            const weekDays = prevCalendar[weekIdx];
+            const pts      = (pointsConfig && pointsConfig.agentDailyPoints) || 10;
+
+            if (!state.karma)    state.karma    = 0;
+            if (!state.karmaLog) state.karmaLog = [];
+
+            let changed = false;
+            entry.dias.forEach(d => {
+                const dayInfo = weekDays.find(w => w.dayName === d.dia);
+                if (!dayInfo) return;
+                const dateKey = `${wkYear}-${String(wkMonth).padStart(2,'0')}-${String(dayInfo.date).padStart(2,'0')}`;
+                if (state.karmaLog.some(k => k.date === dateKey)) return; // ya contabilizado
+                const hasData = (d.P + d.E + d.C + d.V + d.S) > 0 || parseFloat(d.prima) > 0;
+                if (!hasData) return;
+                state.karma += pts;
+                state.karmaLog.push({ date: dateKey, points: pts });
+                changed = true;
+            });
+
+            if (changed) {
+                await syncToCloud();
+                updateKarmaDisplay();
+                console.log(`🏆 Karma semana anterior otorgado: ${mes} sem ${semana} → total karma: ${state.karma}`);
             }
         }
 
