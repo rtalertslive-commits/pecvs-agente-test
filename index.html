@@ -955,6 +955,7 @@
         const CHART_COLORS = { P: '#3b82f6', E: '#06b6d4', C: '#a855f7', V: '#10b981', S: '#f59e0b' };
 
         let state = { agentName: '', teamCode: '', entries: [], karma: 0, karmaLog: [], karmaLastNotified: 0 };
+        window._s = state; // debug helper
         let currentWeeks = [];
         let user = null;
         let serverNow = null;
@@ -1053,6 +1054,7 @@
                 if (typeof state.karmaLastNotified !== 'number') state.karmaLastNotified = 0;
                 if (typeof state.agentName !== 'string') state.agentName = '';
                 if (typeof state.teamCode !== 'string') state.teamCode = '';
+                window._s = state; // debug helper: actualizar referencia tras reasignación
                 console.log("Cloud data loaded");
             }
         }
