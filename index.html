@@ -1530,9 +1530,10 @@
             if (!container) return;
             try {
                 // Multi-tenant: cargar tienda específica del director del agente
+                // Si no hay directorCode, NO hacer fallback a tienda global (evita data leak)
                 const dc = state.directorCode || '';
-                const catalogId = dc ? `${dc}_agentCatalog` : 'agentCatalog';
-                const snap = await getDoc(doc(db, 'store', catalogId));
+                if (!dc) { container.innerHTML = '<div class="empty-state"><i class="fa fa-circle-info"></i> Tu director aún no configura la tienda.</div>'; return; }
+                const snap = await getDoc(doc(db, 'store', `${dc}_agentCatalog`));
                 const items = snap.exists() ? (snap.data().items || []).filter(i => i.activo) : [];
                 if (!items.length) { container.innerHTML = '<div class="empty-state"><i class="fa fa-box-open"></i> Sin items disponibles por ahora.</div>'; return; }
                 container.innerHTML = items.map(item => {
