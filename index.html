@@ -1541,7 +1541,8 @@
                 // Si no hay directorCode, NO hacer fallback a tienda global (evita data leak)
                 const dc = state.directorCode || '';
                 if (!dc) { container.innerHTML = '<div class="empty-state"><i class="fa fa-circle-info"></i> Tu director aún no configura la tienda.</div>'; return; }
-                const snap = await getDoc(doc(db, 'store', `${dc}_agentCatalog`));
+                const catalogId = `${dc}_agentCatalog`;
+                const snap = await getDoc(doc(db, 'store', catalogId));
                 const items = snap.exists() ? (snap.data().items || []).filter(i => i.activo) : [];
                 if (!items.length) { container.innerHTML = '<div class="empty-state"><i class="fa fa-box-open"></i> Sin items disponibles por ahora.</div>'; return; }
                 container.innerHTML = items.map(item => {
@@ -1553,7 +1554,7 @@
                         <div style="font-size:12px;color:var(--slate);text-align:center;">${item.descripcion||''}</div>
                         <div style="text-align:center;font-weight:800;color:var(--gold);">🌮 ${item.costo} tacos</div>
                         ${item.stock >= 0 ? `<div style="text-align:center;font-size:11px;color:var(--slate);">Stock: ${item.stock}</div>` : ''}
-                        <button class="btn btn-sm ${puedo&&!sinStock?'btn-green':''}" ${(!puedo||sinStock)?'disabled':''} onclick="solicitarCanje('${item.id}','${item.nombre}',${item.costo},'${item.emoji||'🎁'}','agentCatalog')" style="${sinStock?'opacity:0.4':''}">
+                        <button class="btn btn-sm ${puedo&&!sinStock?'btn-green':''}" ${(!puedo||sinStock)?'disabled':''} onclick="solicitarCanje('${item.id}','${item.nombre}',${item.costo},'${item.emoji||'🎁'}','${catalogId}')" style="${sinStock?'opacity:0.4':''}">
                             ${sinStock ? 'Sin stock' : !puedo ? 'Tacos insuficientes' : '🛒 Solicitar canje'}
                         </button>
                     </div>`;
