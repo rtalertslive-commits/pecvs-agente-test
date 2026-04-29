@@ -882,6 +882,12 @@
                     <label style="font-size:11px; color:var(--slate); font-weight:700; display:block; margin-bottom:6px;">TU CLAVE DE AGENTE (4 dígitos)</label>
                     <input type="text" id="reg-code" placeholder="Ej. 1234" maxlength="4" inputmode="numeric" style="width:100%; letter-spacing:6px; font-size:18px; font-weight:700; text-align:center;">
                 </div>
+                <div>
+                    <label style="font-size:11px; color:var(--slate); font-weight:700; display:block; margin-bottom:6px;">TU REGIÓN</label>
+                    <select id="reg-region" style="width:100%; padding:10px; background:var(--panel); color:#fff; border:1px solid rgba(255,255,255,0.15); border-radius:8px; font-size:14px;">
+                        <option value="">Cargando regiones...</option>
+                    </select>
+                </div>
             </div>
             <div style="background:rgba(212,175,55,0.1); border:1px solid rgba(212,175,55,0.3); border-radius:8px; padding:12px; font-size:12px; color:var(--gold-l); margin-bottom:20px; text-align:left; line-height:1.6;">
                 <i class="fa fa-circle-info"></i> Tu solicitud será revisada por el director, quien te asignará tu rol y equipo.
@@ -954,7 +960,7 @@
         const MONTHS_ES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
         const CHART_COLORS = { P: '#3b82f6', E: '#06b6d4', C: '#a855f7', V: '#10b981', S: '#f59e0b' };
 
-        let state = { agentName: '', teamCode: '', entries: [], karma: 0, karmaLog: [], karmaLastNotified: 0 };
+        let state = { agentName: '', teamCode: '', directorCode: '', regionName: '', entries: [], karma: 0, karmaLog: [], karmaLastNotified: 0 };
         window._s = state; // debug helper
         let currentWeeks = [];
         let user = null;
@@ -985,6 +991,7 @@
                     document.getElementById('login-overlay').classList.add('hidden');
                     document.getElementById('register-overlay').style.display = 'flex';
                     if (u.displayName) document.getElementById('reg-name').value = u.displayName;
+                    loadRegionsDropdown();
                 }
             } else {
                 user = null;
@@ -1043,11 +1050,34 @@
             return 'new';
         }
 
+        async function loadRegionsDropdown() {
+            const sel = document.getElementById('reg-region');
+            if (!sel) return;
+            try {
+                const snap = await getDocs(collection(db, 'directors'));
+                const regions = [];
+                snap.forEach(d => {
+                    const data = d.data();
+                    if (data.status !== 'inactive' && data.regionName) {
+                        regions.push(data.regionName);
+                    }
+                });
+                const unique = [...new Set(regions)].sort();
+                sel.innerHTML = '<option value="">-- Selecciona tu región --</option>' +
+                    unique.map(r => `<option value="${r}">${r}</option>`).join('');
+            } catch(e) {
+                sel.innerHTML = '<option value="">(Error cargando regiones)</option>';
+                console.error('Error loading regions:', e);
+            }
+        }
+
         window.submitRegistration = async function () {
             const name = document.getElementById('reg-name').value.trim();
             const code = document.getElementById('reg-code').value.trim();
+            const region = document.getElementById('reg-region').value;
             if (!name) { alert('Por favor ingresa tu nombre completo.'); return; }
             if (!/^\d{4}$/.test(code)) { alert('La clave de agente debe ser exactamente 4 dígitos numéricos.'); return; }
+            if (!region) { alert('Por favor selecciona tu región.'); return; }
             const btn = document.getElementById('reg-submit-btn');
             btn.disabled = true;
             btn.textContent = 'Enviando...';
@@ -1056,6 +1086,7 @@
                     name,
                     email: user.email,
                     companyCode: code,
+                    region: region,
                     timestamp: new Date().toISOString()
                 });
                 document.getElementById('register-overlay').style.display = 'none';
@@ -1088,6 +1119,8 @@
                 if (typeof state.karmaLastNotified !== 'number') state.karmaLastNotified = 0;
                 if (typeof state.agentName !== 'string') state.agentName = '';
                 if (typeof state.teamCode !== 'string') state.teamCode = '';
+                if (typeof state.directorCode !== 'string') state.directorCode = '';
+                if (typeof state.regionName !== 'string') state.regionName = '';
                 window._s = state; // debug helper: actualizar referencia tras reasignación
                 console.log("Cloud data loaded");
             }
@@ -1496,7 +1529,10 @@
             const container = document.getElementById('tienda-items');
             if (!container) return;
             try {
-                const snap = await getDoc(doc(db, 'store', 'agentCatalog'));
+                // Multi-tenant: cargar tienda específica del director del agente
+                const dc = state.directorCode || '';
+                const catalogId = dc ? `${dc}_agentCatalog` : 'agentCatalog';
+                const snap = await getDoc(doc(db, 'store', catalogId));
                 const items = snap.exists() ? (snap.data().items || []).filter(i => i.activo) : [];
                 if (!items.length) { container.innerHTML = '<div class="empty-state"><i class="fa fa-box-open"></i> Sin items disponibles por ahora.</div>'; return; }
                 container.innerHTML = items.map(item => {
@@ -1546,6 +1582,8 @@
                     nombreSolicitante: state.agentName || user.displayName || user.email,
                     rol: 'agente',
                     coachTeamCode: state.teamCode || '',
+                    directorCode: state.directorCode || '',   // multi-tenant
+                    regionName: state.regionName || '',
                     itemId, itemNombre, costo, emoji, catalogDoc,
                     status: 'pending',
                     fechaSolicitud: new Date().toISOString()
