@@ -301,6 +301,22 @@
         .chart-wrap {
             height: 250px;
             position: relative;
+            width: 100%;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .chart-wrap canvas {
+            max-width: 100% !important;
+            max-height: 100% !important;
+        }
+
+        .chart-card {
+            min-width: 0;  /* permite que chart-card encoja en grid/flex */
+        }
+
+        .charts-grid {
+            min-width: 0;
         }
 
         /* MODALS */
@@ -1226,19 +1242,25 @@
                 }).catch(err => console.log("SW error:", err));
             }
 
-            // Re-render charts on resize/orientation change para que no salgan cortadas en móvil
-            let chartResizeTimer = null;
-            const onResize = () => {
-                clearTimeout(chartResizeTimer);
-                chartResizeTimer = setTimeout(() => {
-                    const activeKpis = document.getElementById('tab-kpis')?.classList.contains('active');
-                    const activeCharts = document.getElementById('tab-charts')?.classList.contains('active');
-                    if (activeKpis) renderKPIs();
-                    if (activeCharts) renderCharts();
-                }, 200);
+            // Resize charts on viewport change (orientation, browser bar, resize)
+            // iOS dispara orientationchange ANTES de que el layout reflow termine,
+            // así que disparamos varios resize en cascada para garantizar que pegue
+            const resizeAllCharts = () => {
+                Object.values(charts).forEach(c => {
+                    if (c && typeof c.resize === 'function') {
+                        try { c.resize(); } catch(e) {}
+                    }
+                });
             };
-            window.addEventListener('resize', onResize);
-            window.addEventListener('orientationchange', onResize);
+            const onViewportChange = () => {
+                // Múltiples llamadas en cascada para sortear el delay de reflow en iOS
+                requestAnimationFrame(resizeAllCharts);
+                setTimeout(resizeAllCharts, 100);
+                setTimeout(resizeAllCharts, 300);
+                setTimeout(resizeAllCharts, 600);
+            };
+            window.addEventListener('resize', onViewportChange);
+            window.addEventListener('orientationchange', onViewportChange);
         }
 
         // ─── VISIBILITY (app minimizada / regresa al foco) ────────────────────────────
