@@ -1266,51 +1266,62 @@
             window.addEventListener('orientationchange', onViewportChange);
         }
 
-        // ─── VISIBILITY (app minimizada / regresa al foco) ────────────────────────────
-        document.addEventListener('visibilitychange', async () => {
-            if (document.visibilityState !== 'visible') return;
+        // ─── DETECCIÓN DE CAMBIO DE DÍA/SEMANA (centralizada) ─────────────────────────
+        // Se llama desde visibilitychange Y desde un setInterval (por si la tab está abierta 24/7)
+        let _checkDayChangeInProgress = false;
+        async function checkDayChange() {
             if (!user) return;
+            if (_checkDayChangeInProgress) return; // evitar overlap
+            _checkDayChangeInProgress = true;
+            try {
+                const prevNow = serverNow ? new Date(serverNow) : null;
+                serverNow = await getServerTime();
 
-            // Refrescar hora del servidor (puede haber cambiado de semana mientras estaba minimizada)
-            const prevNow = serverNow ? new Date(serverNow) : null;
-            serverNow = await getServerTime();
+                const weekChanged = prevNow && getISOWeek(serverNow) !== getISOWeek(prevNow);
+                const dayChanged  = prevNow && serverNow.toDateString() !== prevNow.toDateString();
 
-            // Detectar cambio de semana y/o de día
-            const weekChanged = prevNow && getISOWeek(serverNow) !== getISOWeek(prevNow);
-            const dayChanged  = prevNow && serverNow.toDateString() !== prevNow.toDateString();
+                if (weekChanged) {
+                    await awardKarmaForPastDays();
+                    lockToCurrentWeek();
+                    updateWeekTable();
+                } else if (dayChanged) {
+                    await awardKarmaForPastDays();
+                    disableFutureDays();
+                } else {
+                    disableFutureDays();
+                }
 
-            if (weekChanged) {
-                // Nueva semana: otorgar karma de días pasados, re-bloquear UI
-                await awardKarmaForPastDays();
-                lockToCurrentWeek();
-                updateWeekTable();
-            } else if (dayChanged) {
-                // Mismo semana, día distinto: otorgar karma de ayer y actualizar ventana editable
-                await awardKarmaForPastDays();
-                disableFutureDays();
-            } else {
-                // Mismo día: solo refrescar qué días son editables
-                disableFutureDays();
+                // Recargar karma desde Firestore (otro dispositivo pudo haber guardado)
+                const docSnap = await getDoc(doc(db, 'users', user.email));
+                if (docSnap.exists()) {
+                    const fresh = docSnap.data();
+                    state.karma = fresh.karma || 0;
+                    state.karmaLog = fresh.karmaLog || [];
+                    state.karmaLastNotified = fresh.karmaLastNotified || 0;
+                    updateKarmaDisplay();
+                }
+
+                // Mostrar celebración si hay karma nuevo sin notificar
+                const totalEarned = (state.karmaLog || []).reduce((sum, k) => sum + (k.points || 0), 0);
+                const uncelebrated = totalEarned - (state.karmaLastNotified || 0);
+                if (uncelebrated > 0) {
+                    setTimeout(() => showKarmaCelebration(uncelebrated), 400);
+                }
+            } finally {
+                _checkDayChangeInProgress = false;
             }
+        }
 
-            // Recargar karma desde Firestore (otro dispositivo pudo haber guardado puntos)
-            const docSnap = await getDoc(doc(db, 'users', user.email));
-            if (docSnap.exists()) {
-                const fresh = docSnap.data();
-                state.karma = fresh.karma || 0;
-                state.karmaLog = fresh.karmaLog || [];
-                state.karmaLastNotified = fresh.karmaLastNotified || 0;
-                updateKarmaDisplay();
-            }
-
-            // Mostrar celebración si hay karma nuevo sin notificar
-            // Usamos total ganado (no el balance, que puede bajar al gastar en tienda)
-            const totalEarned = (state.karmaLog || []).reduce((sum, k) => sum + (k.points || 0), 0);
-            const uncelebrated = totalEarned - (state.karmaLastNotified || 0);
-            if (uncelebrated > 0) {
-                setTimeout(() => showKarmaCelebration(uncelebrated), 400);
-            }
+        // Cuando regresa el foco a la tab (móvil minimizado, cambio de pestaña)
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') checkDayChange();
         });
+
+        // Para cuando la tab está abierta 24/7 (PC con Chrome siempre arriba)
+        // Chequeamos cada 5 min si cambió el día/semana
+        setInterval(() => {
+            if (document.visibilityState === 'visible') checkDayChange();
+        }, 5 * 60 * 1000);
 
         // Helper: número de semana ISO (Mon=start) para detectar cambio de semana
         function getISOWeek(date) {
