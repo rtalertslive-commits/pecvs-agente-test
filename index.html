@@ -854,17 +854,20 @@
     <div class="modal-overlay" id="config-modal">
         <div class="modal-box">
             <h2 style="font-family:'Playfair Display',serif; color:var(--gold); margin-top:0;">Mi Perfil</h2>
-            <div style="display:flex; flex-direction:column; gap:15px;">
-                <div>
-                    <label style="font-size:11px; color:var(--slate); font-weight:700;">MI NOMBRE COMPLETO</label>
-                    <input type="text" id="inp-myname" placeholder="Ej. Franco Jr">
+            <p style="font-size:11px; color:var(--slate); margin:0 0 15px;">Si algún dato está incorrecto, contacta al director para que lo corrija.</p>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                <div style="background:rgba(212,175,55,0.07); border:1px solid rgba(212,175,55,0.2); border-radius:10px; padding:12px 14px;">
+                    <label style="font-size:10px; color:var(--slate); font-weight:700; display:block; margin-bottom:6px;">MI NOMBRE COMPLETO</label>
+                    <span id="disp-myname" style="font-size:16px; font-weight:700; color:#fff;">—</span>
                 </div>
                 <div style="background:rgba(212,175,55,0.07); border:1px solid rgba(212,175,55,0.2); border-radius:10px; padding:12px 14px;">
                     <label style="font-size:10px; color:var(--slate); font-weight:700; display:block; margin-bottom:6px;">MI CLAVE DE AGENTE</label>
                     <span id="disp-mycode" style="font-size:22px; font-weight:800; color:var(--gold); letter-spacing:6px;">—</span>
-                    <p style="font-size:10px; color:var(--slate); margin:4px 0 0;">Asignada por el director. Contáctalo si hay algún error.</p>
                 </div>
-                <button class="btn btn-green" onclick="saveConfig()">Guardar Perfil</button>
+                <div style="background:rgba(212,175,55,0.07); border:1px solid rgba(212,175,55,0.2); border-radius:10px; padding:12px 14px;">
+                    <label style="font-size:10px; color:var(--slate); font-weight:700; display:block; margin-bottom:6px;">MI REGIÓN</label>
+                    <span id="disp-myregion" style="font-size:16px; font-weight:700; color:#fff;">—</span>
+                </div>
                 <button class="btn btn-sm"
                     onclick="document.getElementById('config-modal').classList.remove('open')">Cerrar</button>
             </div>
@@ -1656,17 +1659,13 @@
         }
 
         window.openConfig = function () {
-            document.getElementById('inp-myname').value = state.agentName;
+            const nameEl = document.getElementById('disp-myname');
             const codeEl = document.getElementById('disp-mycode');
-            if (codeEl) codeEl.textContent = state.companyCode || state.teamCode || '—';
+            const regionEl = document.getElementById('disp-myregion');
+            if (nameEl)   nameEl.textContent   = state.agentName || '—';
+            if (codeEl)   codeEl.textContent   = state.companyCode || state.teamCode || '—';
+            if (regionEl) regionEl.textContent = state.regionName || '—';
             document.getElementById('config-modal').classList.add('open');
-        }
-
-        window.saveConfig = function () {
-            state.agentName = document.getElementById('inp-myname').value.trim();
-            saveState();
-            refreshUI();
-            document.getElementById('config-modal').classList.remove('open');
         }
 
         // CALENDAR
