@@ -1225,6 +1225,20 @@
                     };
                 }).catch(err => console.log("SW error:", err));
             }
+
+            // Re-render charts on resize/orientation change para que no salgan cortadas en móvil
+            let chartResizeTimer = null;
+            const onResize = () => {
+                clearTimeout(chartResizeTimer);
+                chartResizeTimer = setTimeout(() => {
+                    const activeKpis = document.getElementById('tab-kpis')?.classList.contains('active');
+                    const activeCharts = document.getElementById('tab-charts')?.classList.contains('active');
+                    if (activeKpis) renderKPIs();
+                    if (activeCharts) renderCharts();
+                }, 200);
+            };
+            window.addEventListener('resize', onResize);
+            window.addEventListener('orientationchange', onResize);
         }
 
         // ─── VISIBILITY (app minimizada / regresa al foco) ────────────────────────────
@@ -1913,6 +1927,7 @@
                 type: 'doughnut',
                 data: { labels: ['Cierres (V)', 'Contactos (P)'], datasets: [{ data: [kTotals.V, Math.max(0, kTotals.P - kTotals.V)], backgroundColor: [CHART_COLORS.V, CHART_COLORS.P], borderWidth: 0 }] },
                 options: {
+                    responsive: true, maintainAspectRatio: false,
                     plugins: {
                         title: { display: true, text: `Efectividad: ${kTotals.P > 0 ? (kTotals.V / kTotals.P * 100).toFixed(1) : 0}%`, color: '#fff' },
                         legend: { position: 'top', align: 'center', labels: { boxWidth: 12, padding: 15, color: '#fff', font: { weight: 'bold' } } }
@@ -1924,7 +1939,7 @@
             charts['kpiVol'] = new Chart(document.getElementById('kpiVolumeFull'), {
                 type: 'bar',
                 data: { labels: ['P', 'E', 'C', 'V', 'S'], datasets: [{ label: 'Volumen', data: [kTotals.P, kTotals.E, kTotals.C, kTotals.V, kTotals.S], backgroundColor: [CHART_COLORS.P, CHART_COLORS.E, CHART_COLORS.C, CHART_COLORS.V, CHART_COLORS.S] }] },
-                options: { plugins: { legend: { display: false } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
             destroyChart('kpiRat');
             charts['kpiRat'] = new Chart(document.getElementById('kpiRatios'), {
@@ -1946,6 +1961,7 @@
                     }]
                 },
                 options: {
+                    responsive: true, maintainAspectRatio: false,
                     scales: {
                         r: {
                             grid: { color: 'rgba(255,255,255,0.1)' },
@@ -1970,7 +1986,7 @@
             charts['kpiPri'] = new Chart(document.getElementById('kpiPrimaAvg'), {
                 type: 'bar',
                 data: { labels: ['$/V', '$/S'], datasets: [{ data: [kTotals.V > 0 ? kTotals.prima / kTotals.V : 0, kTotals.S > 0 ? kTotals.prima / kTotals.S : 0], backgroundColor: [CHART_COLORS.V, CHART_COLORS.S] }] },
-                options: { plugins: { legend: { display: false } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
         }
 
@@ -2037,14 +2053,14 @@
             charts['lineV'] = new Chart(document.getElementById('chartVolume'), {
                 type: 'line',
                 data: { labels, datasets: COLS.map(c => ({ label: c, data: entries.map(e => e.totales[c]), borderColor: CHART_COLORS[c], tension: 0.3, pointRadius: 4 })) },
-                options: { plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#94a3b8' } }, y: { ticks: { color: '#94a3b8' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#94a3b8' } }, y: { ticks: { color: '#94a3b8' } } } }
             });
 
             destroyChart('lineP');
             charts['lineP'] = new Chart(document.getElementById('chartPrima'), {
                 type: 'line',
                 data: { labels, datasets: [{ label: 'Prima Bruta', data: entries.map(e => e.totales.prima), borderColor: 'rgba(212,175,55,.8)', backgroundColor: 'rgba(212,175,55,.2)', fill: true, tension: 0.3 }] },
-                options: { plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#94a3b8' } }, y: { ticks: { color: '#94a3b8' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#94a3b8' } }, y: { ticks: { color: '#94a3b8' } } } }
             });
 
             // TENDENCIA EFICIENCIA
@@ -2059,7 +2075,7 @@
                         { label: 'C ➔ V', data: entries.map(e => e.totales.C > 0 ? (e.totales.V / e.totales.C * 100).toFixed(1) : 0), borderColor: CHART_COLORS.V, tension: 0.3 }
                     ]
                 },
-                options: { plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { ticks: { color: '#94a3b8', callback: v => v + '%' } }, x: { ticks: { color: '#94a3b8' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { ticks: { color: '#94a3b8', callback: v => v + '%' } }, x: { ticks: { color: '#94a3b8' } } } }
             });
 
             // TENDENCIA PRIMA PROMEDIO
@@ -2073,7 +2089,7 @@
                         { label: '$/Sol', data: entries.map(e => e.totales.S > 0 ? (e.totales.prima / e.totales.S).toFixed(0) : 0), borderColor: CHART_COLORS.S, tension: 0.3 }
                     ]
                 },
-                options: { plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { ticks: { color: '#94a3b8' } }, x: { ticks: { color: '#94a3b8' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { ticks: { color: '#94a3b8' } }, x: { ticks: { color: '#94a3b8' } } } }
             });
 
             // TENDENCIA EFICIENCIA TOTAL
@@ -2087,7 +2103,7 @@
                         { label: '% P ➔ S (Solicitud)', data: entries.map(e => e.totales.P > 0 ? (e.totales.S / e.totales.P * 100).toFixed(1) : 0), borderColor: CHART_COLORS.S, tension: 0.3 }
                     ]
                 },
-                options: { plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { beginAtZero: true, ticks: { color: '#94a3b8', callback: v => v + '%' } }, x: { ticks: { color: '#94a3b8' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { beginAtZero: true, ticks: { color: '#94a3b8', callback: v => v + '%' } }, x: { ticks: { color: '#94a3b8' } } } }
             });
         }
 
