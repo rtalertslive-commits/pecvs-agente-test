@@ -691,10 +691,10 @@
                 <div class="charts-controls" style="margin-bottom:15px;">
                     <label style="font-size:10px; color:var(--slate); display:block; margin-bottom:6px;">PERÍODO</label>
                     <select id="chart-period-sel" onchange="renderCharts()" style="width:100%; max-width:300px;">
-                        <option value="12m">Últimos 12 meses (por defecto)</option>
+                        <option value="1m" selected>Mensual (mes actual)</option>
                         <option value="3m">Últimos 3 meses</option>
                         <option value="6m">Últimos 6 meses</option>
-                        <option value="1y">1 año</option>
+                        <option value="12m">Últimos 12 meses</option>
                         <option value="all">Todos los meses</option>
                     </select>
                 </div>
@@ -2046,7 +2046,15 @@
             if (!latestDate) {
                 entries = state.entries;
             } else {
-                if (period === '12m' || period === '1y') {
+                if (period === '1m') {
+                    // Solo el mes más reciente con datos
+                    entries = state.entries.filter(e => {
+                        const [mes, year] = e.mes.split(' ');
+                        const monthIdx = MONTHS_ES.indexOf(mes) + 1;
+                        const entryDate = new Date(parseInt(year), monthIdx - 1, 1);
+                        return entryDate.getTime() === latestDate.getTime();
+                    });
+                } else if (period === '12m') {
                     // Últimos 12 meses desde la última fecha disponible
                     const last12Months = new Date(latestDate.getFullYear(), latestDate.getMonth() - 11, 1);
                     entries = state.entries.filter(e => {
