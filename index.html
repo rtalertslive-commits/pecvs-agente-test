@@ -974,6 +974,14 @@
 
         onAuthStateChanged(auth, async (u) => {
             if (u) {
+                // Detectar cambio de usuario y forzar recarga (evita data leak en memoria)
+                const lastEmail = sessionStorage.getItem('lastAgentEmail');
+                if (lastEmail && lastEmail !== u.email) {
+                    sessionStorage.setItem('lastAgentEmail', u.email);
+                    location.reload();
+                    return;
+                }
+                sessionStorage.setItem('lastAgentEmail', u.email);
                 user = u;
                 const status = await checkUserStatus();
                 if (status === 'active') {
