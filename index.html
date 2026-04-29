@@ -1772,7 +1772,14 @@
             COLS.forEach(c => document.getElementById('mt-' + c).textContent = mTotals[c]);
             document.getElementById('mt-$').textContent = mTotals.prima.toFixed(2);
 
-            if (autoSave) saveCurrentWeek(true);
+            if (autoSave) {
+                saveCurrentWeek(true);
+                // Marcar inputs como "saved" para evitar el prompt "Reload site? Changes you made may not be saved"
+                // (el agente auto-guarda pero el browser no lo sabe a menos que actualicemos defaultValue)
+                document.querySelectorAll('#week-body input').forEach(inp => {
+                    inp.defaultValue = inp.value;
+                });
+            }
         }
 
         window.saveCurrentWeek = function (silent = false) {
