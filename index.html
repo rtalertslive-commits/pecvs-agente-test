@@ -1459,7 +1459,7 @@
         // --- IMPORT FIREBASE ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, addDoc, getDocs, collection, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, addDoc, getDocs, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // Initialize
         const app = initializeApp(firebaseConfig);
@@ -1562,6 +1562,7 @@
                 if (status === 'active') {
                     document.getElementById('login-overlay').classList.add('hidden');
                     await loadFromCloud();
+                    startUserDocListener(); // real-time updates desde Firestore
                     init();
                 } else if (status === 'inactive') {
                     document.getElementById('login-overlay').classList.add('hidden');
@@ -1712,6 +1713,65 @@
                 if (typeof state.companyCode !== 'string') state.companyCode = '';
                 console.log("Cloud data loaded");
             }
+        }
+
+        // ─── REAL-TIME LISTENER del doc del agente ─────────────────────────────
+        // Escucha cambios en users/{email} y actualiza state automáticamente.
+        // Disparadores externos:
+        //  - Director aprueba canje (decrementa karma + agrega karmaLog 'redemption')
+        //  - Director hace mint/burn manual desde Tesorería (karma + karmaLog)
+        //  - Director cambia status a 'inactive' / 'revoked'
+        //  - Director reasigna coach/promotor / corrige nombre/región/etc.
+        //  - Otro dispositivo del mismo agente edita y sincroniza
+        let _userDocUnsubscribe = null;
+        function startUserDocListener() {
+            if (!user) return;
+            if (_userDocUnsubscribe) { _userDocUnsubscribe(); _userDocUnsubscribe = null; }
+
+            _userDocUnsubscribe = onSnapshot(doc(db, "users", user.email), (snap) => {
+                if (!snap.exists()) return;
+                const fresh = snap.data();
+                let karmaChanged = false;
+                let statusChanged = false;
+
+                // Karma + log: si cambió desde Firestore (director, otro device),
+                // actualizar state local antes del próximo syncToCloud para evitar pisado.
+                if (typeof fresh.karma === 'number' && fresh.karma !== state.karma) {
+                    state.karma = fresh.karma;
+                    karmaChanged = true;
+                }
+                if (Array.isArray(fresh.karmaLog) && fresh.karmaLog.length !== (state.karmaLog || []).length) {
+                    state.karmaLog = fresh.karmaLog;
+                    karmaChanged = true;
+                }
+                if (typeof fresh.karmaLastNotified === 'number') state.karmaLastNotified = fresh.karmaLastNotified;
+
+                // Campos admin (controlados por director). NO los escribimos en
+                // syncToCloud (whitelist) pero sí los reflejamos local para mostrar
+                // datos correctos y para que solicitarCanje use teamCode/directorCode al día.
+                ['agentName','teamCode','directorCode','regionName','companyCode','status','type'].forEach(k => {
+                    if (fresh[k] !== undefined && fresh[k] !== state[k]) state[k] = fresh[k];
+                });
+
+                if (karmaChanged) updateKarmaDisplay();
+
+                // Si el director marcó al agente como inactive/revoked, mostrar overlay
+                // sin que tenga que cerrar y reabrir la app.
+                if (fresh.status === 'inactive' || fresh.status === 'revoked') {
+                    statusChanged = true;
+                    const overlay = document.getElementById('revoked-overlay');
+                    if (overlay) overlay.style.display = 'flex';
+                }
+
+                // Si está en la pestaña Tienda, refrescar Mis Solicitudes para
+                // que se vea el approve/reject en vivo.
+                const tiendaActive = document.getElementById('tab-tienda')?.classList.contains('active');
+                if (tiendaActive && !statusChanged) {
+                    try { renderMisSolicitudes(); } catch(e) {}
+                }
+            }, (err) => {
+                console.error('[userDocListener]', err);
+            });
         }
 
         async function syncToCloud() {
