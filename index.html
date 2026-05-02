@@ -823,6 +823,110 @@
         .btn-google img {
             width: 20px;
         }
+
+        /* ═══ BOTÓN INSTALAR APP (PWA) ═══ */
+        .btn-install {
+            display: none; /* oculto hasta que se detecta installability */
+            width: 100%;
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1.5px solid var(--gold);
+            background: rgba(212, 175, 55, 0.08);
+            color: var(--gold-l);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-install:hover {
+            background: var(--gold);
+            color: var(--bg);
+        }
+        .btn-install.show { display: inline-flex; }
+        .btn-install .ic { font-size: 16px; }
+
+        /* Modal de instrucciones iOS */
+        #ios-install-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 99998;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        #ios-install-modal.show { display: flex; }
+        #ios-install-modal .ios-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px 22px;
+            max-width: 360px;
+            width: 100%;
+            text-align: center;
+        }
+        #ios-install-modal h3 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 800;
+            font-size: 18px;
+            color: var(--white);
+            margin: 0 0 14px;
+        }
+        #ios-install-modal ol {
+            text-align: left;
+            color: var(--slate);
+            font-size: 13px;
+            line-height: 1.7;
+            padding-left: 22px;
+            margin: 12px 0 18px;
+        }
+        #ios-install-modal ol strong { color: var(--gold-l); }
+        #ios-install-modal .close-btn {
+            background: var(--gold);
+            color: var(--bg);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 24px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        #ios-install-modal .share-icon {
+            display: inline-block;
+            width: 20px;
+            height: 26px;
+            border: 2px solid var(--gold);
+            border-radius: 4px;
+            position: relative;
+            vertical-align: middle;
+            margin: 0 3px;
+        }
+        #ios-install-modal .share-icon::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            width: 2px;
+            height: 12px;
+            background: var(--gold);
+            transform: translateX(-50%);
+        }
+        #ios-install-modal .share-icon::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            border-top: 2px solid var(--gold);
+            border-left: 2px solid var(--gold);
+            transform: translateX(-50%) rotate(45deg);
+        }
     </style>
 </head>
 
@@ -842,9 +946,27 @@
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
                 Entrar con Google
             </button>
+            <button class="btn-install" id="install-btn" onclick="installApp()">
+                <span class="ic">📲</span>
+                <span>Instalar App en este dispositivo</span>
+            </button>
             <div style="margin-top: 25px; font-size: 11px; color: var(--slate); opacity: 0.8;">
                 v1.3.0 — Sincronización mediante Google Firebase
             </div>
+        </div>
+    </div>
+
+    <!-- Modal de instrucciones iOS (Safari no soporta beforeinstallprompt) -->
+    <div id="ios-install-modal" onclick="if(event.target===this)closeIosInstall()">
+        <div class="ios-card">
+            <div style="font-size:42px;margin-bottom:6px;">📲</div>
+            <h3>Instalar Actividad en tu iPhone</h3>
+            <ol>
+                <li>Pulsá el botón <strong>Compartir</strong> <span class="share-icon"></span> en la barra de Safari (abajo).</li>
+                <li>Deslizá hacia abajo y elegí <strong>"Agregar a pantalla de inicio"</strong>.</li>
+                <li>Confirmá tocando <strong>"Agregar"</strong> arriba a la derecha.</li>
+            </ol>
+            <button class="close-btn" onclick="closeIosInstall()">Entendido</button>
         </div>
     </div>
 
@@ -1346,6 +1468,56 @@
         let user = null;
         let serverNow = null;
         let pointsConfig = { agentDailyPoints: 10 };
+
+        // ─── PWA INSTALL ───────────────────────────────────────────────────────────
+        // Captura el evento beforeinstallprompt (Chrome/Edge en Android y desktop) y
+        // muestra un boton custom. iOS Safari NO dispara este evento — para iOS
+        // detectamos el dispositivo y mostramos un modal con instrucciones manuales.
+        let _deferredInstallPrompt = null;
+        const _isStandalone = window.matchMedia('(display-mode: standalone)').matches
+            || window.navigator.standalone === true;
+        const _isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) && !window.MSStream;
+
+        if (!_isStandalone) {
+            // Chrome/Edge/Android — escuchar el evento installable
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                _deferredInstallPrompt = e;
+                document.getElementById('install-btn').classList.add('show');
+            });
+            // Cuando el usuario instala correctamente
+            window.addEventListener('appinstalled', () => {
+                _deferredInstallPrompt = null;
+                document.getElementById('install-btn').classList.remove('show');
+                console.log('✅ App instalada');
+            });
+            // iOS no dispara beforeinstallprompt — mostramos el boton igual y abrimos modal
+            if (_isIOS) {
+                document.getElementById('install-btn').classList.add('show');
+            }
+        }
+
+        window.installApp = async function () {
+            if (_isIOS && !_deferredInstallPrompt) {
+                document.getElementById('ios-install-modal').classList.add('show');
+                return;
+            }
+            if (!_deferredInstallPrompt) {
+                alert('La instalación no está disponible en este navegador. Probá con Chrome o Edge.');
+                return;
+            }
+            _deferredInstallPrompt.prompt();
+            const { outcome } = await _deferredInstallPrompt.userChoice;
+            if (outcome === 'accepted') {
+                console.log('✅ Usuario aceptó la instalación');
+            }
+            _deferredInstallPrompt = null;
+            document.getElementById('install-btn').classList.remove('show');
+        };
+
+        window.closeIosInstall = function () {
+            document.getElementById('ios-install-modal').classList.remove('show');
+        };
 
         // --- AUTH LOGIC ---
         document.getElementById('login-btn').addEventListener('click', () => {
