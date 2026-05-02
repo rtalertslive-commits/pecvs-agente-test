@@ -274,6 +274,188 @@
             text-align: right;
         }
 
+        /* ═══ MOBILE BITACORA (asymmetric: today big, others compact) ═══ */
+        .mobile-bitacora { display: none; }
+        @media (max-width: 767px) {
+            .table-scroll { display: none; }
+            .mobile-bitacora { display: block; }
+        }
+
+        .m-section-divider {
+            text-align: center;
+            font-size: 10px;
+            color: var(--slate);
+            margin: 14px 0 6px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            opacity: 0.6;
+        }
+
+        /* Día compacto (read-only, pasado o futuro) */
+        .m-day-compact {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 8px;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            opacity: 0.45;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            font-size: 12px;
+        }
+        .m-day-compact .m-day-label {
+            font-weight: 700;
+            color: var(--slate);
+            min-width: 88px;
+        }
+        .m-day-compact .m-day-label small {
+            display: block;
+            font-weight: 400;
+            font-size: 10px;
+            color: var(--slate);
+            opacity: 0.7;
+        }
+        .m-day-compact .m-day-summary {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            color: var(--slate);
+            font-variant-numeric: tabular-nums;
+            font-size: 11px;
+        }
+        .m-day-compact .m-day-summary span { white-space: nowrap; }
+        .m-day-compact .m-day-summary .m-prima { color: var(--gold); font-weight: 600; }
+        .m-day-compact .m-day-status { font-size: 14px; }
+        /* Inputs en filas compactas: ocultos visualmente pero presentes en DOM para save/load */
+        .m-day-compact input { display: none; }
+
+        /* HOY: card grande, prominente */
+        .m-day-today {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.12), rgba(212, 175, 55, 0.04));
+            border: 2px solid var(--gold);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 10px 0;
+            box-shadow: 0 4px 20px rgba(212, 175, 55, 0.15);
+        }
+        .m-today-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .m-today-day {
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gold-l);
+        }
+        .m-today-day small {
+            display: block;
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            color: var(--slate);
+            font-weight: 400;
+        }
+        .m-today-badge {
+            background: var(--gold);
+            color: var(--bg);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+        .m-today-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .m-field { display: flex; flex-direction: column; }
+        .m-field label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 4px;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+        .m-field label small {
+            font-weight: 400;
+            color: var(--slate);
+            font-size: 9px;
+            display: block;
+            margin-top: 1px;
+        }
+        .m-field input {
+            width: 100%;
+            padding: 14px 8px;
+            font-size: 18px;
+            font-weight: 700;
+            text-align: center;
+            background: var(--panel2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--white);
+            font-variant-numeric: tabular-nums;
+        }
+        .m-field input.m-prima-input {
+            text-align: right;
+            color: var(--gold-l);
+            padding-right: 12px;
+        }
+        .m-field input:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+        }
+        .m-today-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(212, 175, 55, 0.15);
+            font-size: 12px;
+        }
+        .m-funnel { font-weight: 700; }
+
+        /* Totales mobile (solo prima) */
+        .m-totals {
+            display: none;
+            margin-top: 16px;
+            padding-top: 14px;
+            border-top: 1px solid var(--border);
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        @media (max-width: 767px) {
+            .m-totals { display: grid; }
+        }
+        .m-total-card {
+            background: rgba(0, 0, 0, 0.25);
+            padding: 10px 8px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .m-total-card .m-total-label {
+            font-size: 9px;
+            color: var(--slate);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .m-total-card .m-total-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--gold);
+            font-variant-numeric: tabular-nums;
+        }
+        .m-total-card.m-total-month .m-total-value { color: var(--gold-l); }
+
         /* CHARTS GRID */
         .charts-grid {
             display: grid;
@@ -641,6 +823,21 @@
                             </tr>
                         </tfoot>
                     </table>
+                </div>
+
+                <!-- MOBILE BITACORA: layout asimétrico (hoy grande, otros compactos) -->
+                <div class="mobile-bitacora" id="mobile-week"></div>
+
+                <!-- MOBILE TOTALS: solo prima semana + prima mes -->
+                <div class="m-totals">
+                    <div class="m-total-card">
+                        <div class="m-total-label">Prima Semana</div>
+                        <div class="m-total-value" id="m-tt-$">0.00</div>
+                    </div>
+                    <div class="m-total-card m-total-month">
+                        <div class="m-total-label">Prima Mes</div>
+                        <div class="m-total-value" id="m-mt-$">0.00</div>
+                    </div>
                 </div>
 
                 <div style="margin-top:20px; display:flex; justify-content: flex-end; align-items:center;">
@@ -1415,7 +1612,10 @@
                 const dayDate = new Date(year, month - 1, date);
                 // Solo el día de hoy es editable; el resto (pasados y futuros) están bloqueados
                 const locked = dayDate.getTime() !== today.getTime();
-                const row = document.querySelector(`tr[data-day="${dayName}"]`);
+                // Match wrapper en cualquier layout: tr (desktop), .m-day-compact, .m-day-today (mobile)
+                const row = document.querySelector(
+                    `tr[data-day="${dayName}"], .m-day-compact[data-day="${dayName}"], .m-day-today[data-day="${dayName}"]`
+                );
                 if (!row) return;
                 const inputs = row.querySelectorAll('input');
                 inputs.forEach(inp => {
@@ -1423,7 +1623,10 @@
                     inp.style.opacity = locked ? '0.25' : '';
                     inp.style.cursor = locked ? 'not-allowed' : '';
                 });
-                row.style.opacity = locked ? '0.4' : '';
+                // Solo aplicar opacity al wrapper en desktop (tr); en mobile la opacidad la maneja el CSS
+                if (row.tagName === 'TR') {
+                    row.style.opacity = locked ? '0.4' : '';
+                }
             });
         }
 
@@ -1726,30 +1929,135 @@
             return { ok: errors.length === 0, errors };
         }
 
+        // ─── MOBILE BITACORA RENDER ─────────────────────────────────────────────
+        function isMobileViewport() {
+            return window.matchMedia('(max-width: 767px)').matches;
+        }
+
+        const M_COL_LABELS = { P: 'Prospec.', E: 'Entrev.', C: 'Cotiz.', V: 'Cierres', S: 'Solicit.' };
+        const M_MONTHS_SHORT = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+        function renderMobileCompactDay(dayName, date, monthShort, statusIcon) {
+            return `
+                <div class="m-day-compact" data-day="${dayName}">
+                    <div class="m-day-label">${dayName}<small>${date}/${monthShort}</small></div>
+                    <div class="m-day-summary" id="m-summary-${dayName}"><span>—</span></div>
+                    <div class="m-day-status" id="funnel-${dayName}">${statusIcon}</div>
+                    ${COLS.map(c => `<input type="number" data-day="${dayName}" data-col="${c}" value="0" oninput="updateTotals()">`).join('')}
+                    <input type="number" data-day="${dayName}" data-col="prima" value="0" step="0.01" oninput="updateTotals()">
+                </div>`;
+        }
+
+        function renderMobileTodayCard(dayName, date, monthShort) {
+            return `
+                <div class="m-day-today" data-day="${dayName}">
+                    <div class="m-today-header">
+                        <div class="m-today-day">${dayName}<small>${date} de ${monthShort} · HOY</small></div>
+                        <div class="m-today-badge">EDITABLE</div>
+                    </div>
+                    <div class="m-today-grid">
+                        ${COLS.map(c => `
+                            <div class="m-field">
+                                <label>${c} <small>${M_COL_LABELS[c]}</small></label>
+                                <input type="number" inputmode="numeric" data-day="${dayName}" data-col="${c}" value="0" oninput="updateTotals()">
+                            </div>`).join('')}
+                        <div class="m-field">
+                            <label>$ <small>Prima</small></label>
+                            <input type="number" inputmode="decimal" class="m-prima-input" data-day="${dayName}" data-col="prima" value="0" step="0.01" oninput="updateTotals()">
+                        </div>
+                    </div>
+                    <div class="m-today-status">
+                        <div class="m-funnel" id="funnel-${dayName}">—</div>
+                        <div style="color:var(--green);font-size:11px;"><i class="fa fa-check"></i> Auto-guardado</div>
+                    </div>
+                </div>`;
+        }
+
+        function renderMobileWeek(weekDays) {
+            const now = serverNow || new Date();
+            const month = parseInt(document.getElementById('sel-month').value);
+            const year = parseInt(document.getElementById('inp-year').value);
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const monthShort = M_MONTHS_SHORT[month - 1];
+
+            const todayIdx = weekDays.findIndex(({ date }) => {
+                const dd = new Date(year, month - 1, date);
+                return dd.getTime() === today.getTime();
+            });
+
+            const html = [];
+            if (todayIdx > 0) {
+                html.push('<div class="m-section-divider">— Días anteriores (cerrados) —</div>');
+                for (let i = 0; i < todayIdx; i++) {
+                    html.push(renderMobileCompactDay(weekDays[i].dayName, weekDays[i].date, monthShort, '—'));
+                }
+            } else if (todayIdx === -1) {
+                // Today not in this week — render all as compact, no section dividers
+                for (const { dayName, date } of weekDays) {
+                    html.push(renderMobileCompactDay(dayName, date, monthShort, '—'));
+                }
+            }
+            if (todayIdx >= 0) {
+                html.push(renderMobileTodayCard(weekDays[todayIdx].dayName, weekDays[todayIdx].date, monthShort));
+            }
+            if (todayIdx >= 0 && todayIdx < weekDays.length - 1) {
+                html.push('<div class="m-section-divider">— Días por venir —</div>');
+                for (let i = todayIdx + 1; i < weekDays.length; i++) {
+                    html.push(renderMobileCompactDay(weekDays[i].dayName, weekDays[i].date, monthShort, '🔒'));
+                }
+            }
+            document.getElementById('mobile-week').innerHTML = html.join('');
+        }
+
         window.updateWeekTable = function () {
             const semIdx = parseInt(document.getElementById('sel-semana').value) - 1;
             const weekDays = currentWeeks[semIdx] || [];
-            const tbody = document.getElementById('week-body');
-            tbody.innerHTML = weekDays.map(({ dayName, date }) => `
-                <tr data-day="${dayName}">
-                    <td style="font-weight:700; font-size:12px;">${dayName} <br><small style="color:var(--slate)">${date}</small></td>
-                    ${COLS.map(c => `<td><input type="number" inputmode="numeric" class="num-input" data-day="${dayName}" data-col="${c}" value="0" oninput="updateTotals()"></td>`).join('')}
-                    <td><input type="number" inputmode="decimal" class="num-input prima-input" data-day="${dayName}" data-col="prima" value="0" step="0.01" oninput="updateTotals()"></td>
-                    <td id="funnel-${dayName}" style="font-size:16px;text-align:center;">—</td>
-                </tr>`).join('');
+
+            if (isMobileViewport()) {
+                // Mobile: render cards, clear desktop table to evitar IDs duplicados
+                document.getElementById('week-body').innerHTML = '';
+                renderMobileWeek(weekDays);
+            } else {
+                // Desktop: render table, clear mobile cards
+                document.getElementById('mobile-week').innerHTML = '';
+                const tbody = document.getElementById('week-body');
+                tbody.innerHTML = weekDays.map(({ dayName, date }) => `
+                    <tr data-day="${dayName}">
+                        <td style="font-weight:700; font-size:12px;">${dayName} <br><small style="color:var(--slate)">${date}</small></td>
+                        ${COLS.map(c => `<td><input type="number" inputmode="numeric" class="num-input" data-day="${dayName}" data-col="${c}" value="0" oninput="updateTotals()"></td>`).join('')}
+                        <td><input type="number" inputmode="decimal" class="num-input prima-input" data-day="${dayName}" data-col="prima" value="0" step="0.01" oninput="updateTotals()"></td>
+                        <td id="funnel-${dayName}" style="font-size:16px;text-align:center;">—</td>
+                    </tr>`).join('');
+            }
             autoLoadBitacora();
             disableFutureDays();
         }
 
+        // Re-renderizar al cruzar el breakpoint mobile/desktop (rotación, resize)
+        let _wasMobileViewport = isMobileViewport();
+        window.addEventListener('resize', () => {
+            const nowMobile = isMobileViewport();
+            if (nowMobile !== _wasMobileViewport) {
+                _wasMobileViewport = nowMobile;
+                if (typeof window.updateWeekTable === 'function' && currentWeeks.length) {
+                    window.updateWeekTable();
+                }
+            }
+        });
+
         window.updateTotals = function (autoSave = true) {
             const totals = { P: 0, E: 0, C: 0, V: 0, S: 0, prima: 0 };
-            document.querySelectorAll('#week-body tr').forEach(row => {
-                const day = row.dataset.day;
+            // Iterar por currentWeeks en lugar de DOM, así funciona en mobile (cards) o desktop (tabla)
+            const semIdx = parseInt(document.getElementById('sel-semana').value) - 1;
+            const weekDays = currentWeeks[semIdx] || [];
+            weekDays.forEach(({ dayName: day }) => {
                 const dvals = {};
                 COLS.forEach(c => {
-                    dvals[c] = parseFloat(document.querySelector(`input[data-day="${day}"][data-col="${c}"]`).value) || 0;
+                    const inp = document.querySelector(`input[data-day="${day}"][data-col="${c}"]`);
+                    dvals[c] = inp ? parseFloat(inp.value) || 0 : 0;
                 });
-                dvals.prima = parseFloat(document.querySelector(`input[data-day="${day}"][data-col="prima"]`).value) || 0;
+                const primaInp = document.querySelector(`input[data-day="${day}"][data-col="prima"]`);
+                dvals.prima = primaInp ? parseFloat(primaInp.value) || 0 : 0;
                 const { ok, errors } = validateDay(dvals);
                 if (ok) { COLS.forEach(c => totals[c] += dvals[c]); totals.prima += dvals.prima; }
                 const any = Object.values(dvals).some(v => v > 0) || dvals.prima > 0;
@@ -1758,9 +2066,29 @@
                     cell.textContent = !any ? '—' : (ok ? '🟢' : '🔴');
                     cell.title = ok ? 'Todo correcto' : '⚠️ ERRORES:\n• ' + errors.join('\n• ');
                 }
+                // Mobile: actualizar el resumen inline de los días compactos
+                const summaryEl = document.getElementById('m-summary-' + day);
+                if (summaryEl) {
+                    if (any) {
+                        const primaFmt = '$' + dvals.prima.toLocaleString('es-MX', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+                        summaryEl.innerHTML =
+                            `<span>P${dvals.P}</span><span>E${dvals.E}</span><span>C${dvals.C}</span>` +
+                            `<span>V${dvals.V}</span><span>S${dvals.S}</span><span class="m-prima">${primaFmt}</span>`;
+                    } else {
+                        summaryEl.innerHTML = '<span>—</span>';
+                    }
+                }
             });
-            COLS.forEach(c => document.getElementById('tt-' + c).textContent = totals[c]);
-            document.getElementById('tt-$').textContent = totals.prima.toFixed(2);
+            // Totales semanales: desktop tfoot (puede no existir en mobile)
+            COLS.forEach(c => {
+                const td = document.getElementById('tt-' + c);
+                if (td) td.textContent = totals[c];
+            });
+            const ttPrima = document.getElementById('tt-$');
+            if (ttPrima) ttPrima.textContent = totals.prima.toFixed(2);
+            // Totales semanales: mobile (solo prima)
+            const mTtPrima = document.getElementById('m-tt-$');
+            if (mTtPrima) mTtPrima.textContent = '$' + totals.prima.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
             // TOTAL MENSUAL
             const m = parseInt(document.getElementById('sel-month').value);
@@ -1773,14 +2101,19 @@
                     mTotals.prima += e.totales.prima;
                 }
             });
-            COLS.forEach(c => document.getElementById('mt-' + c).textContent = mTotals[c]);
-            document.getElementById('mt-$').textContent = mTotals.prima.toFixed(2);
+            COLS.forEach(c => {
+                const td = document.getElementById('mt-' + c);
+                if (td) td.textContent = mTotals[c];
+            });
+            const mtPrima = document.getElementById('mt-$');
+            if (mtPrima) mtPrima.textContent = mTotals.prima.toFixed(2);
+            const mMtPrima = document.getElementById('m-mt-$');
+            if (mMtPrima) mMtPrima.textContent = '$' + mTotals.prima.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
             if (autoSave) {
                 saveCurrentWeek(true);
                 // Marcar inputs como "saved" para evitar el prompt "Reload site? Changes you made may not be saved"
-                // (el agente auto-guarda pero el browser no lo sabe a menos que actualicemos defaultValue)
-                document.querySelectorAll('#week-body input').forEach(inp => {
+                document.querySelectorAll('input[data-day][data-col]').forEach(inp => {
                     inp.defaultValue = inp.value;
                 });
             }
@@ -1800,16 +2133,22 @@
             const mes = MONTHS_ES[m - 1] + ' ' + y;
             const semana = document.getElementById('sel-semana').value;
             const dias = [];
-            document.querySelectorAll('#week-body tr').forEach(row => {
-                const day = row.dataset.day;
+            // Iterar por currentWeeks (no DOM) para que funcione en mobile o desktop
+            const _semIdx = parseInt(semana) - 1;
+            const _weekDays = currentWeeks[_semIdx] || [];
+            _weekDays.forEach(({ dayName: day }) => {
+                const getVal = col => {
+                    const inp = document.querySelector(`input[data-day="${day}"][data-col="${col}"]`);
+                    return inp ? parseFloat(inp.value) || 0 : 0;
+                };
                 dias.push({
                     dia: day,
-                    P: parseFloat(document.querySelector(`input[data-day="${day}"][data-col="P"]`).value) || 0,
-                    E: parseFloat(document.querySelector(`input[data-day="${day}"][data-col="E"]`).value) || 0,
-                    C: parseFloat(document.querySelector(`input[data-day="${day}"][data-col="C"]`).value) || 0,
-                    V: parseFloat(document.querySelector(`input[data-day="${day}"][data-col="V"]`).value) || 0,
-                    S: parseFloat(document.querySelector(`input[data-day="${day}"][data-col="S"]`).value) || 0,
-                    prima: parseFloat(document.querySelector(`input[data-day="${day}"][data-col="prima"]`).value) || 0
+                    P: getVal('P'),
+                    E: getVal('E'),
+                    C: getVal('C'),
+                    V: getVal('V'),
+                    S: getVal('S'),
+                    prima: getVal('prima')
                 });
             });
             const totales = { P: 0, E: 0, C: 0, V: 0, S: 0, prima: 0 };
@@ -1834,11 +2173,16 @@
             const semana = document.getElementById('sel-semana').value;
             const entry = state.entries.find(e => e.mes === mes && e.semana == semana);
             if (!entry) {
-                document.querySelectorAll('#week-body input').forEach(i => i.value = 0);
+                // Limpiar inputs en cualquier layout (mobile o desktop)
+                document.querySelectorAll('input[data-day][data-col]').forEach(i => i.value = 0);
             } else {
                 entry.dias.forEach(d => {
-                    COLS.forEach(c => { document.querySelector(`input[data-day="${d.dia}"][data-col="${c}"]`).value = d[c]; });
-                    document.querySelector(`input[data-day="${d.dia}"][data-col="prima"]`).value = d.prima;
+                    COLS.forEach(c => {
+                        const inp = document.querySelector(`input[data-day="${d.dia}"][data-col="${c}"]`);
+                        if (inp) inp.value = d[c];
+                    });
+                    const primaInp = document.querySelector(`input[data-day="${d.dia}"][data-col="prima"]`);
+                    if (primaInp) primaInp.value = d.prima;
                 });
             }
             updateTotals(false);
