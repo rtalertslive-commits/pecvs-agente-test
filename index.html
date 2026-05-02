@@ -1561,12 +1561,14 @@
         function lockToCurrentWeek() {
             if (!serverNow) return;
             const today = new Date(serverNow.getFullYear(), serverNow.getMonth(), serverNow.getDate());
-            const dayOfWeek = (today.getDay() + 6) % 7; // 0=Mon...6=Sun
-            const monday = new Date(today);
-            monday.setDate(today.getDate() - dayOfWeek);
 
-            const wkYear = monday.getFullYear();
-            const wkMonth = monday.getMonth() + 1;
+            // FIX: usar el mes/año de HOY (no del lunes de la semana). Si la semana cruza meses
+            // (ej: vie 1 may con monday=27 abr), getMonthCalendar(abril) devuelve una semana parcial
+            // [lun27...jue30] que NO contiene HOY, dejando todos los días bloqueados. Usando el mes
+            // de hoy, getMonthCalendar(mayo) devuelve [vie1, sab2, dom3] — hoy SÍ está dentro y es
+            // editable. La parte de la semana que cae en abril queda en la semana 4 de abril.
+            const wkYear = today.getFullYear();
+            const wkMonth = today.getMonth() + 1;
 
             const monthSel = document.getElementById('sel-month');
             const yearInp = document.getElementById('inp-year');
@@ -1579,9 +1581,9 @@
 
             currentWeeks = getMonthCalendar(wkYear, wkMonth);
 
-            const mondayDate = monday.getDate();
-            let weekIdx = currentWeeks.findIndex(w => w[0] && w[0].date === mondayDate);
-            if (weekIdx < 0) weekIdx = currentWeeks.findIndex(w => w.some(d => d.date === mondayDate));
+            // Buscar la semana (parcial o completa) que contenga HOY
+            const todayDate = today.getDate();
+            let weekIdx = currentWeeks.findIndex(w => w.some(d => d.date === todayDate));
             if (weekIdx < 0) weekIdx = 0;
 
             const w = currentWeeks[weekIdx];
