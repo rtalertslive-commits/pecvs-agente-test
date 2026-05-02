@@ -2079,8 +2079,15 @@
         }
 
         window.validateDay = function (d) {
-            if (d.P === 0 && d.E === 0 && d.C === 0 && d.V === 0 && d.S === 0 && d.prima === 0) return { ok: true, errors: [] };
+            // Defensa: cualquier valor NaN o negativo se considera inválido
             const errors = [];
+            for (const k of ['P','E','C','V','S','prima']) {
+                if (typeof d[k] !== 'number' || isNaN(d[k]) || d[k] < 0) {
+                    errors.push(`Valor inválido en ${k}`);
+                }
+            }
+            if (errors.length) return { ok: false, errors };
+            if (d.P === 0 && d.E === 0 && d.C === 0 && d.V === 0 && d.S === 0 && d.prima === 0) return { ok: true, errors: [] };
             if (d.P < d.E) errors.push("Contactos (P) < Entrevistas (E)");
             if (d.E < d.C) errors.push("Entrevistas (E) < Cotizaciones (C)");
             if (d.C < d.V) errors.push("Cotizaciones (C) < Cierres (V)");
@@ -2108,8 +2115,8 @@
                     <div class="m-day-label">${dayName}<small>${date}/${monthShort}</small></div>
                     <div class="m-day-summary" id="m-summary-${dayName}"><span>—</span></div>
                     <div class="m-day-status" id="funnel-${dayName}">${statusIcon}</div>
-                    ${COLS.map(c => `<input type="number" data-day="${dayName}" data-col="${c}" value="0" oninput="updateTotals()">`).join('')}
-                    <input type="number" data-day="${dayName}" data-col="prima" value="0" step="0.01" oninput="updateTotals()">
+                    ${COLS.map(c => `<input type="number" min="0" data-day="${dayName}" data-col="${c}" value="0" oninput="updateTotals()">`).join('')}
+                    <input type="number" min="0" data-day="${dayName}" data-col="prima" value="0" step="0.01" oninput="updateTotals()">
                 </div>`;
         }
 
@@ -2124,11 +2131,11 @@
                         ${COLS.map(c => `
                             <div class="m-field">
                                 <label>${c} <small>${M_COL_LABELS[c]}</small></label>
-                                <input type="number" inputmode="numeric" data-day="${dayName}" data-col="${c}" value="0" oninput="updateTotals()">
+                                <input type="number" inputmode="numeric" min="0" data-day="${dayName}" data-col="${c}" value="0" oninput="updateTotals()">
                             </div>`).join('')}
                         <div class="m-field">
                             <label>$ <small>Prima</small></label>
-                            <input type="number" inputmode="decimal" class="m-prima-input" data-day="${dayName}" data-col="prima" value="0" step="0.01" oninput="updateTotals()">
+                            <input type="number" inputmode="decimal" min="0" class="m-prima-input" data-day="${dayName}" data-col="prima" value="0" step="0.01" oninput="updateTotals()">
                         </div>
                     </div>
                     <div class="m-today-status">
@@ -2189,8 +2196,8 @@
                 tbody.innerHTML = weekDays.map(({ dayName, date }) => `
                     <tr data-day="${dayName}">
                         <td style="font-weight:700; font-size:12px;">${dayName} <br><small style="color:var(--slate)">${date}</small></td>
-                        ${COLS.map(c => `<td><input type="number" inputmode="numeric" class="num-input" data-day="${dayName}" data-col="${c}" value="0" oninput="updateTotals()"></td>`).join('')}
-                        <td><input type="number" inputmode="decimal" class="num-input prima-input" data-day="${dayName}" data-col="prima" value="0" step="0.01" oninput="updateTotals()"></td>
+                        ${COLS.map(c => `<td><input type="number" inputmode="numeric" min="0" class="num-input" data-day="${dayName}" data-col="${c}" value="0" oninput="updateTotals()"></td>`).join('')}
+                        <td><input type="number" inputmode="decimal" min="0" class="num-input prima-input" data-day="${dayName}" data-col="prima" value="0" step="0.01" oninput="updateTotals()"></td>
                         <td id="funnel-${dayName}" style="font-size:16px;text-align:center;">—</td>
                     </tr>`).join('');
             }
@@ -2217,12 +2224,13 @@
             const weekDays = currentWeeks[semIdx] || [];
             weekDays.forEach(({ dayName: day }) => {
                 const dvals = {};
+                // Clamp a [0, ∞): Math.max(0, ...) bloquea negativos; `|| 0` bloquea NaN/empty
                 COLS.forEach(c => {
                     const inp = document.querySelector(`input[data-day="${day}"][data-col="${c}"]`);
-                    dvals[c] = inp ? parseFloat(inp.value) || 0 : 0;
+                    dvals[c] = inp ? Math.max(0, parseFloat(inp.value) || 0) : 0;
                 });
                 const primaInp = document.querySelector(`input[data-day="${day}"][data-col="prima"]`);
-                dvals.prima = primaInp ? parseFloat(primaInp.value) || 0 : 0;
+                dvals.prima = primaInp ? Math.max(0, parseFloat(primaInp.value) || 0) : 0;
                 const { ok, errors } = validateDay(dvals);
                 if (ok) { COLS.forEach(c => totals[c] += dvals[c]); totals.prima += dvals.prima; }
                 const any = Object.values(dvals).some(v => v > 0) || dvals.prima > 0;
@@ -2301,10 +2309,17 @@
             // Iterar por currentWeeks (no DOM) para que funcione en mobile o desktop
             const _semIdx = parseInt(semana) - 1;
             const _weekDays = currentWeeks[_semIdx] || [];
+            // GUARD: si currentWeeks aún no se hidrata (carrera en init o sel-semana inválido),
+            // NO escribir nada. Sin este guard, dias=[] sobreescribe la entry existente con datos vacíos.
+            if (!_weekDays.length) {
+                console.warn('[saveCurrentWeek] currentWeeks vacío para semana', semana, '— skip para no borrar datos previos.');
+                return;
+            }
             _weekDays.forEach(({ dayName: day }) => {
                 const getVal = col => {
                     const inp = document.querySelector(`input[data-day="${day}"][data-col="${col}"]`);
-                    return inp ? parseFloat(inp.value) || 0 : 0;
+                    // Clamp a [0, ∞): bloquea negativos, NaN y strings inválidos
+                    return inp ? Math.max(0, parseFloat(inp.value) || 0) : 0;
                 };
                 dias.push({
                     dia: day,
