@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PECVS$ Agente — Registro Individual</title>
+    <title>Actividad — Registro Profesional</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap"
@@ -17,7 +17,7 @@
     <meta name="theme-color" content="#d4af37">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="PECVS$ Agente">
+    <meta name="apple-mobile-web-app-title" content="Actividad">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2666/2666065.png">
     <style>
         :root {
@@ -84,14 +84,52 @@
             }
         }
 
-        .header-left h1 {
+        /* BRAND: monograma dorado + wordmark "Actividad" */
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .brand-mono {
+            width: 48px;
+            height: 48px;
+            border-radius: 11px;
+            background: linear-gradient(135deg, var(--gold-l) 0%, var(--gold) 50%, #a08015 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-family: 'Playfair Display', serif;
+            font-weight: 900;
             font-size: 26px;
+            color: var(--bg);
+            box-shadow: 0 4px 14px rgba(212, 175, 55, 0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+            flex-shrink: 0;
+            line-height: 1;
+        }
+        .header-left h1 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 800;
+            font-size: 19px;
             margin: 0;
-            background: linear-gradient(90deg, var(--white), var(--gold));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--white);
+            letter-spacing: -0.3px;
+            line-height: 1.1;
+            background: none;
+            -webkit-text-fill-color: var(--white);
+        }
+        .brand-sub {
+            font-size: 9px;
+            letter-spacing: 3px;
+            color: var(--gold);
+            text-transform: uppercase;
+            margin-top: 3px;
+            font-weight: 600;
+        }
+        .brand-sub .ver {
+            color: var(--slate);
+            margin-left: 6px;
+            letter-spacing: 1px;
+            font-weight: 500;
         }
 
         .header-left p {
@@ -768,8 +806,13 @@
         <!-- HEADER -->
         <div class="header">
             <div class="header-left">
-                <h1><i class="fa-solid fa-user-tie" style="font-size:22px;margin-right:10px;"></i>PECVS$ Agente <small
-                        style="font-size:10px; color:var(--slate);">v1.3.0</small></h1>
+                <div class="brand">
+                    <div class="brand-mono">A</div>
+                    <div>
+                        <h1>Actividad</h1>
+                        <div class="brand-sub">REGISTRO PROFESIONAL <span class="ver">v1.3</span></div>
+                    </div>
+                </div>
                 <p id="agent-display">Agente: —</p>
                 <div id="karma-badge">
                     <span class="star">🌮</span>
