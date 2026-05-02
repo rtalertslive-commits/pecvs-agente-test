@@ -1330,6 +1330,19 @@
         </button>
     </nav>
 
+    <!-- UPDATE AVAILABLE MODAL -->
+    <div class="modal-overlay" id="update-available-modal">
+        <div class="modal-box" style="max-width:340px;text-align:center;">
+            <div style="font-size:48px;margin-bottom:8px;">🚀</div>
+            <h2 style="font-family:'Inter',sans-serif;font-weight:800;color:var(--white);margin:0 0 8px;font-size:18px;">Nueva versión disponible</h2>
+            <p style="color:var(--slate);font-size:13px;margin:0 0 20px;line-height:1.5;">Recargá la app para obtener las últimas mejoras y arreglos.</p>
+            <div style="display:flex;gap:10px;">
+                <button class="btn btn-sm" style="flex:1;" onclick="dismissUpdate()">Después</button>
+                <button class="btn btn-sm" style="flex:1;border-color:var(--green) !important;color:var(--green) !important;" onclick="applyUpdate()">Recargar ahora</button>
+            </div>
+        </div>
+    </div>
+
     <!-- LOGOUT CONFIRMATION MODAL -->
     <div class="modal-overlay" id="logout-confirm-modal" onclick="if(event.target===this)cancelLogout()">
         <div class="modal-box" style="max-width:340px;text-align:center;">
@@ -1695,6 +1708,23 @@
             document.getElementById('logout-confirm-modal').classList.remove('open');
         };
 
+        // Modal de "nueva versión disponible". Reemplaza el confirm() nativo que
+        // no se mostraba dentro de PWA standalone en iOS.
+        let _updateModalShown = false;
+        window.showUpdateModal = function () {
+            if (_updateModalShown) return; // evitar mostrar 2 veces si statechange dispara doble
+            _updateModalShown = true;
+            document.getElementById('update-available-modal').classList.add('open');
+        };
+        window.applyUpdate = function () {
+            location.reload();
+        };
+        window.dismissUpdate = function () {
+            document.getElementById('update-available-modal').classList.remove('open');
+            // No reseteamos _updateModalShown — si dismiss, no mostrar otra vez en
+            // esta sesión (evita acoso). Lo verá la próxima vez que abra la app.
+        };
+
         async function loadFromCloud() {
             if (!user) return;
             const docRef = doc(db, "users", user.email);
@@ -1865,16 +1895,25 @@
 
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js').then(reg => {
-                    reg.onupdatefound = () => {
-                        const sw = reg.installing;
-                        sw.onstatechange = () => {
-                            if (sw.state === 'installed' && navigator.serviceWorker.controller) {
-                                if (confirm("¡Nueva versión disponible! ¿Actualizar ahora?")) {
-                                    location.reload();
-                                }
+                    // Detección de nueva versión: usamos addEventListener (más robusto
+                    // que asignación directa) + modal custom (confirm() nativo no se ve
+                    // dentro de PWA standalone en iOS).
+                    reg.addEventListener('updatefound', () => {
+                        const newSW = reg.installing;
+                        if (!newSW) return;
+                        newSW.addEventListener('statechange', () => {
+                            if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+                                showUpdateModal();
                             }
-                        };
-                    };
+                        });
+                    });
+                    // Forzar check de updates al volver el foco a la app y cada hora
+                    document.addEventListener('visibilitychange', () => {
+                        if (document.visibilityState === 'visible') {
+                            reg.update().catch(() => {});
+                        }
+                    });
+                    setInterval(() => reg.update().catch(() => {}), 60 * 60 * 1000);
                 }).catch(err => console.log("SW error:", err));
             }
 
