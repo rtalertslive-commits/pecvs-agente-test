@@ -175,21 +175,30 @@
             font-weight: 600;
             cursor: pointer;
             transition: .25s;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .btn:hover {
-            background: var(--gold);
-            color: var(--bg);
+        /* Hover SOLO en dispositivos con cursor real (mouse/trackpad).
+           Sin esto, el touch en mobile dispara :hover y se queda "pegado". */
+        @media (hover: hover) and (pointer: fine) {
+            .btn:hover {
+                background: var(--gold);
+                color: var(--bg);
+            }
+            .btn-green:hover {
+                background: var(--green);
+                color: #fff;
+            }
+        }
+
+        /* Feedback breve al tap en mobile (active dura solo mientras el dedo pisa) */
+        .btn:active {
+            transform: scale(0.97);
         }
 
         .btn-green {
             border-color: var(--green);
             color: var(--green);
-        }
-
-        .btn-green:hover {
-            background: var(--green);
-            color: #fff;
         }
 
         .btn-sm {
@@ -1334,6 +1343,19 @@
         </button>
     </nav>
 
+    <!-- LOGOUT CONFIRMATION MODAL -->
+    <div class="modal-overlay" id="logout-confirm-modal" onclick="if(event.target===this)cancelLogout()">
+        <div class="modal-box" style="max-width:340px;text-align:center;">
+            <div style="font-size:42px;margin-bottom:8px;">👋</div>
+            <h2 style="font-family:'Inter',sans-serif;font-weight:800;color:var(--white);margin:0 0 8px;font-size:18px;">¿Cerrar sesión?</h2>
+            <p style="color:var(--slate);font-size:13px;margin:0 0 20px;">Tendrás que volver a entrar con Google la próxima vez.</p>
+            <div style="display:flex;gap:10px;">
+                <button class="btn btn-sm" style="flex:1;" onclick="cancelLogout()">Cancelar</button>
+                <button class="btn btn-sm" style="flex:1;border-color:var(--red) !important;color:var(--red) !important;" onclick="confirmLogout()">Cerrar sesión</button>
+            </div>
+        </div>
+    </div>
+
     <!-- CONFIG MODAL -->
     <div class="modal-overlay" id="config-modal">
         <div class="modal-box">
@@ -1659,12 +1681,17 @@
         };
 
         window.logout = function () {
-            if (confirm("¿Cerrar sesión?")) {
-                auth.signOut().then(() => {
-                    location.reload();
-                });
-            }
-        }
+            // Reemplaza confirm() nativo por modal custom: confirm() puede comportarse
+            // raro dentro de PWAs standalone en iOS y deja el boton en estado :hover sticky.
+            document.getElementById('logout-confirm-modal').classList.add('open');
+        };
+        window.confirmLogout = function () {
+            document.getElementById('logout-confirm-modal').classList.remove('open');
+            auth.signOut().then(() => location.reload());
+        };
+        window.cancelLogout = function () {
+            document.getElementById('logout-confirm-modal').classList.remove('open');
+        };
 
         async function loadFromCloud() {
             if (!user) return;
