@@ -1478,6 +1478,20 @@
         let serverNow = null;
         let pointsConfig = { agentDailyPoints: 10 };
 
+        // Escapa HTML/atributos. Usado para datos que vienen de Firestore
+        // (catálogo de tienda controlado por director, solicitudes, etc.) antes de
+        // interpolar en innerHTML / atributos onclick. Evita XSS y rotura por
+        // apóstrofes en nombres de items (ej: "O'Reilly").
+        function escapeHtml(str) {
+            if (str == null) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         // ─── PWA INSTALL ───────────────────────────────────────────────────────────
         // Captura el evento beforeinstallprompt (Chrome/Edge en Android y desktop) y
         // muestra un boton custom. iOS Safari NO dispara este evento — para iOS
@@ -1703,7 +1717,19 @@
         async function syncToCloud() {
             if (!user || firebaseConfig.apiKey === "TU_API_KEY") return;
             try {
-                await setDoc(doc(db, "users", user.email), state);
+                // WHITELIST: solo escribir los campos que el agente posee.
+                // Los campos admin (agentName, teamCode, coachNum, promotorTeamCode,
+                // directorCode, regionName, companyCode, status, type, etc.) NUNCA se
+                // tocan desde la app del agente — el director los controla y deben
+                // sobrevivir reasignaciones / correcciones / cambios de estado.
+                // Con { merge: true } cualquier campo no listado queda intacto en Firestore.
+                const agentOwnedFields = {
+                    entries: state.entries,
+                    karma: state.karma,
+                    karmaLog: state.karmaLog,
+                    karmaLastNotified: state.karmaLastNotified
+                };
+                await setDoc(doc(db, "users", user.email), agentOwnedFields, { merge: true });
                 console.log("Synced to cloud");
             } catch (err) { console.error("Sync error:", err); }
         }
@@ -2180,13 +2206,22 @@
                 container.innerHTML = items.map(item => {
                     const puedo = (state.karma || 0) >= item.costo;
                     const sinStock = item.stock === 0;
+                    // Escapar TODOS los strings que vengan del catálogo (controlado por
+                    // director) — si tiene apóstrofes rompe el onclick, si tiene HTML
+                    // se ejecuta en el navegador del agente (XSS).
+                    const eEmoji = escapeHtml(item.emoji || '🎁');
+                    const eNombre = escapeHtml(item.nombre || '');
+                    const eDesc = escapeHtml(item.descripcion || '');
+                    const eId = escapeHtml(item.id || '');
+                    const eCatalog = escapeHtml(catalogId);
+                    const costoNum = Number(item.costo) || 0;
                     return `<div style="background:var(--panel2);border-radius:12px;padding:16px;border:1px solid rgba(212,175,55,0.15);display:flex;flex-direction:column;gap:8px;">
-                        <div style="font-size:36px;text-align:center;">${item.emoji||'🎁'}</div>
-                        <div style="font-weight:700;font-size:14px;text-align:center;">${item.nombre}</div>
-                        <div style="font-size:12px;color:var(--slate);text-align:center;">${item.descripcion||''}</div>
-                        <div style="text-align:center;font-weight:800;color:var(--gold);">🌮 ${item.costo} tacos</div>
-                        ${item.stock >= 0 ? `<div style="text-align:center;font-size:11px;color:var(--slate);">Stock: ${item.stock}</div>` : ''}
-                        <button class="btn btn-sm ${puedo&&!sinStock?'btn-green':''}" ${(!puedo||sinStock)?'disabled':''} onclick="solicitarCanje('${item.id}','${item.nombre}',${item.costo},'${item.emoji||'🎁'}','${catalogId}')" style="${sinStock?'opacity:0.4':''}">
+                        <div style="font-size:36px;text-align:center;">${eEmoji}</div>
+                        <div style="font-weight:700;font-size:14px;text-align:center;">${eNombre}</div>
+                        <div style="font-size:12px;color:var(--slate);text-align:center;">${eDesc}</div>
+                        <div style="text-align:center;font-weight:800;color:var(--gold);">🌮 ${costoNum} tacos</div>
+                        ${item.stock >= 0 ? `<div style="text-align:center;font-size:11px;color:var(--slate);">Stock: ${Number(item.stock)||0}</div>` : ''}
+                        <button class="btn btn-sm ${puedo&&!sinStock?'btn-green':''}" ${(!puedo||sinStock)?'disabled':''} onclick="solicitarCanje('${eId}','${eNombre}',${costoNum},'${eEmoji}','${eCatalog}')" style="${sinStock?'opacity:0.4':''}">
                             ${sinStock ? 'Sin stock' : !puedo ? 'Tacos insuficientes' : '🛒 Solicitar canje'}
                         </button>
                     </div>`;
@@ -2204,10 +2239,14 @@
                 container.innerHTML = reqs.length ? reqs.map(r => {
                     const color = r.status==='approved'?'var(--green)':r.status==='rejected'?'var(--red)':'var(--orange)';
                     const label = r.status==='approved'?'✓ Aprobado':r.status==='rejected'?'✗ Rechazado':'⏳ Pendiente';
+                    // Escapar strings de Firestore antes de inyectar en innerHTML
+                    const eEmoji = escapeHtml(r.emoji || '🎁');
+                    const eName = escapeHtml(r.itemNombre || '');
+                    const costoNum = Number(r.costo) || 0;
                     return `<div style="padding:10px 14px;background:var(--panel);border-radius:8px;border-left:3px solid ${color};display:flex;justify-content:space-between;align-items:center;gap:8px;">
                         <div>
-                            <div style="font-weight:600;font-size:13px;">${r.emoji||'🎁'} ${r.itemNombre}</div>
-                            <div style="font-size:11px;color:var(--slate);">🌮 ${r.costo} tacos &nbsp;·&nbsp; ${new Date(r.fechaSolicitud).toLocaleDateString('es-MX')}</div>
+                            <div style="font-weight:600;font-size:13px;">${eEmoji} ${eName}</div>
+                            <div style="font-size:11px;color:var(--slate);">🌮 ${costoNum} tacos &nbsp;·&nbsp; ${new Date(r.fechaSolicitud).toLocaleDateString('es-MX')}</div>
                         </div>
                         <span style="color:${color};font-size:11px;font-weight:700;white-space:nowrap;">${label}</span>
                     </div>`;
