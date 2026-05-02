@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pecvs-agent-v1.5.1';
+const CACHE_NAME = 'pecvs-agent-v1.5.2';
 const assets = ['./', './index.html'];
 
 self.addEventListener('install', e => {

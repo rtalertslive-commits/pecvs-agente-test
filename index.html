@@ -182,6 +182,54 @@
             animation: fadeIn .3s ease;
         }
 
+        /* ═══ BOTTOM NAV (mobile only, estilo iOS/Android) ═══ */
+        .bottom-nav { display: none; }
+
+        @media (max-width: 767px) {
+            .tab-nav { display: none; }
+            body { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+            .bottom-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: rgba(2, 6, 23, 0.92);
+                border-top: 1px solid var(--border);
+                padding: 8px 4px calc(10px + env(safe-area-inset-bottom, 0px));
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                z-index: 100;
+            }
+        }
+
+        .bottom-nav .bn-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--slate);
+            cursor: pointer;
+            text-align: center;
+            padding: 6px 2px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .bottom-nav .bn-btn i {
+            font-size: 19px;
+            line-height: 1;
+            transition: transform 0.15s ease;
+        }
+        .bottom-nav .bn-btn span {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+        .bottom-nav .bn-btn.active { color: var(--gold); }
+        .bottom-nav .bn-btn.active i { transform: scale(1.12); }
+
         /* CARDS */
         .card {
             background: var(--panel);
@@ -737,17 +785,17 @@
             </div>
         </div>
 
-        <!-- TAB NAV -->
+        <!-- TAB NAV (desktop only) -->
         <div class="tab-nav">
-            <button class="tab-btn active" onclick="switchTab('bitacora',this)"><i class="fa fa-book-open"></i>
+            <button class="tab-btn active" data-tab="bitacora" onclick="switchTab('bitacora',this)"><i class="fa fa-book-open"></i>
                 Bitácora</button>
-            <button class="tab-btn" onclick="switchTab('kpis',this)"><i class="fa fa-chart-column"></i> Mis
+            <button class="tab-btn" data-tab="kpis" onclick="switchTab('kpis',this)"><i class="fa fa-chart-column"></i> Mis
                 KPIs</button>
-            <button class="tab-btn" onclick="switchTab('charts',this)"><i class="fa fa-chart-area"></i>
+            <button class="tab-btn" data-tab="charts" onclick="switchTab('charts',this)"><i class="fa fa-chart-area"></i>
                 Tendencias</button>
-            <button class="tab-btn" onclick="switchTab('conceptos',this)"><i class="fa fa-lightbulb"></i>
+            <button class="tab-btn" data-tab="conceptos" onclick="switchTab('conceptos',this)"><i class="fa fa-lightbulb"></i>
                 Conceptos</button>
-            <button class="tab-btn" onclick="switchTab('tienda',this);initAgenteTienda()"><i class="fa fa-store"></i> Tienda</button>
+            <button class="tab-btn" data-tab="tienda" onclick="switchTab('tienda',this)"><i class="fa fa-store"></i> Tienda</button>
         </div>
 
         <!-- TAB: BITACORA -->
@@ -1050,6 +1098,30 @@
         </div><!-- /tab-tienda -->
 
     </div><!-- /app -->
+
+    <!-- BOTTOM NAV (mobile only, estilo iOS/Android) -->
+    <nav class="bottom-nav">
+        <button class="bn-btn active" data-tab="bitacora" onclick="switchTab('bitacora',this)">
+            <i class="fa fa-book-open"></i>
+            <span>Bitácora</span>
+        </button>
+        <button class="bn-btn" data-tab="kpis" onclick="switchTab('kpis',this)">
+            <i class="fa fa-chart-column"></i>
+            <span>KPIs</span>
+        </button>
+        <button class="bn-btn" data-tab="charts" onclick="switchTab('charts',this)">
+            <i class="fa fa-chart-area"></i>
+            <span>Tend.</span>
+        </button>
+        <button class="bn-btn" data-tab="conceptos" onclick="switchTab('conceptos',this)">
+            <i class="fa fa-lightbulb"></i>
+            <span>Concep.</span>
+        </button>
+        <button class="bn-btn" data-tab="tienda" onclick="switchTab('tienda',this)">
+            <i class="fa fa-store"></i>
+            <span>Tienda</span>
+        </button>
+    </nav>
 
     <!-- CONFIG MODAL -->
     <div class="modal-overlay" id="config-modal">
@@ -1869,9 +1941,11 @@
 
         window.switchTab = function (name, btn) {
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            // Limpiar active en AMBOS navs (top tabs desktop + bottom nav mobile)
+            document.querySelectorAll('.tab-btn, .bn-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('tab-' + name).classList.add('active');
-            btn.classList.add('active');
+            // Activar el botón correspondiente en ambos navs (matched por data-tab)
+            document.querySelectorAll(`[data-tab="${name}"]`).forEach(b => b.classList.add('active'));
             if (name === 'kpis') renderKPIs();
             if (name === 'charts') renderCharts();
             if (name === 'tienda') window.initAgenteTienda();
