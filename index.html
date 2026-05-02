@@ -120,16 +120,31 @@
         .brand-sub {
             font-size: 9px;
             letter-spacing: 3px;
-            color: var(--gold);
             text-transform: uppercase;
             margin-top: 3px;
             font-weight: 600;
+            color: var(--slate);
         }
         .brand-sub .ver {
             color: var(--slate);
             margin-left: 6px;
             letter-spacing: 1px;
             font-weight: 500;
+        }
+        /* Pulse dorado tipo "shimmer" — para REGISTRO PROFESIONAL */
+        @keyframes brandSubPulse {
+            0%, 100% {
+                color: var(--gold);
+                text-shadow: 0 0 0 transparent;
+            }
+            50% {
+                color: var(--gold-l);
+                text-shadow: 0 0 10px rgba(212, 175, 55, 0.7), 0 0 20px rgba(212, 175, 55, 0.35);
+            }
+        }
+        .pulse-text {
+            animation: brandSubPulse 3s ease-in-out infinite;
+            color: var(--gold);
         }
 
         .header-left p {
@@ -743,9 +758,11 @@
         }
 
         .login-card h2 {
-            color: var(--gold);
+            color: var(--white);
+            font-family: 'Inter', sans-serif;
+            font-weight: 800;
             font-size: 28px;
-            margin-bottom: 10px;
+            margin: 0;
             letter-spacing: -0.5px;
         }
 
@@ -754,6 +771,29 @@
             font-size: 14px;
             margin-bottom: 30px;
             line-height: 1.5;
+        }
+
+        /* Brand block del login: monograma grande + wordmark + subtitle pulsante */
+        .login-brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+        .login-brand .brand-mono {
+            width: 76px;
+            height: 76px;
+            border-radius: 18px;
+            font-size: 42px;
+            box-shadow: 0 8px 28px rgba(212, 175, 55, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+        }
+        .login-brand .login-sub {
+            font-size: 10px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: var(--gold);
         }
 
         .btn-google {
@@ -789,8 +829,13 @@
     <!-- LOGIN OVERLAY -->
     <div id="login-overlay">
         <div class="login-card">
-            <div style="font-size: 50px; margin-bottom: 20px;">💼</div>
-            <h2>PECVS$ Express</h2>
+            <div class="login-brand">
+                <div class="brand-mono">A</div>
+                <div>
+                    <h2>Actividad</h2>
+                    <div class="login-sub"><span class="pulse-text">REGISTRO PROFESIONAL</span></div>
+                </div>
+            </div>
             <p>Tu bitácora estratégica, ahora segura en la nube. Sincroniza tus cierres y prospectos en tiempo real.</p>
             <button class="btn-google" id="login-btn">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
@@ -810,7 +855,7 @@
                     <div class="brand-mono">A</div>
                     <div>
                         <h1>Actividad</h1>
-                        <div class="brand-sub">REGISTRO PROFESIONAL <span class="ver">v1.3</span></div>
+                        <div class="brand-sub"><span class="pulse-text">REGISTRO PROFESIONAL</span> <span class="ver">v1.3</span></div>
                     </div>
                 </div>
                 <p id="agent-display">Agente: —</p>
