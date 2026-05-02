@@ -1865,10 +1865,35 @@
         });
 
         // Para cuando la tab está abierta 24/7 (PC con Chrome siempre arriba)
-        // Chequeamos cada 5 min si cambió el día/semana
+        // Chequeamos cada 5 min si cambió el día/semana (red de seguridad)
         setInterval(() => {
             if (document.visibilityState === 'visible') checkDayChange();
         }, 5 * 60 * 1000);
+
+        // ─── MIDNIGHT SCHEDULER ──────────────────────────────────────────────────
+        // Disparo PRECISO a las 12:00:05 AM (5s de margen para que la API ya tenga
+        // la fecha nueva). Re-agenda solo para la siguiente medianoche. Si el
+        // navegador/tab se durmió, el setInterval(5min) y visibilitychange actuán
+        // como fallback. Si cerraron la app, awardKarmaForPastDays repesca todo
+        // al volver a abrir (init).
+        async function scheduleMidnightCheck() {
+            // Asegurar serverNow fresco antes de calcular el delta
+            if (!serverNow) {
+                try { serverNow = await getServerTime(); } catch (e) {}
+            }
+            const now = serverNow || new Date();
+            const next = new Date(now);
+            next.setDate(now.getDate() + 1);
+            next.setHours(0, 0, 5, 0); // 12:00:05 AM
+            const ms = next.getTime() - now.getTime();
+            console.log(`[midnight] próximo corte en ${(ms/60000).toFixed(1)} min`);
+            setTimeout(async () => {
+                if (user) await checkDayChange();
+                scheduleMidnightCheck(); // reagendar para la siguiente medianoche
+            }, ms);
+        }
+        // Arranca el scheduler una sola vez al cargar el módulo
+        scheduleMidnightCheck();
 
         // Helper: número de semana ISO (Mon=start) para detectar cambio de semana
         function getISOWeek(date) {
@@ -2034,14 +2059,16 @@
             document.getElementById('karma-celebration').classList.add('show');
             createCoinParticles();
             playCashSound();
+            // Marcar como notificado AL MOSTRAR (no al dismiss). Si el usuario recarga
+            // la página sin cerrar el modal, no vuelve a salir la misma celebración.
+            const totalEarned = (state.karmaLog || []).reduce((sum, k) => sum + (k.points || 0), 0);
+            state.karmaLastNotified = totalEarned;
+            syncToCloud();
         };
 
         window.dismissKarmaCelebration = function () {
             document.getElementById('karma-celebration').classList.remove('show');
-            // Marcar como notificado el TOTAL ganado (no el balance actual)
-            const totalEarned = (state.karmaLog || []).reduce((sum, k) => sum + (k.points || 0), 0);
-            state.karmaLastNotified = totalEarned;
-            syncToCloud();
+            // (karmaLastNotified ya se actualizó al mostrar — aquí solo cerramos el modal)
         };
 
         async function awardKarma() {
