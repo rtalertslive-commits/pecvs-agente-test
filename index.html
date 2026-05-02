@@ -1480,13 +1480,13 @@
                 const weekChanged = prevNow && getISOWeek(serverNow) !== getISOWeek(prevNow);
                 const dayChanged  = prevNow && serverNow.toDateString() !== prevNow.toDateString();
 
-                if (weekChanged) {
+                if (weekChanged || dayChanged) {
+                    // Cualquier cambio de día requiere re-lockear (puede haber cruzado mes)
+                    // y re-renderizar (en mobile el layout depende de cuál es el día de hoy:
+                    // la card grande "EDITABLE" tiene que mover de día).
                     await awardKarmaForPastDays();
                     lockToCurrentWeek();
                     updateWeekTable();
-                } else if (dayChanged) {
-                    await awardKarmaForPastDays();
-                    disableFutureDays();
                 } else {
                     disableFutureDays();
                 }
