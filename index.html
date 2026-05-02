@@ -331,23 +331,10 @@
         }
 
         /* BITACORA TABLE */
-        .bitacora-header {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        @media (min-width: 768px) {
-            .bitacora-header {
-                flex-direction: row;
-                align-items: flex-end;
-            }
-
-            .bitacora-header>div {
-                flex: 1;
-            }
-        }
+        /* Selectores ocultos: la app calcula sola la semana actual via lockToCurrentWeek
+           y los bloquea (disabled). Los inputs siguen en DOM porque updateTotals,
+           saveCurrentWeek, autoLoadBitacora, awardKarma leen sus .value. */
+        .bitacora-header { display: none; }
 
         .table-scroll {
             overflow-x: auto;
