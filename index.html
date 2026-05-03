@@ -1472,7 +1472,7 @@
         // --- IMPORT FIREBASE ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, addDoc, getDocs, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, addDoc, getDocs, collection, query, where, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // Initialize
         const app = initializeApp(firebaseConfig);
@@ -2357,21 +2357,51 @@
             if ((state.karma || 0) < costo) { alert('Tacos insuficientes.'); return; }
             if (!confirm(`¿Solicitar canje de "${itemNombre}" por 🌮 ${costo} tacos? Los tacos se descontarán si el director aprueba.`)) return;
             try {
-                await addDoc(collection(db, 'redemptionRequests'), {
-                    emailSolicitante: user.email,
-                    nombreSolicitante: state.agentName || user.displayName || user.email,
-                    rol: 'agente',
-                    coachTeamCode: state.teamCode || '',
-                    directorCode: state.directorCode || '',   // multi-tenant
-                    regionName: state.regionName || '',
-                    itemId, itemNombre, costo, emoji, catalogDoc,
-                    status: 'pending',
-                    fechaSolicitud: new Date().toISOString()
+                // Transacción atómica: validar stock + decrementar + crear solicitud en un solo paso.
+                // Si dos agentes solicitan el último item al mismo tiempo, solo uno gana —
+                // el otro recibe error "ya alguien lo compró" y NO se crea solicitud.
+                const catRef = doc(db, 'store', catalogDoc);
+                const newReqRef = doc(collection(db, 'redemptionRequests')); // ID generado para set en tx
+
+                await runTransaction(db, async (tx) => {
+                    // ── READS ──
+                    const catSnap = await tx.get(catRef);
+                    if (!catSnap.exists()) throw new Error('El catálogo de la tienda no existe.');
+                    const items = (catSnap.data().items || []).slice();
+                    const idx = items.findIndex(i => i.id === itemId);
+                    if (idx < 0) throw new Error(`El item "${itemNombre}" ya no está en el catálogo.`);
+                    const item = items[idx];
+                    if (item.activo === false) throw new Error(`El item "${itemNombre}" fue desactivado.`);
+                    const stock = Number(item.stock);
+                    if (stock === 0) throw new Error(`Ya alguien compró el último "${itemNombre}". Sin stock disponible.`);
+                    // stock < 0 = infinito, stock > 0 = decrementable
+
+                    // ── WRITES ──
+                    if (stock > 0) {
+                        items[idx] = { ...item, stock: stock - 1 };
+                        tx.update(catRef, { items });
+                    }
+                    tx.set(newReqRef, {
+                        emailSolicitante: user.email,
+                        nombreSolicitante: state.agentName || user.displayName || user.email,
+                        rol: 'agente',
+                        coachTeamCode: state.teamCode || '',
+                        directorCode: state.directorCode || '',
+                        regionName: state.regionName || '',
+                        itemId, itemNombre, costo, emoji, catalogDoc,
+                        status: 'pending',
+                        stockReservado: stock > 0,   // marca si hubo decremento (para reincrementar al rechazar)
+                        fechaSolicitud: new Date().toISOString()
+                    });
                 });
-                alert(`✅ Solicitud enviada. El director la revisará pronto.`);
+                alert(`✅ Solicitud enviada. El item te queda reservado hasta que el director apruebe o rechace.`);
                 await renderMisSolicitudes();
                 await renderTiendaItems();
-            } catch(e) { alert('Error: ' + e.message); }
+            } catch(e) {
+                alert('No se pudo solicitar el canje:\n' + e.message);
+                // Refrescar la tienda para mostrar el stock actualizado
+                try { await renderTiendaItems(); } catch {}
+            }
         };
 
         window.refreshUI = function () {
