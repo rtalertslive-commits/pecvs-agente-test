@@ -1356,6 +1356,19 @@
         </div>
     </div>
 
+    <!-- CANJE CONFIRMATION MODAL -->
+    <div class="modal-overlay" id="canje-confirm-modal" onclick="if(event.target===this)cancelCanje()">
+        <div class="modal-box" style="max-width:380px;text-align:center;">
+            <div style="font-size:42px;margin-bottom:8px;">🛒</div>
+            <h2 style="font-family:'Inter',sans-serif;font-weight:800;color:var(--white);margin:0 0 12px;font-size:18px;">Confirmar canje</h2>
+            <p id="canje-confirm-text" style="color:var(--slate);font-size:13px;margin:0 0 20px;line-height:1.5;"></p>
+            <div style="display:flex;gap:10px;">
+                <button class="btn btn-sm" style="flex:1;" onclick="cancelCanje()">Cancelar</button>
+                <button class="btn btn-sm" style="flex:1;border-color:var(--green) !important;color:var(--green) !important;" onclick="confirmCanje()">Solicitar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- CONFIG MODAL -->
     <div class="modal-overlay" id="config-modal">
         <div class="modal-box">
@@ -2353,9 +2366,35 @@
             } catch(e) {}
         }
 
-        window.solicitarCanje = async function(itemId, itemNombre, costo, emoji, catalogDoc) {
+        // Entry point del botón de canje. Reemplaza confirm() nativo por modal custom
+        // (confirm() no se ve dentro de PWA standalone iOS).
+        window.solicitarCanje = function(itemId, itemNombre, costo, emoji, catalogDoc) {
             if ((state.karma || 0) < costo) { alert('Tacos insuficientes.'); return; }
-            if (!confirm(`¿Solicitar canje de "${itemNombre}" por 🌮 ${costo} tacos? Los tacos se descontarán si el director aprueba.`)) return;
+            openCanjeConfirm(itemId, itemNombre, costo, emoji, catalogDoc);
+        };
+
+        // Estado del modal de confirmación de canje
+        let _pendingCanje = null;
+        window.openCanjeConfirm = function (itemId, itemNombre, costo, emoji, catalogDoc) {
+            _pendingCanje = { itemId, itemNombre, costo, emoji, catalogDoc };
+            document.getElementById('canje-confirm-text').textContent =
+                `¿Solicitar canje de "${itemNombre}" por 🌮 ${costo} tacos? El item te queda reservado hasta que el director apruebe.`;
+            document.getElementById('canje-confirm-modal').classList.add('open');
+        };
+        window.confirmCanje = async function () {
+            const c = _pendingCanje;
+            document.getElementById('canje-confirm-modal').classList.remove('open');
+            _pendingCanje = null;
+            if (!c) return;
+            await window._doSolicitarCanje(c.itemId, c.itemNombre, c.costo, c.emoji, c.catalogDoc);
+        };
+        window.cancelCanje = function () {
+            document.getElementById('canje-confirm-modal').classList.remove('open');
+            _pendingCanje = null;
+        };
+
+        // Lógica real (llamada desde confirmCanje del modal)
+        window._doSolicitarCanje = async function(itemId, itemNombre, costo, emoji, catalogDoc) {
             try {
                 // Transacción atómica: validar stock + decrementar + crear solicitud en un solo paso.
                 // Si dos agentes solicitan el último item al mismo tiempo, solo uno gana —
