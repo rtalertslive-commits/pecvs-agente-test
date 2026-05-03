@@ -520,6 +520,91 @@
             font-size: 12px;
         }
         .m-funnel { font-weight: 700; }
+        /* Mensaje dinámico al lado del embudo (verde por default, rojo cuando hay error) */
+        .m-status-msg {
+            font-size: 11px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            text-align: right;
+            line-height: 1.25;
+        }
+        .m-status-msg.ok { color: var(--green); }
+        .m-status-msg.error {
+            color: var(--red);
+            font-weight: 700;
+            cursor: pointer;
+            user-select: none;
+        }
+        .m-status-msg.error .arrow { opacity: 0.7; font-size: 9px; }
+        .m-status-msg.error small {
+            display: block;
+            font-size: 10px;
+            font-weight: 500;
+            opacity: 0.85;
+            margin-top: 1px;
+        }
+        /* Botón "Sin intento de venta hoy" — solo cuando todo está en 0 y no marcado */
+        .btn-no-activity {
+            width: 100%;
+            background: rgba(148,163,184,0.08);
+            border: 1.5px dashed rgba(148,163,184,0.4);
+            color: var(--slate);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: inherit;
+            margin-top: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .btn-no-activity:hover {
+                background: rgba(148,163,184,0.15);
+                border-color: rgba(148,163,184,0.6);
+                color: var(--white);
+            }
+        }
+        /* Card de HOY en modo "sin actividad declarada" */
+        .m-today-noactivity {
+            text-align: center;
+            padding: 24px 16px;
+        }
+        .m-today-noactivity .moon { font-size: 56px; line-height: 1; margin-bottom: 12px; }
+        .m-today-noactivity h3 {
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            margin: 0 0 6px;
+            color: var(--white);
+            letter-spacing: 0.3px;
+        }
+        .m-today-noactivity .sub {
+            font-size: 12px;
+            color: var(--gold);
+            font-weight: 600;
+            margin-bottom: 18px;
+        }
+        .btn-revert-noactivity {
+            background: transparent;
+            border: 1px solid var(--slate);
+            color: var(--slate);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
 
         /* Totales mobile (solo prima) */
         .m-totals {
@@ -2253,10 +2338,11 @@
                 if (dayDate >= today) return; // hoy o futuro: karma se otorga al día siguiente
                 const dateKey = `${y}-${String(m).padStart(2, '0')}-${String(dayInfo.date).padStart(2, '0')}`;
                 if (state.karmaLog.some(k => k.date === dateKey)) return;
-                const hasData = (d.P + d.E + d.C + d.V + d.S) > 0 || parseFloat(d.prima) > 0;
+                // Día válido si: tiene actividad real O fue marcado "sin intento de venta" (honestidad)
+                const hasData = (d.P + d.E + d.C + d.V + d.S) > 0 || parseFloat(d.prima) > 0 || d.sinActividad === true;
                 if (!hasData) return;
                 state.karma += pts;
-                state.karmaLog.push({ date: dateKey, points: pts });
+                state.karmaLog.push({ date: dateKey, points: pts, type: d.sinActividad === true ? 'no_activity_declared' : 'daily' });
                 changed = true;
             });
 
@@ -2297,10 +2383,11 @@
                     const dayDate = new Date(y, m - 1, dayInfo.date);
                     if (dayDate >= today) return; // hoy o futuro: aún no
                     if (state.karmaLog.some(k => k.date === dateKey)) return; // ya contabilizado
-                    const hasData = (d.P + d.E + d.C + d.V + d.S) > 0 || parseFloat(d.prima) > 0;
+                    // Día válido si: tiene actividad real O fue marcado "sin intento de venta" (honestidad)
+                    const hasData = (d.P + d.E + d.C + d.V + d.S) > 0 || parseFloat(d.prima) > 0 || d.sinActividad === true;
                     if (!hasData) return;
                     state.karma += pts;
-                    state.karmaLog.push({ date: dateKey, points: pts });
+                    state.karmaLog.push({ date: dateKey, points: pts, type: d.sinActividad === true ? 'no_activity_declared' : 'daily' });
                     changed = true;
                 });
             }
@@ -2518,6 +2605,9 @@
         }
 
         window.validateDay = function (d) {
+            // Caso especial: día declarado "sin intento de venta" — válido por honestidad,
+            // ignora todos los demás campos (que normalmente vienen en 0 de todas formas).
+            if (d.sinActividad === true) return { ok: true, sinActividad: true, errors: [] };
             // Defensa: cualquier valor NaN o negativo se considera inválido
             const errors = [];
             for (const k of ['P','E','C','V','S','prima']) {
@@ -2544,6 +2634,63 @@
             return { ok: errors.length === 0, errors };
         }
 
+        // ─── DECLARAR / REVERTIR DÍA "SIN INTENTO DE VENTA" ──────────────────────────
+        // El agente puede declarar honestamente que hoy no hizo ningún intento de venta.
+        // Recibe los tacos del día igual que un día válido (honor system + transparencia
+        // hacia el director). Solo aplica al día actual; al día siguiente queda congelado.
+
+        window.marcarSinActividad = async function (dayName) {
+            const m = parseInt(document.getElementById('sel-month').value);
+            const y = parseInt(document.getElementById('inp-year').value);
+            const mes = MONTHS_ES[m - 1] + ' ' + y;
+            const semana = document.getElementById('sel-semana').value;
+
+            // Forzar que la entry exista (saveCurrentWeek crea/actualiza desde el DOM)
+            saveCurrentWeek(true);
+
+            const entry = state.entries.find(e => e.mes === mes && e.semana == semana);
+            if (!entry) { console.warn('[marcarSinActividad] entry no encontrada'); return; }
+
+            const dia = entry.dias.find(d => d.dia === dayName);
+            if (!dia) { console.warn('[marcarSinActividad] dia no encontrado'); return; }
+
+            // Marcar y limpiar cualquier valor previo para que no se mezcle con la declaración
+            dia.sinActividad = true;
+            dia.P = dia.E = dia.C = dia.V = dia.S = 0;
+            dia.prima = 0;
+
+            try {
+                await syncToCloud();
+            } catch (err) {
+                console.error('[marcarSinActividad] sync falló:', err);
+            }
+            updateWeekTable();   // re-render → muestra la vista "🌙 Sin intento"
+            awardKarma();        // por si es HOY y ya pasó medianoche con cambio de día
+        };
+
+        window.revertirSinActividad = async function (dayName) {
+            const m = parseInt(document.getElementById('sel-month').value);
+            const y = parseInt(document.getElementById('inp-year').value);
+            const mes = MONTHS_ES[m - 1] + ' ' + y;
+            const semana = document.getElementById('sel-semana').value;
+
+            const entry = state.entries.find(e => e.mes === mes && e.semana == semana);
+            if (!entry) return;
+            const dia = entry.dias.find(d => d.dia === dayName);
+            if (!dia) return;
+            delete dia.sinActividad;   // remueve el flag
+
+            try { await syncToCloud(); } catch (err) { console.error('[revertirSinActividad] sync falló:', err); }
+            updateWeekTable();   // re-render → vuelve a inputs editables
+        };
+
+        // Muestra los errores del embudo en un alert sencillo. Si después se quiere modal estilizado, swappear acá.
+        window.mostrarErroresEmbudo = function (dayName, errors) {
+            if (!errors || !errors.length) return;
+            const pts = (pointsConfig && pointsConfig.agentDailyPoints) || 10;
+            alert(`⚠️ El embudo de ${dayName} tiene errores:\n\n• ${errors.join('\n• ')}\n\nCorrige para ganar tus ${pts} 🌮 del día.`);
+        };
+
         // ─── MOBILE BITACORA RENDER ─────────────────────────────────────────────
         function isMobileViewport() {
             return window.matchMedia('(max-width: 767px)').matches;
@@ -2564,12 +2711,29 @@
         }
 
         function renderMobileTodayCard(dayName, date, monthShort) {
-            return `
-                <div class="m-day-today" data-day="${dayName}">
-                    <div class="m-today-header">
-                        <div class="m-today-day">${dayName}<small>${date} de ${monthShort} · HOY</small></div>
-                        <div class="m-today-badge">EDITABLE</div>
-                    </div>
+            // Lee el flag sinActividad desde state.entries (puede haber sido marcado ayer y persistido).
+            const m = parseInt(document.getElementById('sel-month').value);
+            const y = parseInt(document.getElementById('inp-year').value);
+            const mes = MONTHS_ES[m - 1] + ' ' + y;
+            const semana = document.getElementById('sel-semana').value;
+            const entry = (state.entries || []).find(e => e.mes === mes && e.semana == semana);
+            const diaData = entry?.dias?.find(d => d.dia === dayName);
+            const isMarked = diaData?.sinActividad === true;
+
+            // Vista alternativa: día declarado "sin intento" → tarjeta especial con luna + botón revertir
+            const noActivityView = `
+                <div class="m-today-noactivity" id="noact-view-${dayName}" ${isMarked ? '' : 'style="display:none;"'}>
+                    <div class="moon">🌙</div>
+                    <h3>Sin intento de venta hoy</h3>
+                    <div class="sub">+${(pointsConfig && pointsConfig.agentDailyPoints) || 10} 🌮 ganados por honestidad</div>
+                    <button class="btn-revert-noactivity" onclick="revertirSinActividad('${dayName}')">
+                        <i class="fa fa-pen"></i> Editar día
+                    </button>
+                </div>`;
+
+            // Vista normal: inputs + status + botón "Sin intento"
+            const activeView = `
+                <div class="m-today-active" id="active-view-${dayName}" ${isMarked ? 'style="display:none;"' : ''}>
                     <div class="m-today-grid">
                         ${COLS.map(c => `
                             <div class="m-field">
@@ -2583,8 +2747,23 @@
                     </div>
                     <div class="m-today-status">
                         <div class="m-funnel" id="funnel-${dayName}">—</div>
-                        <div style="color:var(--green);font-size:11px;"><i class="fa fa-check"></i> Auto-guardado</div>
+                        <div class="m-status-msg ok" id="status-msg-${dayName}">
+                            <i class="fa fa-check"></i> Auto-guardado
+                        </div>
                     </div>
+                    <button class="btn-no-activity" id="btn-noact-${dayName}" style="display:none;" onclick="marcarSinActividad('${dayName}')">
+                        🚫 Sin intento de venta hoy
+                    </button>
+                </div>`;
+
+            return `
+                <div class="m-day-today" data-day="${dayName}">
+                    <div class="m-today-header">
+                        <div class="m-today-day">${dayName}<small>${date} de ${monthShort} · HOY</small></div>
+                        <div class="m-today-badge">EDITABLE</div>
+                    </div>
+                    ${noActivityView}
+                    ${activeView}
                 </div>`;
         }
 
@@ -2674,18 +2853,55 @@
                 });
                 const primaInp = document.querySelector(`input[data-day="${day}"][data-col="prima"]`);
                 dvals.prima = primaInp ? Math.max(0, parseFloat(primaInp.value) || 0) : 0;
-                const { ok, errors } = validateDay(dvals);
+                // Inyecta el flag sinActividad desde state.entries para que validateDay lo respete.
+                const _entryForDay = (state.entries || []).find(e =>
+                    e.mes === (MONTHS_ES[parseInt(document.getElementById('sel-month').value) - 1] + ' ' + document.getElementById('inp-year').value)
+                    && e.semana == document.getElementById('sel-semana').value);
+                const _diaPersisted = _entryForDay?.dias?.find(x => x.dia === day);
+                if (_diaPersisted?.sinActividad === true) dvals.sinActividad = true;
+                const { ok, errors, sinActividad } = validateDay(dvals);
                 if (ok) { COLS.forEach(c => totals[c] += dvals[c]); totals.prima += dvals.prima; }
-                const any = Object.values(dvals).some(v => v > 0) || dvals.prima > 0;
+                const any = Object.values(dvals).some(v => typeof v === 'number' && v > 0) || dvals.prima > 0;
                 const cell = document.getElementById('funnel-' + day);
                 if (cell) {
-                    cell.textContent = !any ? '—' : (ok ? '🟢' : '🔴');
-                    cell.title = ok ? 'Todo correcto' : '⚠️ ERRORES:\n• ' + errors.join('\n• ');
+                    cell.textContent = sinActividad ? '🌙' : (!any ? '—' : (ok ? '🟢' : '🔴'));
+                    cell.title = sinActividad
+                        ? 'Día declarado sin intento de venta — +tacos por honestidad'
+                        : (ok ? 'Todo correcto' : '⚠️ ERRORES:\n• ' + errors.join('\n• '));
+                }
+                // Actualizar el mensaje al lado del embudo (solo existe en la card de HOY)
+                const statusMsg = document.getElementById('status-msg-' + day);
+                if (statusMsg) {
+                    if (!any || ok) {
+                        // Sin datos o validación OK → "Auto-guardado" verde (igual que antes)
+                        statusMsg.className = 'm-status-msg ok';
+                        statusMsg.innerHTML = '<i class="fa fa-check"></i> Auto-guardado';
+                        statusMsg.onclick = null;
+                    } else {
+                        // Hay datos pero embudo rojo → mensaje accionable
+                        const pts = (pointsConfig && pointsConfig.agentDailyPoints) || 10;
+                        statusMsg.className = 'm-status-msg error';
+                        statusMsg.innerHTML = `
+                            <div>
+                                Corrige el embudo · ${pts} 🌮
+                                <small>Toca para ver errores</small>
+                            </div>
+                            <span class="arrow"><i class="fa fa-chevron-right"></i></span>`;
+                        statusMsg.onclick = () => mostrarErroresEmbudo(day, errors);
+                    }
+                }
+                // Visibilidad del botón "Sin intento de venta hoy": solo cuando NO hay datos
+                // y el día NO está marcado (la vista alternativa no monta el botón).
+                const btnNoAct = document.getElementById('btn-noact-' + day);
+                if (btnNoAct) {
+                    btnNoAct.style.display = (!any && !sinActividad) ? '' : 'none';
                 }
                 // Mobile: actualizar el resumen inline de los días compactos
                 const summaryEl = document.getElementById('m-summary-' + day);
                 if (summaryEl) {
-                    if (any) {
+                    if (sinActividad) {
+                        summaryEl.innerHTML = '<span style="color:var(--gold-l);font-weight:600;">🌙 Sin intento de venta</span>';
+                    } else if (any) {
                         const primaFmt = '$' + dvals.prima.toLocaleString('es-MX', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
                         summaryEl.innerHTML =
                             `<span>P${dvals.P}</span><span>E${dvals.E}</span><span>C${dvals.C}</span>` +
@@ -2758,13 +2974,19 @@
                 console.warn('[saveCurrentWeek] currentWeeks vacío para semana', semana, '— skip para no borrar datos previos.');
                 return;
             }
+            // Mes/semana actuales para preservar el flag sinActividad de cada día (no está en el DOM)
+            const _curMes = mes;
+            const _curSem = semana;
+            const _existingEntry = state.entries.find(e => e.mes === _curMes && e.semana == _curSem);
             _weekDays.forEach(({ dayName: day }) => {
                 const getVal = col => {
                     const inp = document.querySelector(`input[data-day="${day}"][data-col="${col}"]`);
                     // Clamp a [0, ∞): bloquea negativos, NaN y strings inválidos
                     return inp ? Math.max(0, parseFloat(inp.value) || 0) : 0;
                 };
-                dias.push({
+                // Recuperar flag sinActividad de la entry existente (solo se altera con marcar/revertir)
+                const _prevDia = _existingEntry?.dias?.find(d => d.dia === day);
+                const dia = {
                     dia: day,
                     P: getVal('P'),
                     E: getVal('E'),
@@ -2772,7 +2994,9 @@
                     V: getVal('V'),
                     S: getVal('S'),
                     prima: getVal('prima')
-                });
+                };
+                if (_prevDia?.sinActividad === true) dia.sinActividad = true;
+                dias.push(dia);
             });
             const totales = { P: 0, E: 0, C: 0, V: 0, S: 0, prima: 0 };
             dias.forEach(d => { COLS.forEach(c => totales[c] += d[c]); totales.prima += d.prima; });
