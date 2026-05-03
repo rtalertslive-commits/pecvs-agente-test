@@ -947,7 +947,7 @@
                 <span>Instalar App en este dispositivo</span>
             </button>
             <div style="margin-top: 25px; font-size: 11px; color: var(--slate); opacity: 0.8;">
-                v1.3.0 — Sincronización mediante Google Firebase
+                <span data-app-version>—</span> · Sincronización mediante Google Firebase
             </div>
         </div>
     </div>
@@ -974,7 +974,7 @@
                     <div class="brand-mono">A</div>
                     <div>
                         <h1>Actividad</h1>
-                        <div class="brand-sub"><span class="pulse-text">REGISTRO PROFESIONAL</span> <span class="ver">v1.3</span></div>
+                        <div class="brand-sub"><span class="pulse-text">REGISTRO PROFESIONAL</span> <span class="ver" data-app-version>—</span></div>
                     </div>
                 </div>
                 <p id="agent-display">Agente: —</p>
@@ -1470,6 +1470,25 @@
             <button onclick="dismissKarmaCelebration()" style="padding:14px 48px;background:linear-gradient(135deg,var(--gold),#f0c040);color:#000;border:none;border-radius:30px;font-size:16px;font-weight:800;cursor:pointer;letter-spacing:1px;box-shadow:0 4px 20px rgba(212,175,55,0.4);">¡GENIAL! 🎉</button>
         </div>
     </div>
+
+    <script>
+        // Sync versión de la app desde sw.js (single source of truth).
+        // Lee CACHE_NAME del service worker y la muestra en title + login footer + header.
+        // Así no tenemos que mantener la versión hardcoded en 3 lugares — basta bumpear sw.js.
+        (async () => {
+            try {
+                const r = await fetch('./sw.js', { cache: 'no-cache' });
+                const text = await r.text();
+                const match = text.match(/CACHE_NAME\s*=\s*['"`][^'"`]*?v(\d+\.\d+\.\d+)['"`]/);
+                if (!match) return;
+                const v = 'v' + match[1];
+                document.title = 'Actividad — ' + v;
+                document.querySelectorAll('[data-app-version]').forEach(el => {
+                    el.textContent = v;
+                });
+            } catch (e) { /* ignore — el placeholder "—" queda visible */ }
+        })();
+    </script>
 
     <script type="module">
         // --- FIREBASE CONFIG ---
