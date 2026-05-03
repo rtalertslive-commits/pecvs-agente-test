@@ -2537,6 +2537,10 @@
                 errors.push("Solicitudes (S) > Doble de Cierres (2V)");
             }
             if (d.S > 0 && d.prima < 1) errors.push("Debe ingresar Prima ($) si hay solicitudes");
+            // Regla inversa: si hay prima debe haber al menos 1 solicitud (y por la regla
+            // V===0 && S>0 de arriba, eso obliga indirectamente a tener también ≥1 cierre).
+            // Sin esto, el embudo aparecía verde con todo en 0 y prima > 0.
+            if (d.prima > 0 && d.S === 0) errors.push("No puede haber Prima ($) sin al menos 1 Solicitud (S)");
             return { ok: errors.length === 0, errors };
         }
 
