@@ -500,15 +500,27 @@
             color: var(--white);
             font-variant-numeric: tabular-nums;
         }
+        /* Prima input: centrado, con prefijo "$" visible adentro del field */
         .m-field input.m-prima-input {
-            text-align: right;
+            text-align: center;
             color: var(--gold-l);
-            padding-right: 12px;
+            padding-left: 18px;  /* deja espacio al $ prefijo */
+            padding-right: 4px;
         }
-        /* Prima ocupa 2 columnas en mobile (grid es 3 cols, P/E/C va arriba,
-           S queda solo abajo a la izquierda y Prima toma el ancho que sobra) */
-        .m-field.m-prima-field {
-            grid-column: span 2;
+        .m-prima-wrap {
+            position: relative;
+            width: 100%;
+        }
+        .m-prima-prefix {
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gold-l);
+            font-weight: 700;
+            font-size: 14px;
+            pointer-events: none;
+            user-select: none;
         }
         /* Conceptos: layout 2-cols en desktop, single-col reordenado en mobile.
            Mobile order: visual funnel → defs (P/E/C/V) → S+$ (Volumen y Valor) → totopos */
@@ -2904,8 +2916,11 @@
                                 <input type="number" inputmode="numeric" min="0" data-day="${dayName}" data-col="${c}" value="0" oninput="updateTotals()">
                             </div>`).join('')}
                         <div class="m-field">
-                            <label>$ <small>Prima</small></label>
-                            <input type="number" inputmode="decimal" min="0" class="m-prima-input" data-day="${dayName}" data-col="prima" value="0" step="0.01" oninput="updateTotals()">
+                            <label><small>Prima</small></label>
+                            <div class="m-prima-wrap">
+                                <span class="m-prima-prefix">$</span>
+                                <input type="number" inputmode="decimal" min="0" class="m-prima-input" data-day="${dayName}" data-col="prima" value="0" step="0.01" oninput="updateTotals()">
+                            </div>
                         </div>
                     </div>
                     <div class="m-today-status">
@@ -3489,8 +3504,7 @@
                 data: {
                     labels,
                     datasets: [
-                        { label: '$/Vta', data: entries.map(e => e.totales.V > 0 ? (e.totales.prima / e.totales.V).toFixed(0) : 0), borderColor: CHART_COLORS.V, tension: 0.3 },
-                        { label: '$/Sol', data: entries.map(e => e.totales.S > 0 ? (e.totales.prima / e.totales.S).toFixed(0) : 0), borderColor: CHART_COLORS.S, tension: 0.3 }
+                        { label: '$/Vta', data: entries.map(e => e.totales.V > 0 ? (e.totales.prima / e.totales.V).toFixed(0) : 0), borderColor: CHART_COLORS.V, tension: 0.3 }
                     ]
                 },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { ticks: { color: '#94a3b8' } }, x: { ticks: { color: '#94a3b8' } } } }
