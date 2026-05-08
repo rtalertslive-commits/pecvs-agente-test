@@ -511,22 +511,24 @@
             grid-column: span 2;
         }
         /* Conceptos: layout 2-cols en desktop, single-col reordenado en mobile.
-           Mobile order: visual funnel → totopos → definiciones */
+           Mobile order: visual funnel → defs → $ Prima → totopos */
         .conceptos-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 30px;
         }
+        .conceptos-prima,
         .conceptos-totopos {
-            grid-column: 1 / -1;  /* Totopos full-width en desktop */
+            grid-column: 1 / -1;  /* full-width en desktop */
         }
         @media (max-width: 720px) {
             .conceptos-grid {
                 grid-template-columns: 1fr;
             }
             .conceptos-visual { order: 1; position: static !important; }
-            .conceptos-totopos { order: 2; }
-            .conceptos-defs { order: 3; }
+            .conceptos-defs   { order: 2; }
+            .conceptos-prima  { order: 3; }
+            .conceptos-totopos { order: 4; }
         }
         .m-field input:focus {
             outline: none;
@@ -1412,7 +1414,15 @@
                         </p>
                     </div>
 
-                    <!-- TOTOPOS — desktop: full-width abajo · mobile: order 2 -->
+                    <!-- $ PRIMA — desktop: full-width · mobile: order 3 -->
+                    <div class="conceptos-prima" style="margin-top:20px;">
+                        <strong style="color:var(--gold); font-size:1.2em;">$ - Prima total</strong><br>
+                        <p style="font-size:14px; margin:8px 0; color:var(--white);"><strong>Definición:</strong>
+                            Suma de la Prima Neta total vendida en el día.</p>
+                        <em style="color:var(--slate); font-size:12px;">¿Qué mide?: Rentabilidad financiera.</em>
+                    </div>
+
+                    <!-- TOTOPOS — desktop: full-width abajo · mobile: order 4 -->
                     <div class="conceptos-totopos" style="padding:18px; background:rgba(212,175,55,0.06); border:1px solid rgba(212,175,55,0.2); border-radius:12px;">
                         <div style="display:flex; align-items:center; gap:14px; margin-bottom:10px;">
                             <svg style="width:64px; height:64px; flex-shrink:0;"><use href="#totopo"/></svg>
@@ -1423,16 +1433,6 @@
                         <p style="font-size:14px; margin:8px 0; color:var(--white);"><strong>¿Para qué sirven?</strong> Los canjéas en la pestaña <strong>Tienda</strong> por premios y reconocimientos que el director pone disponibles.</p>
                         <em style="color:var(--slate); font-size:12px;">¿Qué miden?: Tu compromiso y consistencia con el reporte diario.</em>
                     </div>
-                </div>
-
-                <h2 style="font-family:'Playfair Display',serif; color:var(--gold); border-bottom: 2px solid var(--gold); padding-bottom:10px; margin:40px 0 25px; font-size:22px;">
-                    <i class="fa fa-chart-line"></i> MÉTRICAS DE VOLUMEN Y VALOR
-                </h2>
-                <div style="margin-bottom:24px;">
-                    <strong style="color:var(--gold); font-size:1.2em;">$ - Prima total</strong><br>
-                    <p style="font-size:14px; margin:8px 0; color:var(--white);"><strong>Definición:</strong>
-                        Suma de la Prima Neta total vendida en el día.</p>
-                    <em style="color:var(--slate); font-size:12px;">¿Qué mide?: Rentabilidad financiera.</em>
                 </div>
             </div>
         </div>
