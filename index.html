@@ -505,6 +505,11 @@
             color: var(--gold-l);
             padding-right: 12px;
         }
+        /* Prima ocupa 2 columnas en mobile (grid es 3 cols, P/E/C va arriba,
+           S queda solo abajo a la izquierda y Prima toma el ancho que sobra) */
+        .m-field.m-prima-field {
+            grid-column: span 2;
+        }
         .m-field input:focus {
             outline: none;
             border-color: var(--gold);
@@ -2750,7 +2755,6 @@
             if (d.P === 0 && d.E === 0 && d.C === 0 && d.S === 0 && d.prima === 0) return { ok: true, errors: [] };
             if (d.P < d.E) errors.push("Contactos (P) < Entrevistas (E)");
             if (d.E < d.C) errors.push("Entrevistas (E) < Cotizaciones (C)");
-            if (d.C < d.S) errors.push("Cotizaciones (C) < Solicitudes (S)");
             if (d.S > d.C * 2) errors.push("Solicitudes (S) > Doble de Cotizaciones (2C)");
             if (d.S > 0 && d.prima < 1) errors.push("Debe ingresar Prima ($) si hay solicitudes");
             // Regla inversa: si hay prima debe haber al menos 1 solicitud.
@@ -2865,7 +2869,7 @@
                                 <label>${c} <small>${M_COL_LABELS[c]}</small></label>
                                 <input type="number" inputmode="numeric" min="0" data-day="${dayName}" data-col="${c}" value="0" oninput="updateTotals()">
                             </div>`).join('')}
-                        <div class="m-field">
+                        <div class="m-field m-prima-field">
                             <label>$ <small>Prima</small></label>
                             <input type="number" inputmode="decimal" min="0" class="m-prima-input" data-day="${dayName}" data-col="prima" value="0" step="0.01" oninput="updateTotals()">
                         </div>
