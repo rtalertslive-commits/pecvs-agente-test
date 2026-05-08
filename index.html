@@ -1321,7 +1321,7 @@
                         <div class="chart-wrap"><canvas id="kpiRatios"></canvas></div>
                     </div>
                     <div class="chart-card">
-                        <h3><i class="fa fa-hand-holding-dollar"></i> Prima Promedio por Venta</h3>
+                        <h3><i class="fa fa-hand-holding-dollar"></i> Prima Promedio: $/V y $/S</h3>
                         <div class="chart-wrap"><canvas id="kpiPrimaAvg"></canvas></div>
                     </div>
                 </div>
@@ -3401,7 +3401,7 @@
             destroyChart('kpiPri');
             charts['kpiPri'] = new Chart(document.getElementById('kpiPrimaAvg'), {
                 type: 'bar',
-                data: { labels: ['$/V'], datasets: [{ data: [kTotals.V > 0 ? kTotals.prima / kTotals.V : 0], backgroundColor: [CHART_COLORS.V] }] },
+                data: { labels: ['$/V', '$/S'], datasets: [{ data: [kTotals.V > 0 ? kTotals.prima / kTotals.V : 0, kTotals.S > 0 ? kTotals.prima / kTotals.S : 0], backgroundColor: [CHART_COLORS.V, CHART_COLORS.S] }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
         }
