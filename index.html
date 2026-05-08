@@ -2755,7 +2755,7 @@
             if (d.P === 0 && d.E === 0 && d.C === 0 && d.S === 0 && d.prima === 0) return { ok: true, errors: [] };
             if (d.P < d.E) errors.push("Contactos (P) < Entrevistas (E)");
             if (d.E < d.C) errors.push("Entrevistas (E) < Cotizaciones (C)");
-            if (d.S > d.C * 2) errors.push("Solicitudes (S) > Doble de Cotizaciones (2C)");
+            if (d.S > d.C * 2) errors.push("Cantidad de Solicitudes inusual — verifica el dato");
             if (d.S > 0 && d.prima < 1) errors.push("Debe ingresar Prima ($) si hay solicitudes");
             // Regla inversa: si hay prima debe haber al menos 1 solicitud.
             // Sin esto, el embudo aparecía verde con todo en 0 y prima > 0.
