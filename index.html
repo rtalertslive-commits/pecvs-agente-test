@@ -1469,9 +1469,14 @@
                             <svg style="width:64px; height:64px; flex-shrink:0;"><use href="#totopo"/></svg>
                             <strong style="color:var(--gold); font-size:1.3em;">Totopos — tu moneda</strong>
                         </div>
-                        <p style="font-size:14px; margin:8px 0; color:var(--white);"><strong>¿Qué son?</strong> Son la moneda virtual que ganás por reportar tu día. Premian la disciplina y la honestidad: no importa si el día estuvo bueno o flojo, lo que cuenta es que reportes.</p>
-                        <p style="font-size:14px; margin:8px 0; color:var(--white);"><strong>¿Cómo se ganan?</strong> Ganás <strong>10 totopos por cada día reportado</strong>. Aplica tanto si llenaste el embudo con actividad real, como si lo marcaste "Sin intento de venta hoy" — la honestidad cuenta igual.</p>
-                        <p style="font-size:14px; margin:8px 0; color:var(--white);"><strong>¿Para qué sirven?</strong> Los canjéas en la pestaña <strong>Tienda</strong> por premios y reconocimientos que el director pone disponibles.</p>
+                        <p style="font-size:14px; margin:8px 0; color:var(--white);"><strong>¿Qué son?</strong> Moneda virtual que ganás por reportar tu día. Premian la disciplina y la honestidad — no importa si el día estuvo bueno o flojo, lo que cuenta es que reportes.</p>
+                        <p style="font-size:14px; margin:14px 0 6px; color:var(--white);"><strong>¿Cómo ganártelos?</strong> Ganás <strong>10 totopos por cada día reportado</strong> en cualquiera de estos dos casos:</p>
+                        <ul style="font-size:13px; margin:6px 0 8px 22px; color:var(--white); line-height:1.7; padding-left:0;">
+                            <li>🟢 <strong>Semáforo en verde</strong> — cargaste P/E/C/V/S/$ y el embudo cumple las reglas (P ≥ E ≥ C ≥ V, S entre V y 2V).</li>
+                            <li>🌙 <strong>"Sin intento de venta hoy"</strong> — declaraste honestamente que no hubo actividad. Cuenta igual.</li>
+                        </ul>
+                        <p style="font-size:13px; margin:8px 0; color:var(--slate);">Si el semáforo queda en 🔴 (datos rotos / embudo inválido) ese día <strong>no</strong> genera totopos. El corte se hace a las <strong>12:00 AM</strong> — durante el día puedes corregir las veces que quieras.</p>
+                        <p style="font-size:14px; margin:12px 0 8px; color:var(--white);"><strong>¿Para qué sirven?</strong> Los canjéas en la pestaña <strong>Tienda</strong> por premios que el director pone disponibles.</p>
                         <em style="color:var(--slate); font-size:12px;">¿Qué miden?: Tu compromiso y consistencia con el reporte diario.</em>
                     </div>
                 </div>
@@ -2514,9 +2519,11 @@
                 if (dayDate >= today) return; // hoy o futuro: karma se otorga al día siguiente
                 const dateKey = `${y}-${String(m).padStart(2, '0')}-${String(dayInfo.date).padStart(2, '0')}`;
                 if (state.karmaLog.some(k => k.date === dateKey)) return;
-                // Día válido si: tiene actividad real O fue marcado "sin intento de venta" (honestidad)
-                const hasData = (d.P + d.E + d.C + d.V + d.S) > 0 || parseFloat(d.prima) > 0 || d.sinActividad === true;
-                if (!hasData) return;
+                // Día válido para totopos: "Sin intento de venta" declarado (🌙) O semáforo en verde (🟢).
+                // Días en rojo (🔴) o vacíos no generan totopos.
+                const hasData = (d.P + d.E + d.C + d.V + d.S) > 0 || parseFloat(d.prima) > 0;
+                const isValid = d.sinActividad === true || (hasData && validateDay(d).ok);
+                if (!isValid) return;
                 state.karma += pts;
                 state.karmaLog.push({ date: dateKey, points: pts });
                 changed = true;
@@ -2559,9 +2566,11 @@
                     const dayDate = new Date(y, m - 1, dayInfo.date);
                     if (dayDate >= today) return; // hoy o futuro: aún no
                     if (state.karmaLog.some(k => k.date === dateKey)) return; // ya contabilizado
-                    // Día válido si: tiene actividad real O fue marcado "sin intento de venta" (honestidad)
-                    const hasData = (d.P + d.E + d.C + d.V + d.S) > 0 || parseFloat(d.prima) > 0 || d.sinActividad === true;
-                    if (!hasData) return;
+                    // Día válido para totopos: "Sin intento de venta" declarado (🌙) O semáforo en verde (🟢).
+                    // Días en rojo (🔴) o vacíos no generan totopos.
+                    const hasData = (d.P + d.E + d.C + d.V + d.S) > 0 || parseFloat(d.prima) > 0;
+                    const isValid = d.sinActividad === true || (hasData && validateDay(d).ok);
+                    if (!isValid) return;
                     state.karma += pts;
                     state.karmaLog.push({ date: dateKey, points: pts });
                     changed = true;
