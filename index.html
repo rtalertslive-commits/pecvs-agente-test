@@ -2806,6 +2806,7 @@
             if (d.C < d.V) errors.push("Cotizaciones (C) < Cierres (V)");
             if (d.S < d.V) errors.push("Solicitudes (S) < Cierres (V)");
             if (d.V === 0 && d.S > 0) errors.push("Si hay solicitudes, como mínimo tiene que haber 1 cierre");
+            if (d.S > d.V * 2) errors.push("Solicitudes (S) > Doble de Cierres (2V)");
             if (d.S > 0 && d.prima < 1) errors.push("Debe ingresar Prima ($) si hay solicitudes");
             // Regla inversa: si hay prima debe haber al menos 1 solicitud.
             // Sin esto, el embudo aparecía verde con todo en 0 y prima > 0.
