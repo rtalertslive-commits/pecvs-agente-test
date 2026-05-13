@@ -3483,14 +3483,6 @@
                         <li><strong>$/V — Por cierre:</strong> <code>Prima total ÷ Cierres</code> · cuánto paga en promedio cada persona que te compró.</li>
                         <li><strong>$/S — Por solicitud:</strong> <code>Prima total ÷ Solicitudes</code> · cuánto vale en promedio cada póliza individual.</li>
                     </ul>
-                    <h4>Diferencia entre los dos</h4>
-                    <p>Si una persona te firma 3 pólizas, cuenta como <strong>1 V</strong> pero <strong>3 S</strong>. Por eso <code>$/V</code> suele ser mayor o igual a <code>$/S</code>.</p>
-                    <h4>Por qué importa</h4>
-                    <ul>
-                        <li>Si <code>$/V</code> es alto: vendes productos de mayor valor o múltiples pólizas por cliente.</li>
-                        <li>Si <code>$/V</code> es bajo pero volumen alto: estrategia de bajo precio + alto volumen.</li>
-                    </ul>
-                    <div class="kpi-tip">💡 No hay número "correcto" — depende del producto y de tu estrategia. Lo importante es ver la tendencia con el tiempo.</div>
                 `
             }
         };
@@ -3621,11 +3613,20 @@
                         backgroundColor: 'rgba(212,175,55,.4)',
                         borderWidth: 4,
                         pointBackgroundColor: '#d4af37',
-                        pointRadius: 4
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 7,
+                        pointHoverRadius: 10,
+                        // Area de touch invisible mucho mas grande que el punto visual.
+                        // Sin esto, en mobile es muy dificil tocar el punto exacto.
+                        pointHitRadius: 30
                     }]
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
+                    // mode 'nearest' + intersect: false: el tooltip aparece tocando
+                    // cualquier zona cercana al punto, no solo el punto exacto.
+                    interaction: { mode: 'nearest', intersect: false },
                     scales: {
                         r: {
                             grid: { color: 'rgba(255,255,255,0.1)' },
