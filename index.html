@@ -957,6 +957,47 @@
             overflow: hidden;
         }
 
+        /* ═══ ANIMACIÓN DE GANANCIA DE TOTOPOS (no intrusiva) ═══
+           Reemplaza el modal celebration con feedback sutil en el badge:
+           1) "+N" flotante que sube y se desvanece (2.5s)
+           2) Glow dorado breve sobre el badge (1.5s)
+           3) Count-up animado del número (2.5s)
+        */
+        @keyframes karmaGainPop {
+            0%   { opacity: 0; transform: translate(-50%, 6px) scale(0.9); }
+            15%  { opacity: 1; transform: translate(-50%, 0) scale(1.05); }
+            30%  { opacity: 1; transform: translate(-50%, -4px) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -36px) scale(1); }
+        }
+        .karma-gain-popup {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--gold);
+            font-size: 17px;
+            font-weight: 800;
+            pointer-events: none;
+            white-space: nowrap;
+            text-shadow: 0 2px 10px rgba(212,175,55,0.7),
+                         0 0 4px rgba(212,175,55,0.5);
+            animation: karmaGainPop 2.5s ease-out forwards;
+            z-index: 100;
+        }
+        .karma-gain-popup .gain-icon {
+            font-size: 14px;
+            margin-left: 2px;
+            vertical-align: -1px;
+        }
+        @keyframes karmaBadgeBigGlow {
+            0%, 100% { box-shadow: 0 0 8px rgba(212,175,55,0.3); }
+            30%      { box-shadow: 0 0 28px rgba(212,175,55,0.9), 0 0 60px rgba(212,175,55,0.4); }
+            70%      { box-shadow: 0 0 20px rgba(212,175,55,0.6), 0 0 40px rgba(212,175,55,0.25); }
+        }
+        #karma-badge.gaining {
+            animation: karmaBadgeBigGlow 1.5s ease-in-out !important;
+        }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -2593,22 +2634,70 @@
             }
         }
 
+        // Nueva animación de ganancia: feedback sutil en el badge, no bloquea
+        // la app. Reemplaza el modal full-screen + particles + sonido que
+        // resultaba molesto cada vez que el agente ganaba totopos.
+        //
+        // Se mantiene el NOMBRE 'showKarmaCelebration' por compatibilidad
+        // con los call sites (awardKarma, awardKarmaForPastDays).
         window.showKarmaCelebration = function (earned) {
-            document.getElementById('celebrate-earned').textContent = '+' + earned.toLocaleString();
-            document.getElementById('celebrate-total').textContent = 'Saldo total: ' + (state.karma || 0).toLocaleString() + ' totopos';
-            document.getElementById('karma-celebration').classList.add('show');
-            createCoinParticles();
-            playCashSound();
-            // Marcar como notificado AL MOSTRAR (no al dismiss). Si el usuario recarga
-            // la página sin cerrar el modal, no vuelve a salir la misma celebración.
+            if (!earned || earned <= 0) return;
+            const badge = document.getElementById('karma-badge');
+            const numEl = document.getElementById('karma-value');
+
+            // 1) Glow dorado breve sobre el badge (1.5s)
+            if (badge) {
+                badge.classList.remove('gaining');
+                // Force reflow para reiniciar la animación si ya estaba corriendo
+                void badge.offsetWidth;
+                badge.classList.add('gaining');
+                setTimeout(() => badge.classList.remove('gaining'), 1500);
+            }
+
+            // 2) "+N" flotante encima del badge (2.5s, sube y se desvanece)
+            if (badge) {
+                const popup = document.createElement('div');
+                popup.className = 'karma-gain-popup';
+                popup.innerHTML = '+' + earned.toLocaleString() +
+                    '<svg class="gain-icon totopo-icon"><use href="#totopo"/></svg>';
+                badge.appendChild(popup);
+                setTimeout(() => { try { popup.remove(); } catch (e) {} }, 2700);
+            }
+
+            // 3) Count-up animado del número del badge (2.5s con ease-out)
+            if (numEl) {
+                const startValue = parseInt((numEl.textContent || '0').replace(/\D/g, '')) || 0;
+                const endValue = (state.karma || 0);
+                if (startValue !== endValue) {
+                    const startTime = performance.now();
+                    const duration = 2500;
+                    const animate = (now) => {
+                        const t = Math.min((now - startTime) / duration, 1);
+                        // Ease-out cubic: empieza rápido, termina suave
+                        const eased = 1 - Math.pow(1 - t, 3);
+                        const current = Math.round(startValue + (endValue - startValue) * eased);
+                        numEl.textContent = current.toLocaleString();
+                        if (t < 1) requestAnimationFrame(animate);
+                        else numEl.textContent = endValue.toLocaleString();
+                    };
+                    requestAnimationFrame(animate);
+                } else {
+                    numEl.textContent = endValue.toLocaleString();
+                }
+            }
+
+            // Marcar como notificado (mismo flujo que antes, así no se repite
+            // la animación si el agente recarga sin haber gastado totopos).
             const totalEarned = (state.karmaLog || []).reduce((sum, k) => sum + (k.points || 0), 0);
             state.karmaLastNotified = totalEarned;
             syncToCloud();
         };
 
+        // Mantenida por compat (algun lado podía llamarla). El modal antiguo
+        // ya no se abre, así que esto es no-op pero defensivo.
         window.dismissKarmaCelebration = function () {
-            document.getElementById('karma-celebration').classList.remove('show');
-            // (karmaLastNotified ya se actualizó al mostrar — aquí solo cerramos el modal)
+            const el = document.getElementById('karma-celebration');
+            if (el) el.classList.remove('show');
         };
 
         async function awardKarma() {
