@@ -72,9 +72,20 @@
         .header {
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border);
+            gap: 12px;
+            padding: 14px 16px;
+            /* bleed hacia los bordes del body para que el sticky cubra el viewport.
+               body tiene padding:15px en mobile, así que el margin compensa esos 15px.
+               margin-bottom queda 0 porque .app ya aplica gap:20px entre flex items. */
+            margin: -15px -15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(2, 6, 23, 0.85);
+            backdrop-filter: blur(14px) saturate(140%);
+            -webkit-backdrop-filter: blur(14px) saturate(140%);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.18);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
         }
 
         @media (min-width: 768px) {
@@ -82,6 +93,7 @@
                 flex-direction: row;
                 justify-content: space-between;
                 align-items: center;
+                padding: 14px 24px;
             }
         }
 
@@ -157,7 +169,33 @@
         .header-right {
             display: flex;
             gap: 8px;
+            align-items: center;
+            justify-content: space-between;  /* en mobile separa user-menu (izq) del bell (der) */
+            width: 100%;
+        }
+        @media (min-width: 768px) {
+            .header-right {
+                width: auto;
+                justify-content: flex-end;
+            }
+        }
+        .header-right .user-menu {
+            display: flex;
+            gap: 8px;
             flex-wrap: wrap;
+        }
+        /* Bell button — circular, icon-only, visualmente distinto del menu de user */
+        #notif-bell-btn {
+            width: 42px;
+            height: 42px;
+            padding: 0;
+            border-radius: 50%;
+            flex-shrink: 0;
+            position: relative;
+        }
+        #notif-bell-btn i {
+            font-size: 16px;
+            margin: 0;
         }
 
         /* BUTTONS */
@@ -1373,14 +1411,16 @@
                 </div>
             </div>
             <div class="header-right">
-                <button id="notif-bell-btn" class="btn btn-sm" onclick="openNotifModal()" style="position:relative;" title="Notificaciones">
+                <div class="user-menu">
+                    <button class="btn btn-sm" onclick="openConfig()"><i class="fa fa-user-gear"></i>Mi Perfil</button>
+                    <button id="logout-btn" class="btn btn-sm"
+                        style="border-color:var(--red) !important; color:var(--red) !important; display:inline-flex !important;"
+                        onclick="logout()"><i class="fa fa-right-from-bracket"></i>Salir</button>
+                </div>
+                <button id="notif-bell-btn" class="btn btn-sm" onclick="openNotifModal()" title="Notificaciones">
                     <i class="fa fa-bell"></i>
-                    <span id="notif-bell-dot" style="display:none; position:absolute; top:4px; right:4px; width:8px; height:8px; background:var(--gold); border-radius:50%; border:1.5px solid var(--panel, #0f172a);"></span>
+                    <span id="notif-bell-dot" style="display:none; position:absolute; top:6px; right:6px; width:9px; height:9px; background:var(--gold); border-radius:50%; border:1.5px solid var(--panel, #0f172a);"></span>
                 </button>
-                <button class="btn btn-sm" onclick="openConfig()"><i class="fa fa-user-gear"></i>Mi Perfil</button>
-                <button id="logout-btn" class="btn btn-sm"
-                    style="border-color:var(--red) !important; color:var(--red) !important; display:inline-flex !important;"
-                    onclick="logout()"><i class="fa fa-right-from-bracket"></i>Salir</button>
             </div>
         </div>
 
