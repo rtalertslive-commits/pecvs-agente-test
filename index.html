@@ -3089,9 +3089,16 @@
 
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js').then(reg => {
-                    // Detección de nueva versión: usamos addEventListener (más robusto
-                    // que asignación directa) + modal custom (confirm() nativo no se ve
-                    // dentro de PWA standalone en iOS).
+                    // ── LAYER 1: SW que YA estaba esperando antes de que cargara la página ──
+                    // Si el SW se instaló en una visita anterior pero el user no aceptó el
+                    // refresh, queda en estado 'waiting'. Al volver a abrir la app lo detectamos
+                    // acá. Esto cubre el caso clásico donde 'updatefound' no dispara porque ya
+                    // disparó antes y la página actual perdió el listener.
+                    if (reg.waiting && navigator.serviceWorker.controller) {
+                        showUpdateModal();
+                    }
+
+                    // ── LAYER 2: updatefound (caso normal, SW se instala mientras la app está abierta) ──
                     reg.addEventListener('updatefound', () => {
                         const newSW = reg.installing;
                         if (!newSW) return;
@@ -3101,6 +3108,7 @@
                             }
                         });
                     });
+
                     // Forzar check de updates al volver el foco a la app y cada hora
                     document.addEventListener('visibilitychange', () => {
                         if (document.visibilityState === 'visible') {
@@ -3110,22 +3118,32 @@
                     setInterval(() => reg.update().catch(() => {}), 60 * 60 * 1000);
                 }).catch(err => console.log("SW error:", err));
 
-                // Auto-reload cuando el SW activa nueva versión (refuerzo del modal,
-                // crítico en iOS PWA donde el modal puede no mostrarse o el usuario
-                // dismissa). Solo recarga si NO estamos en proceso de auth (evita
-                // perder el popup en medio del login).
+                // ── LAYER 3: postMessage 'sw-activated' desde el SW (refuerzo más confiable en iOS) ──
+                // El SW manda este mensaje cuando termina su 'activate' handler. Si la PWA
+                // estaba en background y vuelve, esto puede llegar antes de que disparen los
+                // eventos de updatefound/statechange.
                 let _swReloadDone = false;
                 navigator.serviceWorker.addEventListener('message', (e) => {
                     if (!e.data || e.data.type !== 'sw-activated') return;
                     if (_swReloadDone) return;
                     _swReloadDone = true;
-                    // Si hay overlay de login visible, recargamos (es seguro).
-                    // Si la app ya está cargada con usuario autenticado, dejamos
-                    // el modal de versión nueva manejarlo (usuario decide cuándo).
-                    const loginVisible = !document.getElementById('login-overlay').classList.contains('hidden');
+                    // Login screen → auto-reload silencioso (no interrumpe nada)
+                    // Resto → mostrar modal para que el user decida cuándo refrescar
+                    const loginEl = document.getElementById('login-overlay');
+                    const loginVisible = loginEl && !loginEl.classList.contains('hidden');
                     if (loginVisible) {
                         location.reload();
+                    } else {
+                        showUpdateModal();
                     }
+                });
+
+                // ── LAYER 4: controllerchange (último fallback) ──
+                // Dispara cuando un SW nuevo toma control de la página (después de
+                // skipWaiting() + claim()). Es el indicador más confiable de "ya hay versión nueva
+                // activa, pero el HTML que el user está viendo todavía es el viejo".
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    showUpdateModal();
                 });
             }
 
