@@ -155,8 +155,25 @@
         #agent-display {
             margin: 0;
             font-size: 13px;
-            color: rgba(255, 255, 255, 0.85);
             font-weight: 600;
+            min-width: 0;          /* permite shrink dentro del flex parent */
+            display: inline-flex;
+            align-items: baseline;
+            gap: 5px;
+            flex-wrap: wrap;       /* nombre largo wraps a la siguiente línea naturalmente */
+            line-height: 1.4;
+            max-width: 100%;
+        }
+        #agent-display .agent-label {
+            color: var(--slate);
+            font-weight: 500;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        #agent-display .agent-name {
+            color: var(--gold-l);    /* amarillo fosfo del diseño */
+            font-weight: 700;
+            word-break: break-word;  /* nombres muy largos se pueden romper si no entran */
         }
         .dot-sep {
             color: rgba(255, 255, 255, 0.25);
@@ -1519,7 +1536,7 @@
 
             <!-- Row 2: agente + karma inline -->
             <div class="row-info">
-                <p id="agent-display">Agente: —</p>
+                <p id="agent-display"><span class="agent-label">Agente:</span> <span class="agent-name">—</span></p>
                 <span class="dot-sep">·</span>
                 <div id="karma-badge" onclick="openRulesModal()" role="button" tabindex="0" aria-label="Ver reglas de totopos" title="Toca para saber como ganarse los totopos">
                     <span class="star"><svg class="totopo-icon"><use href="#totopo"/></svg></span>
@@ -3683,7 +3700,14 @@
         };
 
         window.refreshUI = function () {
-            document.getElementById('agent-display').textContent = 'Agente: ' + (state.agentName || '—');
+            // Actualizamos solo el span del nombre — preservamos el span del label "Agente:" estilizado distinto
+            const agentDisplay = document.getElementById('agent-display');
+            const nameSpan = agentDisplay && agentDisplay.querySelector('.agent-name');
+            if (nameSpan) {
+                nameSpan.textContent = state.agentName || '—';
+            } else {
+                agentDisplay.textContent = 'Agente: ' + (state.agentName || '—');
+            }
             updateKarmaDisplay();
         }
 
