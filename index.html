@@ -1315,6 +1315,10 @@
                 </div>
             </div>
             <div class="header-right">
+                <button id="notif-bell-btn" class="btn btn-sm" onclick="openNotifModal()" style="position:relative;" title="Notificaciones">
+                    <i class="fa fa-bell"></i>
+                    <span id="notif-bell-dot" style="display:none; position:absolute; top:4px; right:4px; width:8px; height:8px; background:var(--gold); border-radius:50%; border:1.5px solid var(--panel, #0f172a);"></span>
+                </button>
                 <button class="btn btn-sm" onclick="openConfig()"><i class="fa fa-user-gear"></i>Mi Perfil</button>
                 <button id="logout-btn" class="btn btn-sm"
                     style="border-color:var(--red) !important; color:var(--red) !important; display:inline-flex !important;"
@@ -1751,70 +1755,76 @@
                     <span id="disp-myregion" style="font-size:16px; font-weight:700; color:#fff;">—</span>
                 </div>
 
-                <!-- Notificaciones push — panel de settings permanente -->
-                <div id="notif-card" style="background:rgba(59,130,246,0.10); border:1px solid rgba(59,130,246,0.35); border-radius:10px; padding:14px;">
-                    <label style="font-size:10px; color:var(--slate); font-weight:700; display:block; margin-bottom:8px;">🔔 NOTIFICACIONES</label>
-
-                    <!-- Toggle maestro — siempre visible (excepto cuando perm=denied) -->
-                    <label id="notif-master-row" style="display:none; align-items:center; justify-content:space-between; padding:12px 14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:8px; margin-bottom:10px; cursor:pointer; gap:12px;">
-                        <div style="flex:1; min-width:0;">
-                            <div id="notif-master-title" style="font-size:14px; color:#fff; font-weight:700;">Notificaciones</div>
-                            <div id="notif-master-sub" style="font-size:11px; color:var(--slate); margin-top:2px;">Cargando…</div>
-                        </div>
-                        <input type="checkbox" id="notif-master-toggle" onchange="onMasterToggle()" style="width:24px; height:24px; accent-color:var(--gold); cursor:pointer; flex-shrink:0;">
-                    </label>
-
-                    <div id="notif-status" style="display:none; font-size:13px; font-weight:600; color:#fff; margin-bottom:12px; line-height:1.4; padding:10px 12px; background:rgba(255,255,255,0.04); border-radius:8px;">Cargando…</div>
-                    <button id="notif-action-btn" class="btn btn-sm" style="display:none; width:100%; margin-bottom:10px;" onclick="onNotifActionClick()">Activar notificaciones</button>
-
-                    <!-- Toggles por tipo — solo visibles cuando subscribed=true -->
-                    <div id="notif-prefs" style="display:none; margin-top:8px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.08);">
-                        <div style="font-size:10px; color:var(--slate); font-weight:700; margin-bottom:10px; letter-spacing:0.5px;">RECIBIR AVISOS DE:</div>
-
-                        <label class="notif-toggle-row" style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer;">
-                            <div style="flex:1; min-width:0;">
-                                <div style="font-size:14px; color:#fff; font-weight:600;">📢 Anuncios del director</div>
-                                <div style="font-size:11px; color:var(--slate); margin-top:2px;">Broadcasts importantes del equipo.</div>
-                            </div>
-                            <input type="checkbox" id="notif-pref-anuncios" onchange="saveNotifPrefs()" style="width:22px; height:22px; accent-color:var(--gold); cursor:pointer; flex-shrink:0;" checked>
-                        </label>
-
-                        <label class="notif-toggle-row" style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer;">
-                            <div style="flex:1; min-width:0;">
-                                <div style="font-size:14px; color:#fff; font-weight:600;">🏆 Reconocimientos</div>
-                                <div style="font-size:11px; color:var(--slate); margin-top:2px;">Cuando ganás totopos o desbloqueás logros.</div>
-                            </div>
-                            <input type="checkbox" id="notif-pref-reconocimientos" onchange="saveNotifPrefs()" style="width:22px; height:22px; accent-color:var(--gold); cursor:pointer; flex-shrink:0;" checked>
-                        </label>
-
-                        <div style="padding:10px 0;">
-                            <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
-                                <div style="flex:1; min-width:0;">
-                                    <div style="font-size:14px; color:#fff; font-weight:600;">⏰ Recordatorio diario</div>
-                                    <div style="font-size:11px; color:var(--slate); margin-top:2px;">Te avisamos si no reportaste actividad.</div>
-                                </div>
-                                <input type="checkbox" id="notif-pref-recordatorio" onchange="onRecordatorioToggle()" style="width:22px; height:22px; accent-color:var(--gold); cursor:pointer; flex-shrink:0;">
-                            </label>
-                            <div id="notif-recordatorio-time-row" style="display:none; margin-top:10px; padding:8px 10px; background:rgba(0,0,0,0.2); border-radius:6px; align-items:center; gap:10px;">
-                                <span style="font-size:12px; color:rgba(255,255,255,0.7); font-weight:600;">Hora:</span>
-                                <input type="time" id="notif-pref-recordatorio-time" onchange="saveNotifPrefs()" value="19:00" style="flex:1; background:rgba(255,255,255,0.08); color:#fff; border:1px solid rgba(255,255,255,0.15); border-radius:6px; padding:6px 8px; font-size:14px; font-family:inherit;">
-                            </div>
-                        </div>
-
-                        <div id="notif-prefs-saved" style="display:none; font-size:11px; color:#34d399; margin-top:6px; text-align:right;">✓ Guardado</div>
-                    </div>
-
-                    <!-- Diagnóstico técnico (chiquito, siempre visible para soporte) -->
-                    <details style="margin-top:10px;">
-                        <summary style="font-size:10px; color:rgba(255,255,255,0.4); cursor:pointer; user-select:none;">Diagnóstico técnico</summary>
-                        <div id="notif-debug" style="font-size:10px; color:rgba(255,255,255,0.5); font-family:monospace; margin-top:6px; word-break:break-all;"></div>
-                        <div id="notif-last-result" style="display:none; font-size:11px; font-family:monospace; padding:6px 8px; background:rgba(0,0,0,0.3); border-radius:6px; margin-top:6px; word-break:break-all; line-height:1.4;"></div>
-                    </details>
-                </div>
-
                 <button class="btn btn-sm"
                     onclick="document.getElementById('config-modal').classList.remove('open')">Cerrar</button>
             </div>
+        </div>
+    </div>
+
+    <!-- NOTIFICATIONS MODAL — gestionar suscripción y prefs por tipo -->
+    <div class="modal-overlay" id="notif-modal">
+        <div class="modal-box">
+            <h2 style="font-family:'Playfair Display',serif; color:var(--gold); margin-top:0;"><i class="fa fa-bell" style="margin-right:8px;"></i>Notificaciones</h2>
+            <p style="font-size:12px; color:var(--slate); margin:0 0 18px;">Recibí avisos importantes del director y reconocimientos directamente en tu dispositivo.</p>
+
+            <!-- Toggle maestro — siempre visible (excepto cuando perm=denied) -->
+            <label id="notif-master-row" style="display:none; align-items:center; justify-content:space-between; padding:14px 16px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:10px; margin-bottom:12px; cursor:pointer; gap:12px;">
+                <div style="flex:1; min-width:0;">
+                    <div id="notif-master-title" style="font-size:15px; color:#fff; font-weight:700;">Notificaciones</div>
+                    <div id="notif-master-sub" style="font-size:12px; color:var(--slate); margin-top:3px;">Cargando…</div>
+                </div>
+                <input type="checkbox" id="notif-master-toggle" onchange="onMasterToggle()" style="width:26px; height:26px; accent-color:var(--gold); cursor:pointer; flex-shrink:0;">
+            </label>
+
+            <div id="notif-status" style="display:none; font-size:13px; font-weight:600; color:#fff; margin-bottom:12px; line-height:1.4; padding:12px 14px; background:rgba(255,255,255,0.04); border-radius:10px;">Cargando…</div>
+            <button id="notif-action-btn" class="btn btn-sm" style="display:none; width:100%; margin-bottom:10px;" onclick="onNotifActionClick()">Activar notificaciones</button>
+
+            <!-- Toggles por tipo — solo visibles cuando subscribed=true -->
+            <div id="notif-prefs" style="display:none; margin-top:8px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.08);">
+                <div style="font-size:11px; color:var(--slate); font-weight:700; margin-bottom:10px; letter-spacing:0.5px;">RECIBIR AVISOS DE:</div>
+
+                <label class="notif-toggle-row" style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer;">
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-size:14px; color:#fff; font-weight:600;">📢 Anuncios del director</div>
+                        <div style="font-size:11px; color:var(--slate); margin-top:2px;">Broadcasts importantes del equipo.</div>
+                    </div>
+                    <input type="checkbox" id="notif-pref-anuncios" onchange="saveNotifPrefs()" style="width:22px; height:22px; accent-color:var(--gold); cursor:pointer; flex-shrink:0;" checked>
+                </label>
+
+                <label class="notif-toggle-row" style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer;">
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-size:14px; color:#fff; font-weight:600;">🏆 Reconocimientos</div>
+                        <div style="font-size:11px; color:var(--slate); margin-top:2px;">Cuando ganás totopos o desbloqueás logros.</div>
+                    </div>
+                    <input type="checkbox" id="notif-pref-reconocimientos" onchange="saveNotifPrefs()" style="width:22px; height:22px; accent-color:var(--gold); cursor:pointer; flex-shrink:0;" checked>
+                </label>
+
+                <div style="padding:12px 0;">
+                    <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-size:14px; color:#fff; font-weight:600;">⏰ Recordatorio diario</div>
+                            <div style="font-size:11px; color:var(--slate); margin-top:2px;">Te avisamos si no reportaste actividad.</div>
+                        </div>
+                        <input type="checkbox" id="notif-pref-recordatorio" onchange="onRecordatorioToggle()" style="width:22px; height:22px; accent-color:var(--gold); cursor:pointer; flex-shrink:0;">
+                    </label>
+                    <div id="notif-recordatorio-time-row" style="display:none; margin-top:10px; padding:8px 10px; background:rgba(0,0,0,0.2); border-radius:6px; align-items:center; gap:10px;">
+                        <span style="font-size:12px; color:rgba(255,255,255,0.7); font-weight:600;">Hora:</span>
+                        <input type="time" id="notif-pref-recordatorio-time" onchange="saveNotifPrefs()" value="19:00" style="flex:1; background:rgba(255,255,255,0.08); color:#fff; border:1px solid rgba(255,255,255,0.15); border-radius:6px; padding:6px 8px; font-size:14px; font-family:inherit;">
+                    </div>
+                </div>
+
+                <div id="notif-prefs-saved" style="display:none; font-size:11px; color:#34d399; margin-top:6px; text-align:right;">✓ Guardado</div>
+            </div>
+
+            <!-- Diagnóstico técnico (colapsable, para soporte) -->
+            <details style="margin-top:14px;">
+                <summary style="font-size:10px; color:rgba(255,255,255,0.4); cursor:pointer; user-select:none;">Diagnóstico técnico</summary>
+                <div id="notif-debug" style="font-size:10px; color:rgba(255,255,255,0.5); font-family:monospace; margin-top:6px; word-break:break-all;"></div>
+                <div id="notif-last-result" style="display:none; font-size:11px; font-family:monospace; padding:6px 8px; background:rgba(0,0,0,0.3); border-radius:6px; margin-top:6px; word-break:break-all; line-height:1.4;"></div>
+            </details>
+
+            <button class="btn btn-sm" style="margin-top:18px; width:100%;"
+                onclick="closeNotifModal()">Cerrar</button>
         </div>
     </div>
 
@@ -1905,6 +1915,20 @@
         .in-app-toast.show { transform:translate(-50%,0); }
         .in-app-toast .toast-title { color:var(--gold,#d4af37); font-weight:800; font-size:15px; margin-bottom:3px; }
         .in-app-toast .toast-body { color:#fff; font-size:13px; line-height:1.4; }
+
+        /* Campana pulsante cuando el banner está activo — guía visual hacia el modal */
+        @keyframes bellPulseGold {
+            0%   { box-shadow: 0 0 0 0 rgba(212,175,55,0.7); transform: scale(1); }
+            50%  { box-shadow: 0 0 0 10px rgba(212,175,55,0); transform: scale(1.06); }
+            100% { box-shadow: 0 0 0 0 rgba(212,175,55,0); transform: scale(1); }
+        }
+        #notif-bell-btn.bell-pulsing {
+            animation: bellPulseGold 1.6s ease-in-out infinite;
+            background: rgba(212,175,55,0.18) !important;
+            border-color: var(--gold,#d4af37) !important;
+            color: var(--gold,#d4af37) !important;
+        }
+        #notif-bell-btn.bell-pulsing i { color: var(--gold,#d4af37); }
     </style>
 
     <div id="karma-celebration">
@@ -2516,11 +2540,39 @@
         function showPushPermissionBanner() {
             const banner = document.getElementById('push-banner');
             if (banner) banner.classList.add('show');
+            // Activar pulso en la campana del header para guiar al user hacia el modal
+            const bell = document.getElementById('notif-bell-btn');
+            const dot  = document.getElementById('notif-bell-dot');
+            if (bell) bell.classList.add('bell-pulsing');
+            if (dot)  dot.style.display = '';
         }
         function hidePushPermissionBanner() {
             const banner = document.getElementById('push-banner');
             if (banner) banner.classList.remove('show');
+            // Apagar pulso (el user ya tomó acción o vio el banner)
+            const bell = document.getElementById('notif-bell-btn');
+            const dot  = document.getElementById('notif-bell-dot');
+            if (bell) bell.classList.remove('bell-pulsing');
+            if (dot)  dot.style.display = 'none';
         }
+
+        // Abre el modal dedicado de notificaciones. Si el banner está activo,
+        // también lo oculta — el user ya entró al panel donde puede activar.
+        window.openNotifModal = function () {
+            const banner = document.getElementById('push-banner');
+            if (banner) banner.classList.remove('show');
+            // El pulso de la campana también se apaga
+            const bell = document.getElementById('notif-bell-btn');
+            const dot  = document.getElementById('notif-bell-dot');
+            if (bell) bell.classList.remove('bell-pulsing');
+            if (dot)  dot.style.display = 'none';
+            document.getElementById('notif-modal').classList.add('open');
+            window.updateNotifStatus();
+        };
+
+        window.closeNotifModal = function () {
+            document.getElementById('notif-modal').classList.remove('open');
+        };
 
         function showInAppToast(title, body) {
             const toast = document.createElement('div');
@@ -3548,8 +3600,6 @@
             if (emailEl)  emailEl.textContent  = (user && user.email) || state.email || '—';
             if (codeEl)   codeEl.textContent   = state.companyCode || state.teamCode || '—';
             if (regionEl) regionEl.textContent = state.regionName || '—';
-            // Refrescar estado de notificaciones (puede haber cambiado mientras la app estaba abierta)
-            if (typeof window.updateNotifStatus === 'function') window.updateNotifStatus();
             document.getElementById('config-modal').classList.add('open');
         }
 
