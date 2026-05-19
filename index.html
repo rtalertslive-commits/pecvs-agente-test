@@ -151,36 +151,7 @@
             flex-shrink: 0;
         }
 
-        /* Row de info (agente name + karma) */
-        #agent-display {
-            margin: 0;
-            font-size: 13px;
-            font-weight: 600;
-            min-width: 0;          /* permite shrink dentro del flex parent */
-            display: inline-flex;
-            align-items: baseline;
-            gap: 5px;
-            flex-wrap: wrap;       /* nombre largo wraps a la siguiente línea naturalmente */
-            line-height: 1.4;
-            max-width: 100%;
-        }
-        #agent-display .agent-label {
-            color: var(--slate);
-            font-weight: 500;
-            font-size: 12px;
-            flex-shrink: 0;
-        }
-        #agent-display .agent-name {
-            color: var(--gold-l);    /* amarillo fosfo del diseño */
-            font-weight: 700;
-            word-break: break-word;  /* nombres muy largos se pueden romper si no entran */
-        }
-        .dot-sep {
-            color: rgba(255, 255, 255, 0.25);
-            font-size: 16px;
-            line-height: 1;
-            user-select: none;
-        }
+        /* Row de info (solo karma badge ahora — el nombre del agente vive en Mi Perfil) */
         /* Karma badge inline (más compacto que el original) */
         .header #karma-badge {
             padding: 4px 10px 4px 8px;
@@ -1534,10 +1505,8 @@
                 </div>
             </div>
 
-            <!-- Row 2: agente + karma inline -->
+            <!-- Row 2: solo karma badge (el nombre del agente vive en Mi Perfil) -->
             <div class="row-info">
-                <p id="agent-display"><span class="agent-label">Agente:</span> <span class="agent-name">—</span></p>
-                <span class="dot-sep">·</span>
                 <div id="karma-badge" onclick="openRulesModal()" role="button" tabindex="0" aria-label="Ver reglas de totopos" title="Toca para saber como ganarse los totopos">
                     <span class="star"><svg class="totopo-icon"><use href="#totopo"/></svg></span>
                     <span class="karma-num" id="karma-value">0</span>
@@ -3700,13 +3669,17 @@
         };
 
         window.refreshUI = function () {
-            // Actualizamos solo el span del nombre — preservamos el span del label "Agente:" estilizado distinto
+            // El nombre del agente vive en Mi Perfil. Si por algún motivo todavía
+            // existe el #agent-display en el DOM (rollback, fork, etc.), lo actualizamos
+            // defensivamente. Si no existe (caso actual), no hacemos nada.
             const agentDisplay = document.getElementById('agent-display');
-            const nameSpan = agentDisplay && agentDisplay.querySelector('.agent-name');
-            if (nameSpan) {
-                nameSpan.textContent = state.agentName || '—';
-            } else {
-                agentDisplay.textContent = 'Agente: ' + (state.agentName || '—');
+            if (agentDisplay) {
+                const nameSpan = agentDisplay.querySelector('.agent-name');
+                if (nameSpan) {
+                    nameSpan.textContent = state.agentName || '—';
+                } else {
+                    agentDisplay.textContent = 'Agente: ' + (state.agentName || '—');
+                }
             }
             updateKarmaDisplay();
         }
