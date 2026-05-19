@@ -872,6 +872,11 @@
             padding: 24px;
             width: 100%;
             max-width: 450px;
+            max-height: calc(100dvh - 40px);   /* dynamic viewport — funciona bien en iOS Safari/PWA */
+            max-height: calc(100vh - 40px);    /* fallback para browsers viejos */
+            max-height: 86vh;                  /* match con .kpi-info-box, da espacio para el overlay padding */
+            overflow-y: auto;                  /* scroll interno cuando el contenido excede el viewport */
+            -webkit-overflow-scrolling: touch; /* momentum scroll en iOS */
             position: relative;
         }
 
