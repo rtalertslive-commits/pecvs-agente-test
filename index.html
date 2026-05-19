@@ -1817,6 +1817,33 @@
     </div><!-- /revoked-overlay -->
 
     <!-- KARMA CELEBRATION MODAL -->
+    <!-- Push notification permission banner -->
+    <div id="push-banner" style="display:none; position:fixed; top:0; left:0; right:0; z-index:9999; background:linear-gradient(135deg,#1e3a8a,#0f172a); padding:14px 18px; border-bottom:1px solid rgba(212,175,55,0.3); box-shadow:0 4px 16px rgba(0,0,0,0.4); align-items:center; gap:12px;">
+        <div style="font-size:24px;">🔔</div>
+        <div style="flex:1; color:#fff; font-size:14px; line-height:1.3;">
+            <div style="font-weight:700; margin-bottom:2px;">Activá las notificaciones</div>
+            <div style="color:rgba(255,255,255,0.7); font-size:12px;">Recibí avisos importantes del director y reconocimientos.</div>
+        </div>
+        <button onclick="requestPushPermission()" style="padding:8px 14px; background:var(--gold,#d4af37); color:#000; border:none; border-radius:8px; font-weight:800; font-size:13px; cursor:pointer; white-space:nowrap;">Activar</button>
+        <button onclick="dismissPushBanner()" style="padding:8px; background:transparent; color:rgba(255,255,255,0.5); border:none; font-size:18px; cursor:pointer;">×</button>
+    </div>
+    <style>
+        #push-banner.show { display:flex !important; }
+        .in-app-toast {
+            position:fixed; top:20px; left:50%; transform:translate(-50%,-100px);
+            min-width:280px; max-width:90vw;
+            background:linear-gradient(135deg,#1e293b,#0f172a);
+            border:1px solid rgba(212,175,55,0.4);
+            border-radius:12px; padding:14px 18px;
+            box-shadow:0 8px 32px rgba(0,0,0,0.5);
+            z-index:10005;
+            transition:transform 0.3s ease-out;
+        }
+        .in-app-toast.show { transform:translate(-50%,0); }
+        .in-app-toast .toast-title { color:var(--gold,#d4af37); font-weight:800; font-size:15px; margin-bottom:3px; }
+        .in-app-toast .toast-body { color:#fff; font-size:13px; line-height:1.4; }
+    </style>
+
     <div id="karma-celebration">
         <div id="karma-particles"></div>
         <div style="text-align:center;position:relative;z-index:2;padding:30px 20px;max-width:360px;">
@@ -1864,12 +1891,33 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, addDoc, getDocs, collection, query, where, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getMessaging, getToken, onMessage, isSupported as isMessagingSupported } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
         // Initialize
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
+
+        // Messaging — puede no estar soportado en ciertos browsers/contextos.
+        // isSupported() chequea: service worker disponible, IndexedDB, navigator.cookieEnabled, etc.
+        const VAPID_KEY = "BDPXKyOCeao8o3KNkBidAtt3g_qH2UWqWv8Y5Ea7BA4_Q_U2_CndW37Bweh1tHVAyuYLQDtKLc_BpPjet3Gi-l4";
+        let messaging = null;
+        isMessagingSupported().then(supported => {
+            if (supported) {
+                messaging = getMessaging(app);
+                // Listener de mensajes en foreground (app abierta y enfocada)
+                onMessage(messaging, payload => {
+                    console.log('[push] Foreground message:', payload);
+                    const title = (payload.notification && payload.notification.title) || 'PECVS$';
+                    const body  = (payload.notification && payload.notification.body)  || '';
+                    showInAppToast(title, body);
+                });
+                console.log('[push] Messaging soportado e inicializado');
+            } else {
+                console.log('[push] Messaging NO soportado en este browser/contexto');
+            }
+        });
 
         const DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
         const COLS = ['P', 'E', 'C', 'V', 'S'];
@@ -1997,6 +2045,119 @@
                 });
         });
 
+        // ─── PUSH NOTIFICATIONS ──────────────────────────────────────────────────────
+        // Tres estados:
+        //   - 'default'  → nunca preguntado → mostrar banner
+        //   - 'granted'  → ya aceptó → obtener token y guardar
+        //   - 'denied'   → rechazó → no se puede re-pedir (debe ir a Settings del browser)
+        async function subscribeToPush() {
+            if (!user) return;
+            if (!messaging) {
+                console.log('[push] skip: messaging no disponible');
+                return;
+            }
+            if (!('Notification' in window)) {
+                console.log('[push] skip: Notification API ausente');
+                return;
+            }
+            // iOS: solo funciona en PWA standalone (iOS 16.4+)
+            const isIOSDevice = /iPhone|iPad|iPod/i.test(navigator.userAgent) && !window.MSStream;
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+                || window.navigator.standalone === true;
+            if (isIOSDevice && !isStandalone) {
+                console.log('[push] skip: iOS Safari browser no soporta web push (necesita PWA instalada)');
+                return;
+            }
+            const perm = Notification.permission;
+            if (perm === 'denied') return;
+            if (perm === 'default') {
+                // Si el user ya dismiss-eó el banner antes, no insistir en la misma sesión.
+                // Si quiere activar, puede hacerlo desde el perfil (TODO: agregar toggle).
+                if (sessionStorage.getItem('pushBannerDismissed') === '1') return;
+                showPushPermissionBanner();
+                return;
+            }
+            // perm === 'granted'
+            await registerPushToken();
+        }
+
+        async function registerPushToken() {
+            if (!messaging || !user) return;
+            try {
+                const reg = await navigator.serviceWorker.ready;
+                const token = await getToken(messaging, {
+                    vapidKey: VAPID_KEY,
+                    serviceWorkerRegistration: reg
+                });
+                if (!token) {
+                    console.warn('[push] getToken devolvió vacío');
+                    return;
+                }
+                // Usar primeros 40 chars como docId (los tokens FCM tienen ~140-180 chars).
+                // Esto permite multi-device (un doc por device/instalación).
+                const tokenId = token.substring(0, 40).replace(/[^a-zA-Z0-9_-]/g, '_');
+                await setDoc(doc(db, 'users', user.email, 'pushTokens', tokenId), {
+                    token,
+                    createdAt: new Date().toISOString(),
+                    userAgent: navigator.userAgent,
+                    platform: _getPlatform()
+                }, { merge: true });
+                console.log('[push] ✅ Token registrado:', token.substring(0, 30) + '...');
+            } catch (err) {
+                console.error('[push] Error registrando token:', err);
+            }
+        }
+
+        function _getPlatform() {
+            const ua = navigator.userAgent;
+            if (/iPhone|iPad|iPod/i.test(ua)) return 'ios';
+            if (/Android/i.test(ua)) return 'android';
+            return 'desktop';
+        }
+
+        window.requestPushPermission = async function () {
+            try {
+                const result = await Notification.requestPermission();
+                hidePushPermissionBanner();
+                if (result === 'granted') {
+                    await registerPushToken();
+                    showInAppToast('✅ Notificaciones activadas', 'Vas a recibir avisos importantes acá.');
+                }
+            } catch (err) {
+                console.error('[push] requestPermission error:', err);
+                hidePushPermissionBanner();
+            }
+        };
+
+        window.dismissPushBanner = function () {
+            hidePushPermissionBanner();
+            sessionStorage.setItem('pushBannerDismissed', '1');
+        };
+
+        function showPushPermissionBanner() {
+            const banner = document.getElementById('push-banner');
+            if (banner) banner.classList.add('show');
+        }
+        function hidePushPermissionBanner() {
+            const banner = document.getElementById('push-banner');
+            if (banner) banner.classList.remove('show');
+        }
+
+        function showInAppToast(title, body) {
+            const toast = document.createElement('div');
+            toast.className = 'in-app-toast';
+            toast.innerHTML = `
+                <div class="toast-title">${escapeHtml(title)}</div>
+                <div class="toast-body">${escapeHtml(body)}</div>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 50);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+
         onAuthStateChanged(auth, async (u) => {
             try {
                 if (u) {
@@ -2015,6 +2176,9 @@
                         await loadFromCloud();
                         startUserDocListener(); // real-time updates desde Firestore
                         init();
+                        // Setup push notifications después del login exitoso.
+                        // No bloquea el render — corre en background.
+                        subscribeToPush().catch(err => console.error('[push] subscribeToPush:', err));
                     } else if (status === 'inactive') {
                         document.getElementById('login-overlay').classList.add('hidden');
                         document.getElementById('revoked-overlay').style.display = 'flex';
