@@ -1754,10 +1754,20 @@
                 <!-- Notificaciones push — panel de settings permanente -->
                 <div id="notif-card" style="background:rgba(59,130,246,0.10); border:1px solid rgba(59,130,246,0.35); border-radius:10px; padding:14px;">
                     <label style="font-size:10px; color:var(--slate); font-weight:700; display:block; margin-bottom:8px;">🔔 NOTIFICACIONES</label>
-                    <div id="notif-status" style="font-size:13px; font-weight:600; color:#fff; margin-bottom:12px; line-height:1.4;">Cargando…</div>
+
+                    <!-- Toggle maestro — siempre visible (excepto cuando perm=denied) -->
+                    <label id="notif-master-row" style="display:none; align-items:center; justify-content:space-between; padding:12px 14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:8px; margin-bottom:10px; cursor:pointer; gap:12px;">
+                        <div style="flex:1; min-width:0;">
+                            <div id="notif-master-title" style="font-size:14px; color:#fff; font-weight:700;">Notificaciones</div>
+                            <div id="notif-master-sub" style="font-size:11px; color:var(--slate); margin-top:2px;">Cargando…</div>
+                        </div>
+                        <input type="checkbox" id="notif-master-toggle" onchange="onMasterToggle()" style="width:24px; height:24px; accent-color:var(--gold); cursor:pointer; flex-shrink:0;">
+                    </label>
+
+                    <div id="notif-status" style="display:none; font-size:13px; font-weight:600; color:#fff; margin-bottom:12px; line-height:1.4; padding:10px 12px; background:rgba(255,255,255,0.04); border-radius:8px;">Cargando…</div>
                     <button id="notif-action-btn" class="btn btn-sm" style="display:none; width:100%; margin-bottom:10px;" onclick="onNotifActionClick()">Activar notificaciones</button>
 
-                    <!-- Toggles por tipo — solo visibles cuando perm=granted -->
+                    <!-- Toggles por tipo — solo visibles cuando subscribed=true -->
                     <div id="notif-prefs" style="display:none; margin-top:8px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.08);">
                         <div style="font-size:10px; color:var(--slate); font-weight:700; margin-bottom:10px; letter-spacing:0.5px;">RECIBIR AVISOS DE:</div>
 
@@ -1943,7 +1953,7 @@
         // --- IMPORT FIREBASE ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, addDoc, getDocs, collection, query, where, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, addDoc, getDocs, collection, query, where, onSnapshot, runTransaction, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getMessaging, getToken, onMessage, isSupported as isMessagingSupported } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
         // Initialize
@@ -1977,8 +1987,14 @@
         const MONTHS_ES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
         const CHART_COLORS = { P: '#3b82f6', E: '#06b6d4', C: '#a855f7', V: '#10b981', S: '#f59e0b' };
 
-        // notifPrefs por defecto: anuncios+reconocimientos ON, recordatorio OFF a las 19:00
+        // notifPrefs por defecto:
+        //  - subscribed: undefined → tratamos como true por defecto (first time = enabled si acepta el banner)
+        //  - bannerDismissed: false → mostrar banner si perm=default
+        //  - anuncios/reconocimientos: ON por defecto
+        //  - recordatorio: OFF a las 19:00 por defecto
         const DEFAULT_NOTIF_PREFS = {
+            subscribed: true,
+            bannerDismissed: false,
             anuncios: true,
             reconocimientos: true,
             recordatorio: { enabled: false, time: '19:00' }
@@ -2105,10 +2121,15 @@
         });
 
         // ─── PUSH NOTIFICATIONS ──────────────────────────────────────────────────────
-        // Tres estados:
-        //   - 'default'  → nunca preguntado → mostrar banner
-        //   - 'granted'  → ya aceptó → obtener token y guardar
-        //   - 'denied'   → rechazó → no se puede re-pedir (debe ir a Settings del browser)
+        // Lógica de banner / suscripción.
+        // Estados browser-level (no controlables programáticamente):
+        //   - perm 'default'  → nunca preguntado al OS
+        //   - perm 'granted'  → el OS permite
+        //   - perm 'denied'   → el OS bloquea — solo Ajustes del iPhone arregla
+        // Estados app-level (state.notifPrefs):
+        //   - subscribed:       master switch — si el user quiere recibir pushes
+        //   - bannerDismissed:  rechazó el banner → no aparece más automáticamente
+        //                       (siempre puede reactivar desde el toggle de Mi Perfil)
         async function subscribeToPush() {
             if (!user) return;
             if (!messaging) {
@@ -2128,16 +2149,58 @@
                 return;
             }
             const perm = Notification.permission;
-            if (perm === 'denied') return;
-            if (perm === 'default') {
-                // Si el user ya dismiss-eó el banner antes, no insistir en la misma sesión.
-                // Si quiere activar, puede hacerlo desde el perfil (TODO: agregar toggle).
-                if (sessionStorage.getItem('pushBannerDismissed') === '1') return;
-                showPushPermissionBanner();
+            const prefs = state.notifPrefs || DEFAULT_NOTIF_PREFS;
+
+            if (perm === 'denied') return;  // OS bloqueado, no podemos hacer nada
+
+            if (perm === 'granted') {
+                // Permiso OS otorgado. Solo refrescar token si el user sigue subscribed.
+                // Si está unsubscribed (master toggle OFF) no hacemos nada — el user puede
+                // re-activar manualmente desde el toggle de Mi Perfil.
+                if (prefs.subscribed !== false) {
+                    try { await registerPushToken(); }
+                    catch (e) { console.error('[push] silent register failed:', e); }
+                }
                 return;
             }
-            // perm === 'granted'
-            await registerPushToken();
+
+            // perm === 'default' — todavía no preguntamos al OS.
+            // Solo mostramos banner si el user NO lo rechazó explícitamente antes.
+            // Una vez que rechaza, nunca más aparece automáticamente (solo manual via settings).
+            if (prefs.bannerDismissed) return;
+            showPushPermissionBanner();
+        }
+
+        // Helper que mergea cambios al campo notifPrefs y persiste en Firestore.
+        // No toca otros campos del doc.
+        async function _setNotifPrefsField(updates) {
+            if (!user) return;
+            state.notifPrefs = state.notifPrefs || { ...DEFAULT_NOTIF_PREFS };
+            Object.assign(state.notifPrefs, updates);
+            try {
+                await setDoc(doc(db, 'users', user.email), { notifPrefs: state.notifPrefs }, { merge: true });
+            } catch (err) {
+                console.error('[notifPrefs] save error:', err);
+            }
+        }
+
+        // Desuscribe del push service del browser + borra todos los tokens FCM del user.
+        // No toca el permiso OS-level (el browser no lo permite revocar por código).
+        async function unsubscribeFromPush() {
+            if (!user) return;
+            try {
+                const reg = await navigator.serviceWorker.ready;
+                const sub = await reg.pushManager.getSubscription();
+                if (sub) await sub.unsubscribe();
+            } catch (e) { console.warn('[push] pushManager.unsubscribe error:', e); }
+            try {
+                const tokensRef = collection(db, 'users', user.email, 'pushTokens');
+                const snap = await getDocs(tokensRef);
+                for (const d of snap.docs) {
+                    try { await deleteDoc(doc(db, 'users', user.email, 'pushTokens', d.id)); }
+                    catch (e) { console.warn('[push] token delete fail:', d.id, e); }
+                }
+            } catch (e) { console.warn('[push] tokens collection read error:', e); }
         }
 
         // Re-throws errores para que el caller los muestre. Devuelve el token en caso de éxito.
@@ -2199,95 +2262,160 @@
         }
 
         window.requestPushPermission = async function () {
+            hidePushPermissionBanner();
             try {
-                const result = await Notification.requestPermission();
-                hidePushPermissionBanner();
+                let result = Notification.permission;
+                if (result === 'default') {
+                    result = await Notification.requestPermission();
+                }
                 if (result === 'granted') {
                     await registerPushToken();
-                    showInAppToast('✅ Notificaciones activadas', 'Vas a recibir avisos importantes acá.');
+                    await _setNotifPrefsField({ subscribed: true, bannerDismissed: false });
+                    showInAppToast('✅ Notificaciones activadas', 'Vas a recibir avisos importantes.');
+                } else if (result === 'denied') {
+                    await _setNotifPrefsField({ subscribed: false });
+                    showInAppToast('🚫 Permiso denegado', 'Podés activarlo desde Ajustes del iPhone.');
                 }
             } catch (err) {
                 console.error('[push] requestPermission error:', err);
-                hidePushPermissionBanner();
+                showInAppToast('❌ Error', err.message || String(err));
             }
+            if (typeof window.updateNotifStatus === 'function') window.updateNotifStatus();
         };
 
-        window.dismissPushBanner = function () {
+        // "Rechazar" en el banner: persiste en Firestore.
+        // Después de esto, el banner NO vuelve a aparecer automáticamente nunca más.
+        // El user puede activar manualmente desde el toggle en Mi Perfil.
+        window.dismissPushBanner = async function () {
             hidePushPermissionBanner();
-            sessionStorage.setItem('pushBannerDismissed', '1');
+            await _setNotifPrefsField({ bannerDismissed: true, subscribed: false });
         };
 
         // Estado visible para iPhone (donde no podemos abrir DevTools).
-        // Muestra el estado actual del permiso + diagnóstico técnico debajo del status.
+        // Muestra el toggle maestro + sub-toggles según el estado actual.
         window.updateNotifStatus = function () {
-            const statusEl = document.getElementById('notif-status');
-            const debugEl  = document.getElementById('notif-debug');
-            const btnEl    = document.getElementById('notif-action-btn');
+            const statusEl     = document.getElementById('notif-status');
+            const debugEl      = document.getElementById('notif-debug');
+            const btnEl        = document.getElementById('notif-action-btn');
+            const masterRow    = document.getElementById('notif-master-row');
+            const masterToggle = document.getElementById('notif-master-toggle');
+            const masterSub    = document.getElementById('notif-master-sub');
+            const prefsPanel   = document.getElementById('notif-prefs');
             if (!statusEl || !btnEl) return;
 
             const isIOSDevice = /iPhone|iPad|iPod/i.test(navigator.userAgent) && !window.MSStream;
             const isStandalone = window.matchMedia('(display-mode: standalone)').matches
                 || window.navigator.standalone === true;
-            const hasNotifAPI  = ('Notification' in window);
-            const perm = hasNotifAPI ? Notification.permission : 'no-api';
+            const hasNotifAPI = ('Notification' in window);
+            const perm        = hasNotifAPI ? Notification.permission : 'no-api';
             const messagingOK = !!messaging;
+            const prefs       = state.notifPrefs || DEFAULT_NOTIF_PREFS;
+            const subscribed  = prefs.subscribed !== false;  // default true
 
-            // Línea de diagnóstico técnica (chiquita, abajo)
-            const diag = [
-                'platform=' + (isIOSDevice ? 'iOS' : (/Android/i.test(navigator.userAgent) ? 'Android' : 'Desktop')),
-                'standalone=' + isStandalone,
-                'notifAPI=' + hasNotifAPI,
-                'perm=' + perm,
-                'messaging=' + messagingOK
-            ].join(' · ');
-            if (debugEl) debugEl.textContent = diag;
+            // Línea de diagnóstico técnica
+            if (debugEl) {
+                debugEl.textContent = [
+                    'platform=' + (isIOSDevice ? 'iOS' : (/Android/i.test(navigator.userAgent) ? 'Android' : 'Desktop')),
+                    'standalone=' + isStandalone,
+                    'perm=' + perm,
+                    'subscribed=' + subscribed,
+                    'bannerDismissed=' + (prefs.bannerDismissed === true)
+                ].join(' · ');
+            }
 
-            // Caso 1: iOS sin instalar como PWA → no se puede
-            if (isIOSDevice && !isStandalone) {
-                statusEl.innerHTML = '⚠️ <b>Instalá la app como PWA primero.</b> Compartir → Agregar a inicio en Safari.';
-                btnEl.style.display = 'none';
-                return;
-            }
-            // Caso 2: Notif API no disponible
-            if (!hasNotifAPI) {
-                statusEl.innerHTML = '❌ Este navegador no soporta notificaciones.';
-                btnEl.style.display = 'none';
-                return;
-            }
-            // Caso 3: Firebase Messaging no se inicializó
-            if (!messagingOK) {
-                statusEl.innerHTML = '❌ Firebase Messaging no disponible en este contexto.';
-                btnEl.style.display = 'none';
-                return;
-            }
-            // Helper para mostrar/ocultar el panel de prefs
-            const prefsPanel = document.getElementById('notif-prefs');
+            // Helpers
+            const showStatus = (html) => { statusEl.style.display = ''; statusEl.innerHTML = html; };
+            const hideStatus = () => { statusEl.style.display = 'none'; };
+            const showMaster = (show) => { if (masterRow) masterRow.style.display = show ? 'flex' : 'none'; };
             const showPrefs  = (show) => { if (prefsPanel) prefsPanel.style.display = show ? 'block' : 'none'; };
+            btnEl.style.display = 'none';  // no usamos el botón viejo, todo va por el toggle maestro
 
-            // Caso 4: Granted — ya activadas. Mostrar panel de settings.
-            if (perm === 'granted') {
-                statusEl.innerHTML = '✅ <b style="color:#34d399;">Notificaciones activadas</b>';
-                btnEl.style.display = 'none';
-                showPrefs(true);
-                loadNotifPrefsIntoUI();
+            // ─── CASOS BLOQUEANTES ──────────────────────────────────────────────
+            if (isIOSDevice && !isStandalone) {
+                showStatus('⚠️ <b>Instalá la app como PWA primero.</b> Compartir → Agregar a inicio.');
+                showMaster(false); showPrefs(false);
                 return;
             }
-            // Caso 5: Denied — usuario bloqueó. Necesita ir a Settings.
+            if (!hasNotifAPI) {
+                showStatus('❌ Este navegador no soporta notificaciones.');
+                showMaster(false); showPrefs(false);
+                return;
+            }
+            if (!messagingOK) {
+                showStatus('❌ Firebase Messaging no disponible en este contexto.');
+                showMaster(false); showPrefs(false);
+                return;
+            }
             if (perm === 'denied') {
                 if (isIOSDevice) {
-                    statusEl.innerHTML = '🚫 <b style="color:#f87171;">Notificaciones bloqueadas en iOS.</b><br><span style="font-size:11px; color:var(--slate);">Para activar: Ajustes → Notificaciones → buscá esta app → Permitir notificaciones.</span>';
+                    showStatus('🚫 <b style="color:#f87171;">Bloqueadas en iOS.</b><br><span style="font-size:11px; color:var(--slate);">Ajustes → Notificaciones → buscá esta app → Permitir.</span>');
                 } else {
-                    statusEl.innerHTML = '🚫 <b style="color:#f87171;">Notificaciones bloqueadas.</b><br><span style="font-size:11px; color:var(--slate);">Click en el candado/info al lado de la URL → Permisos → Notificaciones → Permitir. Luego refrescá.</span>';
+                    showStatus('🚫 <b style="color:#f87171;">Bloqueadas.</b><br><span style="font-size:11px; color:var(--slate);">Candado al lado de la URL → Notificaciones → Permitir. Refrescá la página.</span>');
                 }
-                btnEl.style.display = 'none';
-                showPrefs(false);
+                showMaster(false); showPrefs(false);
                 return;
             }
-            // Caso 6: Default — nunca preguntado
-            statusEl.innerHTML = '🔕 Notificaciones desactivadas.';
-            btnEl.textContent = 'Activar notificaciones';
-            btnEl.style.display = '';
-            showPrefs(false);
+
+            // ─── ESTADOS NORMALES — siempre con toggle maestro ──────────────────
+            hideStatus();
+            showMaster(true);
+            const isOn = (perm === 'granted' && subscribed);
+            if (masterToggle) masterToggle.checked = isOn;
+            if (masterSub) {
+                masterSub.textContent = isOn
+                    ? 'Tu dispositivo recibe avisos del director.'
+                    : 'Activá para recibir avisos importantes.';
+                masterSub.style.color = isOn ? '#34d399' : 'var(--slate)';
+            }
+            // Sub-toggles solo cuando todo está ON
+            if (isOn) {
+                showPrefs(true);
+                loadNotifPrefsIntoUI();
+            } else {
+                showPrefs(false);
+            }
+        };
+
+        // Toggle maestro: activa/desactiva todas las notificaciones.
+        window.onMasterToggle = async function () {
+            const toggle = document.getElementById('notif-master-toggle');
+            if (!toggle || !user) return;
+            const wantOn = toggle.checked;
+            toggle.disabled = true;
+            try {
+                if (wantOn) {
+                    // Activar: si perm=default, pedir al OS. Si perm=granted, solo re-suscribir.
+                    let perm = Notification.permission;
+                    if (perm === 'default') {
+                        perm = await Notification.requestPermission();
+                    }
+                    if (perm === 'granted') {
+                        await registerPushToken();
+                        await _setNotifPrefsField({ subscribed: true, bannerDismissed: false });
+                        showInAppToast('✅ Notificaciones activadas', 'Vas a recibir avisos importantes.');
+                    } else if (perm === 'denied') {
+                        toggle.checked = false;
+                        showInAppToast('🚫 Bloqueado por iOS', 'Activá desde Ajustes del iPhone.');
+                    } else {
+                        // perm sigue en default (user cerró el prompt sin decidir)
+                        toggle.checked = false;
+                    }
+                } else {
+                    // Desactivar: unsubscribe + limpiar tokens. NO marca bannerDismissed,
+                    // así si re-instala o algo, el banner puede volver — pero acá no porque
+                    // el user lo va a re-activar manualmente desde el toggle.
+                    await unsubscribeFromPush();
+                    await _setNotifPrefsField({ subscribed: false });
+                    showInAppToast('🔕 Desactivadas', 'No vas a recibir más notificaciones.');
+                }
+            } catch (err) {
+                console.error('[push] master toggle error:', err);
+                showInAppToast('❌ Error', err.message || String(err));
+                toggle.checked = !wantOn;  // revertir UI ante error
+            } finally {
+                toggle.disabled = false;
+                window.updateNotifStatus();
+            }
         };
 
         // ─── PREFS DE NOTIFICACIONES (toggles por tipo) ──────────────────────────────
@@ -2593,6 +2721,8 @@
                     state.notifPrefs = { ...DEFAULT_NOTIF_PREFS };
                 } else {
                     // Merge con defaults para añadir nuevas keys si las agregamos en el futuro
+                    if (typeof state.notifPrefs.subscribed !== 'boolean') state.notifPrefs.subscribed = DEFAULT_NOTIF_PREFS.subscribed;
+                    if (typeof state.notifPrefs.bannerDismissed !== 'boolean') state.notifPrefs.bannerDismissed = DEFAULT_NOTIF_PREFS.bannerDismissed;
                     if (typeof state.notifPrefs.anuncios !== 'boolean') state.notifPrefs.anuncios = DEFAULT_NOTIF_PREFS.anuncios;
                     if (typeof state.notifPrefs.reconocimientos !== 'boolean') state.notifPrefs.reconocimientos = DEFAULT_NOTIF_PREFS.reconocimientos;
                     if (!state.notifPrefs.recordatorio || typeof state.notifPrefs.recordatorio !== 'object') {
