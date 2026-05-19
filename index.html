@@ -500,30 +500,18 @@
             color: var(--white);
             font-variant-numeric: tabular-nums;
         }
-        /* Prima input: centrado, con prefijo "$" visible adentro del field */
         .m-field input.m-prima-input {
-            text-align: center;
+            text-align: right;
             color: var(--gold-l);
-            padding-left: 18px;  /* deja espacio al $ prefijo */
-            padding-right: 4px;
+            padding-right: 12px;
         }
-        .m-prima-wrap {
-            position: relative;
-            width: 100%;
-        }
-        .m-prima-prefix {
-            position: absolute;
-            left: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gold-l);
-            font-weight: 700;
-            font-size: 14px;
-            pointer-events: none;
-            user-select: none;
+        .m-field input:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
         }
         /* Conceptos: layout 2-cols en desktop, single-col reordenado en mobile.
-           Mobile order: visual funnel → defs (P/E/C/V) → S+$ (Volumen y Valor) → totopos */
+           Mobile order: visual funnel → defs → MÉTRICAS DE VOLUMEN Y VALOR → totopos */
         .conceptos-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -541,11 +529,6 @@
             .conceptos-defs   { order: 2; }
             .conceptos-prima  { order: 3; }
             .conceptos-totopos { order: 4; }
-        }
-        .m-field input:focus {
-            outline: none;
-            border-color: var(--gold);
-            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
         }
         .m-today-status {
             display: flex;
@@ -872,11 +855,11 @@
             padding: 24px;
             width: 100%;
             max-width: 450px;
-            max-height: calc(100dvh - 40px);   /* dynamic viewport — funciona bien en iOS Safari/PWA */
-            max-height: calc(100vh - 40px);    /* fallback para browsers viejos */
-            max-height: 86vh;                  /* match con .kpi-info-box, da espacio para el overlay padding */
-            overflow-y: auto;                  /* scroll interno cuando el contenido excede el viewport */
-            -webkit-overflow-scrolling: touch; /* momentum scroll en iOS */
+            max-height: calc(100dvh - 40px);
+            max-height: calc(100vh - 40px);
+            max-height: 86vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
             position: relative;
         }
 
@@ -917,8 +900,122 @@
             border-radius: 24px;
             padding: 5px 16px 5px 10px;
             margin-top: 6px;
-            cursor: default;
+            cursor: pointer;
             animation: karmaPulse 3s ease-in-out infinite;
+            transition: transform .15s, border-color .15s, box-shadow .15s;
+            position: relative;
+        }
+        #karma-badge:hover {
+            transform: scale(1.04);
+            border-color: var(--gold);
+            box-shadow: 0 0 16px rgba(212,175,55,0.45);
+        }
+        #karma-badge:active { transform: scale(0.98); }
+        #karma-badge .karma-info-i {
+            background: rgba(212,175,55,0.30);
+            border: 1px solid rgba(212,175,55,0.7);
+            color: var(--gold);
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            font-size: 9px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 4px;
+            flex-shrink: 0;
+        }
+        #karma-badge .karma-info-i i { line-height: 1; }
+
+        /* First-time tooltip: aparece la primera vez que el usuario abre la app
+           para indicar que el badge es clickeable. Auto-fade tras 6s o al click. */
+        .karma-tooltip {
+            position: fixed;
+            background: rgba(212,175,55,0.97);
+            color: #0f172a;
+            padding: 9px 14px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+            z-index: 9999;
+            white-space: nowrap;
+            pointer-events: none;
+            animation: karmaTooltipFloat 1.4s ease-in-out infinite;
+            opacity: 0;
+            transition: opacity .35s ease;
+        }
+        .karma-tooltip.visible { opacity: 1; }
+        .karma-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 24px;
+            border: 8px solid transparent;
+            border-top-color: rgba(212,175,55,0.97);
+        }
+        @keyframes karmaTooltipFloat {
+            0%, 100% { transform: translateY(0); }
+            50%      { transform: translateY(-4px); }
+        }
+
+        /* Rules modal — reglas de totopos cuando el agente toca el balance. */
+        .rules-modal-box {
+            background: var(--panel);
+            border: 1.5px solid var(--gold);
+            border-radius: 14px;
+            padding: 22px;
+            width: 100%;
+            max-width: 480px;
+            max-height: 86vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .rules-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(212,175,55,0.2);
+            gap: 10px;
+        }
+        .rules-modal-title {
+            font-family: 'Playfair Display', serif;
+            color: var(--gold);
+            font-size: 18px;
+            font-weight: 700;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .rules-modal-close {
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 26px;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0 4px;
+        }
+        .rules-modal-body {
+            font-size: 13.5px;
+            color: var(--white);
+            line-height: 1.6;
+        }
+        .rules-modal-body p { margin: 0 0 10px; }
+        .rules-modal-body strong { color: var(--gold); }
+        .rules-modal-body ul { margin: 8px 0 12px 0; padding-left: 22px; }
+        .rules-modal-body li { margin-bottom: 6px; }
+        .rules-modal-body .nota {
+            font-size: 12.5px;
+            color: var(--slate);
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: rgba(245,158,11,0.08);
+            border-left: 3px solid #f59e0b;
+            border-radius: 6px;
         }
         #karma-badge .star { font-size: 20px; }
         #karma-badge .karma-num {
@@ -928,21 +1025,22 @@
             letter-spacing: 1px;
             line-height: 1;
         }
-        /* Icono SVG del totopo (Variante H — reemplaza al emoji 🌮).
-           Hereda font-size del padre (1em x 1em). Definido en <symbol> al inicio del <body>. */
-        .totopo-icon {
-            width: 1em;
-            height: 1em;
-            display: inline-block;
-            vertical-align: -0.15em;
-            flex-shrink: 0;
-        }
         #karma-badge .karma-lbl {
             color: var(--slate);
             font-size: 10px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 2px;
+        }
+        /* Icono SVG del totopo (reemplaza al emoji 🌮). Usa <use href="#totopo"/>.
+           Tamaño hereda font-size del padre (1em x 1em). Gradient + path + manchas
+           definidos una sola vez en el <symbol> al inicio del <body>. */
+        .totopo-icon {
+            width: 1em;
+            height: 1em;
+            display: inline-block;
+            vertical-align: -0.15em;
+            flex-shrink: 0;
         }
         #karma-celebration {
             display: none;
@@ -960,47 +1058,6 @@
             inset: 0;
             pointer-events: none;
             overflow: hidden;
-        }
-
-        /* ═══ ANIMACIÓN DE GANANCIA DE TOTOPOS (no intrusiva) ═══
-           Reemplaza el modal celebration con feedback sutil en el badge:
-           1) "+N" flotante que sube y se desvanece (2.5s)
-           2) Glow dorado breve sobre el badge (1.5s)
-           3) Count-up animado del número (2.5s)
-        */
-        @keyframes karmaGainPop {
-            0%   { opacity: 0; transform: translate(-50%, 6px) scale(0.9); }
-            15%  { opacity: 1; transform: translate(-50%, 0) scale(1.05); }
-            30%  { opacity: 1; transform: translate(-50%, -4px) scale(1); }
-            100% { opacity: 0; transform: translate(-50%, -36px) scale(1); }
-        }
-        .karma-gain-popup {
-            position: absolute;
-            top: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: var(--gold);
-            font-size: 17px;
-            font-weight: 800;
-            pointer-events: none;
-            white-space: nowrap;
-            text-shadow: 0 2px 10px rgba(212,175,55,0.7),
-                         0 0 4px rgba(212,175,55,0.5);
-            animation: karmaGainPop 2.5s ease-out forwards;
-            z-index: 100;
-        }
-        .karma-gain-popup .gain-icon {
-            font-size: 14px;
-            margin-left: 2px;
-            vertical-align: -1px;
-        }
-        @keyframes karmaBadgeBigGlow {
-            0%, 100% { box-shadow: 0 0 8px rgba(212,175,55,0.3); }
-            30%      { box-shadow: 0 0 28px rgba(212,175,55,0.9), 0 0 60px rgba(212,175,55,0.4); }
-            70%      { box-shadow: 0 0 20px rgba(212,175,55,0.6), 0 0 40px rgba(212,175,55,0.25); }
-        }
-        #karma-badge.gaining {
-            animation: karmaBadgeBigGlow 1.5s ease-in-out !important;
         }
 
         @keyframes fadeIn {
@@ -1308,10 +1365,11 @@
                     </div>
                 </div>
                 <p id="agent-display">Agente: —</p>
-                <div id="karma-badge">
+                <div id="karma-badge" onclick="openRulesModal()" role="button" tabindex="0" aria-label="Ver reglas de totopos" title="Toca para saber como ganarse los totopos">
                     <span class="star"><svg class="totopo-icon"><use href="#totopo"/></svg></span>
                     <span class="karma-num" id="karma-value">0</span>
                     <span class="karma-lbl">totopos</span>
+                    <span class="karma-info-i"><i class="fa fa-info"></i></span>
                 </div>
             </div>
             <div class="header-right">
@@ -1456,7 +1514,7 @@
                 </div>
                 <div class="charts-grid">
                     <div class="chart-card">
-                        <h3><i class="fa fa-percentage"></i> Eficiencia: Conversión P ➔ V (Cierre)<button class="kpi-info-btn" onclick="openKpiInfo('efectividad')" title="Qué mide este KPI" aria-label="Información"><i class="fa fa-info"></i></button></h3>
+                        <h3><i class="fa fa-percentage"></i> Eficiencia: Conversión P ➔ V<button class="kpi-info-btn" onclick="openKpiInfo('efectividad')" title="Qué mide este KPI" aria-label="Información"><i class="fa fa-info"></i></button></h3>
                         <div class="chart-wrap"><canvas id="kpiEfectividad"></canvas></div>
                     </div>
                     <div class="chart-card">
@@ -1525,7 +1583,7 @@
                     <!-- DEFINICIONES P/E/C/V — desktop: columna izq · mobile: order 2 -->
                     <div class="conceptos-defs">
                         <div style="margin-bottom:24px;">
-                            <strong style="color:var(--gold); font-size:1.2em;">P - Contactos del día</strong><br>
+                            <strong style="color:var(--gold); font-size:1.2em;">P - Personas contactadas en el día</strong><br>
                             <p style="font-size:14px; margin:8px 0; color:var(--white);"><strong>Definición:</strong>
                                 Personas buscadas activamente. Empieza a contar desde que hay contacto. En venta en frío,
                                 no cuenta un simple saludo superficial. Trata de obtener datos clave, como nombre,
@@ -1552,12 +1610,13 @@
                         </div>
 
                         <div style="margin-bottom:24px;">
-                            <strong style="color:var(--gold); font-size:1.2em;">V - Personas con cierre</strong><br>
+                            <strong style="color:var(--gold); font-size:1.2em;">V - Personas a las que se les vendió</strong><br>
                             <p style="font-size:14px; margin:8px 0; color:var(--white);"><strong>Definición:</strong>
-                                Número de individuos (almas) a los que vendiste; si le vendiste varias solicitudes a la
-                                misma persona, cuenta como un solo cierre.</p>
-                            <em style="color:var(--slate); font-size:12px;">¿Qué mide?: Efectividad de cierre y
-                                convicción.</em>
+                                Personas (almas) a las que vendiste el producto. Si a una misma persona le vendiste varias
+                                solicitudes/pólizas, sigue contando como <strong>1 sola V</strong>. La diferencia con
+                                S (Solicitudes) es exactamente esa: V cuenta personas, S cuenta pólizas individuales.</p>
+                            <em style="color:var(--slate); font-size:12px;">¿Qué mide?: Efectividad de venta por persona
+                                (no por póliza).</em>
                         </div>
                     </div>
 
@@ -1575,20 +1634,15 @@
                             <div style="width: 100%; height: 50px; background: #10b981; clip-path: polygon(15% 0%, 85% 0%, 80% 100%, 20% 100%); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; color:white;">V - Cierres</div>
                         </div>
                         <p style="font-size:13px; color:var(--slate); margin-top:35px; line-height:1.6; text-align:justify; border-top: 1px solid rgba(255,255,255,0.1); padding-top:20px;">
-                            En sentido estricto el número debe ir de mayor a menor (o como máximo igual) en cada etapa
-                            del proceso. Es decir: <strong>nunca puede haber más entrevistas que prospectos
-                                contactados</strong>, ni más cotizaciones que entrevistas realizadas, ni más ventas
-                            concretadas que cotizaciones.
+                            En sentido estricto el número debe ir de mayor a menor (o como máximo igual) en cada etapa del proceso. Es decir: <strong>nunca puede haber más entrevistas que prospectos contactados</strong>, ni más cotizaciones que entrevistas realizadas, ni más ventas concretadas que cotizaciones.
                         </p>
                     </div>
 
                     <!-- MÉTRICAS DE VOLUMEN Y VALOR (S + $) — desktop: full-width · mobile: order 3 -->
                     <div class="conceptos-prima">
-                        <h2
-                            style="font-family:'Playfair Display',serif; color:var(--gold); border-bottom: 2px solid var(--gold); padding-bottom:10px; margin:20px 0 25px; font-size:22px;">
+                        <h2 style="font-family:'Playfair Display',serif; color:var(--gold); border-bottom: 2px solid var(--gold); padding-bottom:10px; margin:20px 0 25px; font-size:22px;">
                             <i class="fa fa-chart-line"></i> MÉTRICAS DE VOLUMEN Y VALOR
                         </h2>
-
                         <div style="margin-bottom:24px;">
                             <strong style="color:var(--gold); font-size:1.2em;">S - Número de solicitudes</strong><br>
                             <p style="font-size:14px; margin:8px 0; color:var(--white);"><strong>Definición:</strong>
@@ -1601,7 +1655,6 @@
                                 solicitudes no rompan el embudo matemático que te permite medir tu eficiencia en cada
                                 etapa del proceso de la venta, se crearon esos dos conceptos.</p>
                         </div>
-
                         <div style="margin-bottom:24px;">
                             <strong style="color:var(--gold); font-size:1.2em;">$ - Prima total</strong><br>
                             <p style="font-size:14px; margin:8px 0; color:var(--white);"><strong>Definición:</strong>
@@ -1610,23 +1663,6 @@
                         </div>
                     </div>
 
-                    <!-- TOTOPOS — desktop: full-width abajo · mobile: order 4 -->
-                    <div class="conceptos-totopos" style="padding:18px; background:rgba(212,175,55,0.06); border:1px solid rgba(212,175,55,0.2); border-radius:12px;">
-                        <div style="display:flex; align-items:center; gap:14px; margin-bottom:10px;">
-                            <svg style="width:64px; height:64px; flex-shrink:0;"><use href="#totopo"/></svg>
-                            <strong style="color:var(--gold); font-size:1.3em;">Totopos — tu moneda</strong>
-                        </div>
-                        <p style="font-size:14px; margin:8px 0; color:var(--white);"><strong>¿Qué son?</strong> Moneda virtual que ganás por reportar tu día. Premian la disciplina y la honestidad — no importa si el día estuvo bueno o flojo, lo que cuenta es que reportes.</p>
-                        <p style="font-size:14px; margin:14px 0 6px; color:var(--white);"><strong>¿Cómo ganártelos?</strong> Ganás <strong>10 totopos por cada día reportado</strong> en cualquiera de estos dos casos:</p>
-                        <ul style="font-size:13px; margin:6px 0 8px 22px; color:var(--white); line-height:1.7; padding-left:0;">
-                            <li>🟢 <strong>Semáforo en verde</strong> — el embudo cumple las reglas.</li>
-                            <li>🌙 <strong>"Sin intento de venta hoy"</strong> — declaraste honestamente que no hubo actividad. Cuenta igual. La opción aparece cuando todos los valores están en 0.</li>
-                        </ul>
-                        <p style="font-size:13px; margin:8px 0; color:var(--slate);">Si el semáforo queda en 🔴 (datos rotos / embudo inválido) ese día <strong>no</strong> genera totopos. El corte se hace a las <strong>12:00 AM</strong> — durante el día puedes corregir las veces que quieras.</p>
-                        <p style="font-size:13px; margin:8px 0; color:var(--slate);">⚠️ <strong style="color:var(--gold);">Auditoría:</strong> Se revisará al final del mes si lo reportado coincide con lo ingresado.</p>
-                        <p style="font-size:14px; margin:12px 0 8px; color:var(--white);"><strong>¿Para qué sirven?</strong> Los canjéas en la pestaña <strong>Tienda</strong> por premios que el director pone disponibles.</p>
-                        <em style="color:var(--slate); font-size:12px;">¿Qué miden?: Tu compromiso y consistencia con el reporte diario.</em>
-                    </div>
                 </div>
             </div>
         </div>
@@ -1719,6 +1755,31 @@
         </div>
     </div>
 
+    <!-- RULES MODAL — reglas de totopos (se abre al tocar el balance) -->
+    <div class="modal-overlay" id="rules-modal" onclick="if(event.target===this)closeRulesModal()">
+        <div class="rules-modal-box">
+            <div class="rules-modal-header">
+                <div class="rules-modal-title">
+                    <svg style="width:32px;height:32px;flex-shrink:0;"><use href="#totopo"/></svg>
+                    Totopos — tu moneda
+                </div>
+                <button class="rules-modal-close" onclick="closeRulesModal()" aria-label="Cerrar">&times;</button>
+            </div>
+            <div class="rules-modal-body">
+                <p><strong>¿Qué son?</strong> Moneda virtual que ganás por reportar tu día. Premian la disciplina y la honestidad — no importa si el día estuvo bueno o flojo, lo que cuenta es que reportes.</p>
+                <p style="margin-top:14px;"><strong>¿Cómo ganártelos?</strong> Ganás <strong>10 totopos por cada día reportado</strong> en cualquiera de estos dos casos:</p>
+                <ul>
+                    <li>🟢 <strong>Semáforo en verde</strong> — el embudo cumple las reglas.</li>
+                    <li>🌙 <strong>"Sin intento de venta hoy"</strong> — declaraste honestamente que no hubo actividad. Cuenta igual. La opción aparece cuando todos los valores están en 0.</li>
+                </ul>
+                <p style="color:var(--slate); font-size:12.5px;">Si el semáforo queda en 🔴 (datos rotos / embudo inválido) ese día <strong>no</strong> genera totopos. El corte se hace a las <strong>12:00 AM</strong> — durante el día puedes corregir las veces que quieras.</p>
+                <div class="nota">⚠️ <strong style="color:#f59e0b;">Auditoría:</strong> Se revisará al final del mes si lo reportado coincide con lo ingresado.</div>
+                <p style="margin-top:14px;"><strong>¿Para qué sirven?</strong> Los canjéas en la pestaña <strong>Tienda</strong> por premios que el director pone disponibles.</p>
+                <p style="color:var(--slate); font-size:12.5px; margin-top:6px;"><em>Tu compromiso y consistencia con el reporte diario.</em></p>
+            </div>
+        </div>
+    </div>
+
     <!-- CANJE CONFIRMATION MODAL -->
     <div class="modal-overlay" id="canje-confirm-modal" onclick="if(event.target===this)cancelCanje()">
         <div class="modal-box" style="max-width:380px;text-align:center;">
@@ -1767,7 +1828,6 @@
             <h2 style="font-family:'Playfair Display',serif; color:var(--gold); margin-top:0;"><i class="fa fa-bell" style="margin-right:8px;"></i>Notificaciones</h2>
             <p style="font-size:12px; color:var(--slate); margin:0 0 18px;">Recibí avisos importantes del director y reconocimientos directamente en tu dispositivo.</p>
 
-            <!-- Toggle maestro — siempre visible (excepto cuando perm=denied) -->
             <label id="notif-master-row" style="display:none; align-items:center; justify-content:space-between; padding:14px 16px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:10px; margin-bottom:12px; cursor:pointer; gap:12px;">
                 <div style="flex:1; min-width:0;">
                     <div id="notif-master-title" style="font-size:15px; color:#fff; font-weight:700;">Notificaciones</div>
@@ -1779,7 +1839,6 @@
             <div id="notif-status" style="display:none; font-size:13px; font-weight:600; color:#fff; margin-bottom:12px; line-height:1.4; padding:12px 14px; background:rgba(255,255,255,0.04); border-radius:10px;">Cargando…</div>
             <button id="notif-action-btn" class="btn btn-sm" style="display:none; width:100%; margin-bottom:10px;" onclick="onNotifActionClick()">Activar notificaciones</button>
 
-            <!-- Toggles por tipo — solo visibles cuando subscribed=true -->
             <div id="notif-prefs" style="display:none; margin-top:8px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.08);">
                 <div style="font-size:11px; color:var(--slate); font-weight:700; margin-bottom:10px; letter-spacing:0.5px;">RECIBIR AVISOS DE:</div>
 
@@ -1816,7 +1875,6 @@
                 <div id="notif-prefs-saved" style="display:none; font-size:11px; color:#34d399; margin-top:6px; text-align:right;">✓ Guardado</div>
             </div>
 
-            <!-- Diagnóstico técnico (colapsable, para soporte) -->
             <details style="margin-top:14px;">
                 <summary style="font-size:10px; color:rgba(255,255,255,0.4); cursor:pointer; user-select:none;">Diagnóstico técnico</summary>
                 <div id="notif-debug" style="font-size:10px; color:rgba(255,255,255,0.5); font-family:monospace; margin-top:6px; word-break:break-all;"></div>
@@ -1916,7 +1974,6 @@
         .in-app-toast .toast-title { color:var(--gold,#d4af37); font-weight:800; font-size:15px; margin-bottom:3px; }
         .in-app-toast .toast-body { color:#fff; font-size:13px; line-height:1.4; }
 
-        /* Campana pulsante cuando el banner está activo — guía visual hacia el modal */
         @keyframes bellPulseGold {
             0%   { box-shadow: 0 0 0 0 rgba(212,175,55,0.7); transform: scale(1); }
             50%  { box-shadow: 0 0 0 10px rgba(212,175,55,0); transform: scale(1.06); }
@@ -1987,13 +2044,11 @@
         const provider = new GoogleAuthProvider();
 
         // Messaging — puede no estar soportado en ciertos browsers/contextos.
-        // isSupported() chequea: service worker disponible, IndexedDB, navigator.cookieEnabled, etc.
         const VAPID_KEY = "BDPXKyOCeao8o3KNkBidAtt3g_qH2UWqWv8Y5Ea7BA4_Q_U2_CndW37Bweh1tHVAyuYLQDtKLc_BpPjet3Gi-l4";
         let messaging = null;
         isMessagingSupported().then(supported => {
             if (supported) {
                 messaging = getMessaging(app);
-                // Listener de mensajes en foreground (app abierta y enfocada)
                 onMessage(messaging, payload => {
                     console.log('[push] Foreground message:', payload);
                     const title = (payload.notification && payload.notification.title) || 'PECVS$';
@@ -2011,11 +2066,9 @@
         const MONTHS_ES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
         const CHART_COLORS = { P: '#3b82f6', E: '#06b6d4', C: '#a855f7', V: '#10b981', S: '#f59e0b' };
 
-        // notifPrefs por defecto:
-        //  - subscribed: undefined → tratamos como true por defecto (first time = enabled si acepta el banner)
-        //  - bannerDismissed: false → mostrar banner si perm=default
-        //  - anuncios/reconocimientos: ON por defecto
-        //  - recordatorio: OFF a las 19:00 por defecto
+        // notifPrefs por defecto: anuncios+reconocimientos ON, recordatorio OFF a las 19:00.
+        // subscribed=true por defecto (first-time = enabled si acepta el banner).
+        // bannerDismissed=false → mostrar banner si perm=default.
         const DEFAULT_NOTIF_PREFS = {
             subscribed: true,
             bannerDismissed: false,
@@ -2110,8 +2163,7 @@
             (window.navigator.standalone === true ||
              window.matchMedia('(display-mode: standalone)').matches);
 
-        // Cleanup one-time del log diagnostico que vivio en v1.8.3-1.8.6 de mainnet
-        // (defensivo por si algun tester tenia el panel)
+        // Cleanup one-time del log diagnostico que vivio en v1.8.3-1.8.6
         try { localStorage.removeItem('_iosDiagLog'); } catch {}
 
         let _loginInProgress = false;
@@ -2145,7 +2197,6 @@
         });
 
         // ─── PUSH NOTIFICATIONS ──────────────────────────────────────────────────────
-        // Lógica de banner / suscripción.
         // Estados browser-level (no controlables programáticamente):
         //   - perm 'default'  → nunca preguntado al OS
         //   - perm 'granted'  → el OS permite
@@ -2153,81 +2204,32 @@
         // Estados app-level (state.notifPrefs):
         //   - subscribed:       master switch — si el user quiere recibir pushes
         //   - bannerDismissed:  rechazó el banner → no aparece más automáticamente
-        //                       (siempre puede reactivar desde el toggle de Mi Perfil)
         async function subscribeToPush() {
             if (!user) return;
-            if (!messaging) {
-                console.log('[push] skip: messaging no disponible');
-                return;
-            }
-            if (!('Notification' in window)) {
-                console.log('[push] skip: Notification API ausente');
-                return;
-            }
-            // iOS: solo funciona en PWA standalone (iOS 16.4+)
+            if (!messaging) { console.log('[push] skip: messaging no disponible'); return; }
+            if (!('Notification' in window)) { console.log('[push] skip: Notification API ausente'); return; }
             const isIOSDevice = /iPhone|iPad|iPod/i.test(navigator.userAgent) && !window.MSStream;
             const isStandalone = window.matchMedia('(display-mode: standalone)').matches
                 || window.navigator.standalone === true;
             if (isIOSDevice && !isStandalone) {
-                console.log('[push] skip: iOS Safari browser no soporta web push (necesita PWA instalada)');
+                console.log('[push] skip: iOS Safari browser no soporta web push');
                 return;
             }
             const perm = Notification.permission;
             const prefs = state.notifPrefs || DEFAULT_NOTIF_PREFS;
-
-            if (perm === 'denied') return;  // OS bloqueado, no podemos hacer nada
-
+            if (perm === 'denied') return;
             if (perm === 'granted') {
-                // Permiso OS otorgado. Solo refrescar token si el user sigue subscribed.
-                // Si está unsubscribed (master toggle OFF) no hacemos nada — el user puede
-                // re-activar manualmente desde el toggle de Mi Perfil.
                 if (prefs.subscribed !== false) {
                     try { await registerPushToken(); }
                     catch (e) { console.error('[push] silent register failed:', e); }
                 }
                 return;
             }
-
-            // perm === 'default' — todavía no preguntamos al OS.
-            // Solo mostramos banner si el user NO lo rechazó explícitamente antes.
-            // Una vez que rechaza, nunca más aparece automáticamente (solo manual via settings).
+            // perm === 'default'
             if (prefs.bannerDismissed) return;
             showPushPermissionBanner();
         }
 
-        // Helper que mergea cambios al campo notifPrefs y persiste en Firestore.
-        // No toca otros campos del doc.
-        async function _setNotifPrefsField(updates) {
-            if (!user) return;
-            state.notifPrefs = state.notifPrefs || { ...DEFAULT_NOTIF_PREFS };
-            Object.assign(state.notifPrefs, updates);
-            try {
-                await setDoc(doc(db, 'users', user.email), { notifPrefs: state.notifPrefs }, { merge: true });
-            } catch (err) {
-                console.error('[notifPrefs] save error:', err);
-            }
-        }
-
-        // Desuscribe del push service del browser + borra todos los tokens FCM del user.
-        // No toca el permiso OS-level (el browser no lo permite revocar por código).
-        async function unsubscribeFromPush() {
-            if (!user) return;
-            try {
-                const reg = await navigator.serviceWorker.ready;
-                const sub = await reg.pushManager.getSubscription();
-                if (sub) await sub.unsubscribe();
-            } catch (e) { console.warn('[push] pushManager.unsubscribe error:', e); }
-            try {
-                const tokensRef = collection(db, 'users', user.email, 'pushTokens');
-                const snap = await getDocs(tokensRef);
-                for (const d of snap.docs) {
-                    try { await deleteDoc(doc(db, 'users', user.email, 'pushTokens', d.id)); }
-                    catch (e) { console.warn('[push] token delete fail:', d.id, e); }
-                }
-            } catch (e) { console.warn('[push] tokens collection read error:', e); }
-        }
-
-        // Re-throws errores para que el caller los muestre. Devuelve el token en caso de éxito.
         async function registerPushToken() {
             if (!messaging) throw new Error('messaging no inicializado');
             if (!user) throw new Error('no hay user logueado');
@@ -2235,10 +2237,7 @@
             const reg = await navigator.serviceWorker.ready;
             let token;
             try {
-                token = await getToken(messaging, {
-                    vapidKey: VAPID_KEY,
-                    serviceWorkerRegistration: reg
-                });
+                token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
             } catch (err) {
                 const msg = 'getToken falló: ' + (err && err.code ? err.code + ' — ' : '') + (err && err.message ? err.message : err);
                 _setLastPushResult(msg, true);
@@ -2249,7 +2248,7 @@
                 _setLastPushResult(msg, true);
                 throw new Error(msg);
             }
-            _setLastPushResult('Token obtenido (' + token.substring(0, 20) + '…). Guardando en Firestore…', false);
+            _setLastPushResult('Token obtenido. Guardando en Firestore…', false);
             const tokenId = token.substring(0, 40).replace(/[^a-zA-Z0-9_-]/g, '_');
             try {
                 await setDoc(doc(db, 'users', user.email, 'pushTokens', tokenId), {
@@ -2264,12 +2263,9 @@
                 throw new Error(msg);
             }
             _setLastPushResult('✅ Token guardado: ' + token.substring(0, 30) + '…', false);
-            console.log('[push] ✅ Token registrado:', token.substring(0, 30) + '...');
             return token;
         }
 
-        // Display persistente del último resultado en la card de Mi Perfil.
-        // isError=true → texto en rojo. isError=false → texto en verde claro.
         function _setLastPushResult(msg, isError) {
             const el = document.getElementById('notif-last-result');
             if (!el) return;
@@ -2283,6 +2279,32 @@
             if (/iPhone|iPad|iPod/i.test(ua)) return 'ios';
             if (/Android/i.test(ua)) return 'android';
             return 'desktop';
+        }
+
+        async function _setNotifPrefsField(updates) {
+            if (!user) return;
+            state.notifPrefs = state.notifPrefs || { ...DEFAULT_NOTIF_PREFS };
+            Object.assign(state.notifPrefs, updates);
+            try {
+                await setDoc(doc(db, 'users', user.email), { notifPrefs: state.notifPrefs }, { merge: true });
+            } catch (err) { console.error('[notifPrefs] save error:', err); }
+        }
+
+        async function unsubscribeFromPush() {
+            if (!user) return;
+            try {
+                const reg = await navigator.serviceWorker.ready;
+                const sub = await reg.pushManager.getSubscription();
+                if (sub) await sub.unsubscribe();
+            } catch (e) { console.warn('[push] pushManager.unsubscribe error:', e); }
+            try {
+                const tokensRef = collection(db, 'users', user.email, 'pushTokens');
+                const snap = await getDocs(tokensRef);
+                for (const d of snap.docs) {
+                    try { await deleteDoc(doc(db, 'users', user.email, 'pushTokens', d.id)); }
+                    catch (e) { console.warn('[push] token delete fail:', e); }
+                }
+            } catch (e) { console.warn('[push] tokens collection read error:', e); }
         }
 
         window.requestPushPermission = async function () {
@@ -2307,240 +2329,14 @@
             if (typeof window.updateNotifStatus === 'function') window.updateNotifStatus();
         };
 
-        // "Rechazar" en el banner: persiste en Firestore.
-        // Después de esto, el banner NO vuelve a aparecer automáticamente nunca más.
-        // El user puede activar manualmente desde el toggle en Mi Perfil.
         window.dismissPushBanner = async function () {
             hidePushPermissionBanner();
             await _setNotifPrefsField({ bannerDismissed: true, subscribed: false });
         };
 
-        // Estado visible para iPhone (donde no podemos abrir DevTools).
-        // Muestra el toggle maestro + sub-toggles según el estado actual.
-        window.updateNotifStatus = function () {
-            const statusEl     = document.getElementById('notif-status');
-            const debugEl      = document.getElementById('notif-debug');
-            const btnEl        = document.getElementById('notif-action-btn');
-            const masterRow    = document.getElementById('notif-master-row');
-            const masterToggle = document.getElementById('notif-master-toggle');
-            const masterSub    = document.getElementById('notif-master-sub');
-            const prefsPanel   = document.getElementById('notif-prefs');
-            if (!statusEl || !btnEl) return;
-
-            const isIOSDevice = /iPhone|iPad|iPod/i.test(navigator.userAgent) && !window.MSStream;
-            const isStandalone = window.matchMedia('(display-mode: standalone)').matches
-                || window.navigator.standalone === true;
-            const hasNotifAPI = ('Notification' in window);
-            const perm        = hasNotifAPI ? Notification.permission : 'no-api';
-            const messagingOK = !!messaging;
-            const prefs       = state.notifPrefs || DEFAULT_NOTIF_PREFS;
-            const subscribed  = prefs.subscribed !== false;  // default true
-
-            // Línea de diagnóstico técnica
-            if (debugEl) {
-                debugEl.textContent = [
-                    'platform=' + (isIOSDevice ? 'iOS' : (/Android/i.test(navigator.userAgent) ? 'Android' : 'Desktop')),
-                    'standalone=' + isStandalone,
-                    'perm=' + perm,
-                    'subscribed=' + subscribed,
-                    'bannerDismissed=' + (prefs.bannerDismissed === true)
-                ].join(' · ');
-            }
-
-            // Helpers
-            const showStatus = (html) => { statusEl.style.display = ''; statusEl.innerHTML = html; };
-            const hideStatus = () => { statusEl.style.display = 'none'; };
-            const showMaster = (show) => { if (masterRow) masterRow.style.display = show ? 'flex' : 'none'; };
-            const showPrefs  = (show) => { if (prefsPanel) prefsPanel.style.display = show ? 'block' : 'none'; };
-            btnEl.style.display = 'none';  // no usamos el botón viejo, todo va por el toggle maestro
-
-            // ─── CASOS BLOQUEANTES ──────────────────────────────────────────────
-            if (isIOSDevice && !isStandalone) {
-                showStatus('⚠️ <b>Instalá la app como PWA primero.</b> Compartir → Agregar a inicio.');
-                showMaster(false); showPrefs(false);
-                return;
-            }
-            if (!hasNotifAPI) {
-                showStatus('❌ Este navegador no soporta notificaciones.');
-                showMaster(false); showPrefs(false);
-                return;
-            }
-            if (!messagingOK) {
-                showStatus('❌ Firebase Messaging no disponible en este contexto.');
-                showMaster(false); showPrefs(false);
-                return;
-            }
-            if (perm === 'denied') {
-                if (isIOSDevice) {
-                    showStatus('🚫 <b style="color:#f87171;">Bloqueadas en iOS.</b><br><span style="font-size:11px; color:var(--slate);">Ajustes → Notificaciones → buscá esta app → Permitir.</span>');
-                } else {
-                    showStatus('🚫 <b style="color:#f87171;">Bloqueadas.</b><br><span style="font-size:11px; color:var(--slate);">Candado al lado de la URL → Notificaciones → Permitir. Refrescá la página.</span>');
-                }
-                showMaster(false); showPrefs(false);
-                return;
-            }
-
-            // ─── ESTADOS NORMALES — siempre con toggle maestro ──────────────────
-            hideStatus();
-            showMaster(true);
-            const isOn = (perm === 'granted' && subscribed);
-            if (masterToggle) masterToggle.checked = isOn;
-            if (masterSub) {
-                masterSub.textContent = isOn
-                    ? 'Tu dispositivo recibe avisos del director.'
-                    : 'Activá para recibir avisos importantes.';
-                masterSub.style.color = isOn ? '#34d399' : 'var(--slate)';
-            }
-            // Sub-toggles solo cuando todo está ON
-            if (isOn) {
-                showPrefs(true);
-                loadNotifPrefsIntoUI();
-            } else {
-                showPrefs(false);
-            }
-        };
-
-        // Toggle maestro: activa/desactiva todas las notificaciones.
-        window.onMasterToggle = async function () {
-            const toggle = document.getElementById('notif-master-toggle');
-            if (!toggle || !user) return;
-            const wantOn = toggle.checked;
-            toggle.disabled = true;
-            try {
-                if (wantOn) {
-                    // Activar: si perm=default, pedir al OS. Si perm=granted, solo re-suscribir.
-                    let perm = Notification.permission;
-                    if (perm === 'default') {
-                        perm = await Notification.requestPermission();
-                    }
-                    if (perm === 'granted') {
-                        await registerPushToken();
-                        await _setNotifPrefsField({ subscribed: true, bannerDismissed: false });
-                        showInAppToast('✅ Notificaciones activadas', 'Vas a recibir avisos importantes.');
-                    } else if (perm === 'denied') {
-                        toggle.checked = false;
-                        showInAppToast('🚫 Bloqueado por iOS', 'Activá desde Ajustes del iPhone.');
-                    } else {
-                        // perm sigue en default (user cerró el prompt sin decidir)
-                        toggle.checked = false;
-                    }
-                } else {
-                    // Desactivar: unsubscribe + limpiar tokens. NO marca bannerDismissed,
-                    // así si re-instala o algo, el banner puede volver — pero acá no porque
-                    // el user lo va a re-activar manualmente desde el toggle.
-                    await unsubscribeFromPush();
-                    await _setNotifPrefsField({ subscribed: false });
-                    showInAppToast('🔕 Desactivadas', 'No vas a recibir más notificaciones.');
-                }
-            } catch (err) {
-                console.error('[push] master toggle error:', err);
-                showInAppToast('❌ Error', err.message || String(err));
-                toggle.checked = !wantOn;  // revertir UI ante error
-            } finally {
-                toggle.disabled = false;
-                window.updateNotifStatus();
-            }
-        };
-
-        // ─── PREFS DE NOTIFICACIONES (toggles por tipo) ──────────────────────────────
-        // Lee state.notifPrefs y refleja los valores en los checkboxes + time input.
-        function loadNotifPrefsIntoUI() {
-            const p = state.notifPrefs || DEFAULT_NOTIF_PREFS;
-            const anuncios = document.getElementById('notif-pref-anuncios');
-            const reconoc  = document.getElementById('notif-pref-reconocimientos');
-            const record   = document.getElementById('notif-pref-recordatorio');
-            const recordT  = document.getElementById('notif-pref-recordatorio-time');
-            const recordRow= document.getElementById('notif-recordatorio-time-row');
-            if (anuncios) anuncios.checked = !!p.anuncios;
-            if (reconoc)  reconoc.checked  = !!p.reconocimientos;
-            const rec = (p.recordatorio && typeof p.recordatorio === 'object') ? p.recordatorio : DEFAULT_NOTIF_PREFS.recordatorio;
-            if (record)   record.checked = !!rec.enabled;
-            if (recordT)  recordT.value  = rec.time || '19:00';
-            if (recordRow) recordRow.style.display = rec.enabled ? 'flex' : 'none';
-        }
-
-        window.onRecordatorioToggle = function () {
-            const checkbox = document.getElementById('notif-pref-recordatorio');
-            const row = document.getElementById('notif-recordatorio-time-row');
-            if (row) row.style.display = (checkbox && checkbox.checked) ? 'flex' : 'none';
-            window.saveNotifPrefs();
-        };
-
-        // Guarda los toggles + hora en Firestore. Se llama en cada change.
-        // Escribe solo el campo notifPrefs con merge para no pisar nada más del doc.
-        let _saveNotifPrefsTimer = null;
-        window.saveNotifPrefs = function () {
-            if (!user) return;
-            const anuncios = !!document.getElementById('notif-pref-anuncios')?.checked;
-            const reconoc  = !!document.getElementById('notif-pref-reconocimientos')?.checked;
-            const recordEn = !!document.getElementById('notif-pref-recordatorio')?.checked;
-            const recordT  = document.getElementById('notif-pref-recordatorio-time')?.value || '19:00';
-            const newPrefs = {
-                anuncios,
-                reconocimientos: reconoc,
-                recordatorio: { enabled: recordEn, time: recordT }
-            };
-            state.notifPrefs = newPrefs;
-            // Debounce de 400ms para evitar saturar Firestore si el user mueve toggles rápido.
-            if (_saveNotifPrefsTimer) clearTimeout(_saveNotifPrefsTimer);
-            _saveNotifPrefsTimer = setTimeout(async () => {
-                try {
-                    await setDoc(doc(db, 'users', user.email), { notifPrefs: newPrefs }, { merge: true });
-                    const ok = document.getElementById('notif-prefs-saved');
-                    if (ok) {
-                        ok.style.display = '';
-                        setTimeout(() => { if (ok) ok.style.display = 'none'; }, 1500);
-                    }
-                } catch (err) {
-                    console.error('[notifPrefs] save error:', err);
-                    showInAppToast('❌ Error guardando preferencias', err.message || String(err));
-                }
-            }, 400);
-        };
-
-        window.onNotifActionClick = async function () {
-            const btn = document.getElementById('notif-action-btn');
-            if (btn) { btn.disabled = true; btn.textContent = 'Procesando…'; }
-            // Mostrar el div del último resultado siempre que se intente
-            const resultEl = document.getElementById('notif-last-result');
-            if (resultEl) { resultEl.style.display = ''; resultEl.style.color = '#a3a3a3'; resultEl.textContent = 'Iniciando…'; }
-            try {
-                const perm = Notification.permission;
-                if (perm === 'granted') {
-                    await registerPushToken();
-                    showInAppToast('✅ Token actualizado', 'Tu dispositivo está registrado.');
-                } else if (perm === 'default') {
-                    _setLastPushResult('Pidiendo permiso al sistema…', false);
-                    const result = await Notification.requestPermission();
-                    if (result === 'granted') {
-                        _setLastPushResult('Permiso concedido. Registrando token…', false);
-                        await registerPushToken();
-                        showInAppToast('✅ Notificaciones activadas', 'Vas a recibir avisos importantes acá.');
-                    } else if (result === 'denied') {
-                        _setLastPushResult('🚫 Permiso denegado por el usuario', true);
-                        showInAppToast('🚫 Permiso denegado', 'Podés activarlo desde los ajustes del sistema.');
-                    } else {
-                        _setLastPushResult('⚠️ Prompt cerrado sin decisión (' + result + ')', true);
-                    }
-                }
-            } catch (err) {
-                console.error('[push] onNotifActionClick error:', err);
-                _setLastPushResult('❌ ' + (err && err.message ? err.message : String(err)), true);
-                showInAppToast('❌ Error', String(err && err.message ? err.message : err));
-            } finally {
-                if (btn) btn.disabled = false;
-                // No llamar updateNotifStatus que pisa el debug — solo restaurar el botón
-                if (btn) {
-                    const p = Notification.permission;
-                    btn.textContent = p === 'granted' ? 'Re-registrar token' : 'Activar notificaciones';
-                }
-            }
-        };
-
         function showPushPermissionBanner() {
             const banner = document.getElementById('push-banner');
             if (banner) banner.classList.add('show');
-            // Activar pulso en la campana del header para guiar al user hacia el modal
             const bell = document.getElementById('notif-bell-btn');
             const dot  = document.getElementById('notif-bell-dot');
             if (bell) bell.classList.add('bell-pulsing');
@@ -2549,19 +2345,15 @@
         function hidePushPermissionBanner() {
             const banner = document.getElementById('push-banner');
             if (banner) banner.classList.remove('show');
-            // Apagar pulso (el user ya tomó acción o vio el banner)
             const bell = document.getElementById('notif-bell-btn');
             const dot  = document.getElementById('notif-bell-dot');
             if (bell) bell.classList.remove('bell-pulsing');
             if (dot)  dot.style.display = 'none';
         }
 
-        // Abre el modal dedicado de notificaciones. Si el banner está activo,
-        // también lo oculta — el user ya entró al panel donde puede activar.
         window.openNotifModal = function () {
             const banner = document.getElementById('push-banner');
             if (banner) banner.classList.remove('show');
-            // El pulso de la campana también se apaga
             const bell = document.getElementById('notif-bell-btn');
             const dot  = document.getElementById('notif-bell-dot');
             if (bell) bell.classList.remove('bell-pulsing');
@@ -2589,6 +2381,161 @@
             }, 5000);
         }
 
+        window.updateNotifStatus = function () {
+            const statusEl     = document.getElementById('notif-status');
+            const debugEl      = document.getElementById('notif-debug');
+            const btnEl        = document.getElementById('notif-action-btn');
+            const masterRow    = document.getElementById('notif-master-row');
+            const masterToggle = document.getElementById('notif-master-toggle');
+            const masterSub    = document.getElementById('notif-master-sub');
+            const prefsPanel   = document.getElementById('notif-prefs');
+            if (!statusEl || !btnEl) return;
+            const isIOSDevice = /iPhone|iPad|iPod/i.test(navigator.userAgent) && !window.MSStream;
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+                || window.navigator.standalone === true;
+            const hasNotifAPI = ('Notification' in window);
+            const perm        = hasNotifAPI ? Notification.permission : 'no-api';
+            const messagingOK = !!messaging;
+            const prefs       = state.notifPrefs || DEFAULT_NOTIF_PREFS;
+            const subscribed  = prefs.subscribed !== false;
+            if (debugEl) {
+                debugEl.textContent = [
+                    'platform=' + (isIOSDevice ? 'iOS' : (/Android/i.test(navigator.userAgent) ? 'Android' : 'Desktop')),
+                    'standalone=' + isStandalone,
+                    'perm=' + perm,
+                    'subscribed=' + subscribed,
+                    'bannerDismissed=' + (prefs.bannerDismissed === true)
+                ].join(' · ');
+            }
+            const showStatus = (html) => { statusEl.style.display = ''; statusEl.innerHTML = html; };
+            const hideStatus = () => { statusEl.style.display = 'none'; };
+            const showMaster = (show) => { if (masterRow) masterRow.style.display = show ? 'flex' : 'none'; };
+            const showPrefs  = (show) => { if (prefsPanel) prefsPanel.style.display = show ? 'block' : 'none'; };
+            btnEl.style.display = 'none';
+            if (isIOSDevice && !isStandalone) {
+                showStatus('⚠️ <b>Instalá la app como PWA primero.</b> Compartir → Agregar a inicio.');
+                showMaster(false); showPrefs(false); return;
+            }
+            if (!hasNotifAPI) {
+                showStatus('❌ Este navegador no soporta notificaciones.');
+                showMaster(false); showPrefs(false); return;
+            }
+            if (!messagingOK) {
+                showStatus('❌ Firebase Messaging no disponible en este contexto.');
+                showMaster(false); showPrefs(false); return;
+            }
+            if (perm === 'denied') {
+                if (isIOSDevice) {
+                    showStatus('🚫 <b style="color:#f87171;">Bloqueadas en iOS.</b><br><span style="font-size:11px; color:var(--slate);">Ajustes → Notificaciones → buscá esta app → Permitir.</span>');
+                } else {
+                    showStatus('🚫 <b style="color:#f87171;">Bloqueadas.</b><br><span style="font-size:11px; color:var(--slate);">Candado al lado de la URL → Notificaciones → Permitir. Refrescá.</span>');
+                }
+                showMaster(false); showPrefs(false); return;
+            }
+            hideStatus();
+            showMaster(true);
+            const isOn = (perm === 'granted' && subscribed);
+            if (masterToggle) masterToggle.checked = isOn;
+            if (masterSub) {
+                masterSub.textContent = isOn
+                    ? 'Tu dispositivo recibe avisos del director.'
+                    : 'Activá para recibir avisos importantes.';
+                masterSub.style.color = isOn ? '#34d399' : 'var(--slate)';
+            }
+            if (isOn) { showPrefs(true); loadNotifPrefsIntoUI(); }
+            else { showPrefs(false); }
+        };
+
+        window.onMasterToggle = async function () {
+            const toggle = document.getElementById('notif-master-toggle');
+            if (!toggle || !user) return;
+            const wantOn = toggle.checked;
+            toggle.disabled = true;
+            try {
+                if (wantOn) {
+                    let perm = Notification.permission;
+                    if (perm === 'default') perm = await Notification.requestPermission();
+                    if (perm === 'granted') {
+                        await registerPushToken();
+                        await _setNotifPrefsField({ subscribed: true, bannerDismissed: false });
+                        showInAppToast('✅ Notificaciones activadas', 'Vas a recibir avisos importantes.');
+                    } else if (perm === 'denied') {
+                        toggle.checked = false;
+                        showInAppToast('🚫 Bloqueado por iOS', 'Activá desde Ajustes del iPhone.');
+                    } else {
+                        toggle.checked = false;
+                    }
+                } else {
+                    await unsubscribeFromPush();
+                    await _setNotifPrefsField({ subscribed: false });
+                    showInAppToast('🔕 Desactivadas', 'No vas a recibir más notificaciones.');
+                }
+            } catch (err) {
+                console.error('[push] master toggle error:', err);
+                showInAppToast('❌ Error', err.message || String(err));
+                toggle.checked = !wantOn;
+            } finally {
+                toggle.disabled = false;
+                window.updateNotifStatus();
+            }
+        };
+
+        function loadNotifPrefsIntoUI() {
+            const p = state.notifPrefs || DEFAULT_NOTIF_PREFS;
+            const anuncios = document.getElementById('notif-pref-anuncios');
+            const reconoc  = document.getElementById('notif-pref-reconocimientos');
+            const record   = document.getElementById('notif-pref-recordatorio');
+            const recordT  = document.getElementById('notif-pref-recordatorio-time');
+            const recordRow= document.getElementById('notif-recordatorio-time-row');
+            if (anuncios) anuncios.checked = !!p.anuncios;
+            if (reconoc)  reconoc.checked  = !!p.reconocimientos;
+            const rec = (p.recordatorio && typeof p.recordatorio === 'object') ? p.recordatorio : DEFAULT_NOTIF_PREFS.recordatorio;
+            if (record)   record.checked = !!rec.enabled;
+            if (recordT)  recordT.value  = rec.time || '19:00';
+            if (recordRow) recordRow.style.display = rec.enabled ? 'flex' : 'none';
+        }
+
+        window.onRecordatorioToggle = function () {
+            const checkbox = document.getElementById('notif-pref-recordatorio');
+            const row = document.getElementById('notif-recordatorio-time-row');
+            if (row) row.style.display = (checkbox && checkbox.checked) ? 'flex' : 'none';
+            window.saveNotifPrefs();
+        };
+
+        let _saveNotifPrefsTimer = null;
+        window.saveNotifPrefs = function () {
+            if (!user) return;
+            const anuncios = !!document.getElementById('notif-pref-anuncios')?.checked;
+            const reconoc  = !!document.getElementById('notif-pref-reconocimientos')?.checked;
+            const recordEn = !!document.getElementById('notif-pref-recordatorio')?.checked;
+            const recordT  = document.getElementById('notif-pref-recordatorio-time')?.value || '19:00';
+            const newPrefs = {
+                anuncios,
+                reconocimientos: reconoc,
+                recordatorio: { enabled: recordEn, time: recordT }
+            };
+            state.notifPrefs = Object.assign(state.notifPrefs || {}, newPrefs);
+            if (_saveNotifPrefsTimer) clearTimeout(_saveNotifPrefsTimer);
+            _saveNotifPrefsTimer = setTimeout(async () => {
+                try {
+                    await setDoc(doc(db, 'users', user.email), { notifPrefs: state.notifPrefs }, { merge: true });
+                    const ok = document.getElementById('notif-prefs-saved');
+                    if (ok) {
+                        ok.style.display = '';
+                        setTimeout(() => { if (ok) ok.style.display = 'none'; }, 1500);
+                    }
+                } catch (err) {
+                    console.error('[notifPrefs] save error:', err);
+                    showInAppToast('❌ Error guardando preferencias', err.message || String(err));
+                }
+            }, 400);
+        };
+
+        window.onNotifActionClick = async function () {
+            // Compatibility shim — el botón está oculto pero por las dudas
+            window.requestPushPermission();
+        };
+
         onAuthStateChanged(auth, async (u) => {
             try {
                 if (u) {
@@ -2607,8 +2554,6 @@
                         await loadFromCloud();
                         startUserDocListener(); // real-time updates desde Firestore
                         init();
-                        // Setup push notifications después del login exitoso.
-                        // No bloquea el render — corre en background.
                         subscribeToPush().catch(err => console.error('[push] subscribeToPush:', err));
                     } else if (status === 'inactive') {
                         document.getElementById('login-overlay').classList.add('hidden');
@@ -2768,11 +2713,9 @@
                 if (typeof state.companyCode !== 'string') state.companyCode = '';
                 if (typeof state.skipWeekends !== 'boolean') state.skipWeekends = false;
                 if (state.skipWeekendsActivatedAt === undefined) state.skipWeekendsActivatedAt = null;
-                // notifPrefs defensivo (puede no existir en docs viejos)
                 if (!state.notifPrefs || typeof state.notifPrefs !== 'object') {
                     state.notifPrefs = { ...DEFAULT_NOTIF_PREFS };
                 } else {
-                    // Merge con defaults para añadir nuevas keys si las agregamos en el futuro
                     if (typeof state.notifPrefs.subscribed !== 'boolean') state.notifPrefs.subscribed = DEFAULT_NOTIF_PREFS.subscribed;
                     if (typeof state.notifPrefs.bannerDismissed !== 'boolean') state.notifPrefs.bannerDismissed = DEFAULT_NOTIF_PREFS.bannerDismissed;
                     if (typeof state.notifPrefs.anuncios !== 'boolean') state.notifPrefs.anuncios = DEFAULT_NOTIF_PREFS.anuncios;
@@ -3245,70 +3188,22 @@
             }
         }
 
-        // Nueva animación de ganancia: feedback sutil en el badge, no bloquea
-        // la app. Reemplaza el modal full-screen + particles + sonido que
-        // resultaba molesto cada vez que el agente ganaba totopos.
-        //
-        // Se mantiene el NOMBRE 'showKarmaCelebration' por compatibilidad
-        // con los call sites (awardKarma, awardKarmaForPastDays).
         window.showKarmaCelebration = function (earned) {
-            if (!earned || earned <= 0) return;
-            const badge = document.getElementById('karma-badge');
-            const numEl = document.getElementById('karma-value');
-
-            // 1) Glow dorado breve sobre el badge (1.5s)
-            if (badge) {
-                badge.classList.remove('gaining');
-                // Force reflow para reiniciar la animación si ya estaba corriendo
-                void badge.offsetWidth;
-                badge.classList.add('gaining');
-                setTimeout(() => badge.classList.remove('gaining'), 1500);
-            }
-
-            // 2) "+N" flotante encima del badge (2.5s, sube y se desvanece)
-            if (badge) {
-                const popup = document.createElement('div');
-                popup.className = 'karma-gain-popup';
-                popup.innerHTML = '+' + earned.toLocaleString() +
-                    '<svg class="gain-icon totopo-icon"><use href="#totopo"/></svg>';
-                badge.appendChild(popup);
-                setTimeout(() => { try { popup.remove(); } catch (e) {} }, 2700);
-            }
-
-            // 3) Count-up animado del número del badge (2.5s con ease-out)
-            if (numEl) {
-                const startValue = parseInt((numEl.textContent || '0').replace(/\D/g, '')) || 0;
-                const endValue = (state.karma || 0);
-                if (startValue !== endValue) {
-                    const startTime = performance.now();
-                    const duration = 2500;
-                    const animate = (now) => {
-                        const t = Math.min((now - startTime) / duration, 1);
-                        // Ease-out cubic: empieza rápido, termina suave
-                        const eased = 1 - Math.pow(1 - t, 3);
-                        const current = Math.round(startValue + (endValue - startValue) * eased);
-                        numEl.textContent = current.toLocaleString();
-                        if (t < 1) requestAnimationFrame(animate);
-                        else numEl.textContent = endValue.toLocaleString();
-                    };
-                    requestAnimationFrame(animate);
-                } else {
-                    numEl.textContent = endValue.toLocaleString();
-                }
-            }
-
-            // Marcar como notificado (mismo flujo que antes, así no se repite
-            // la animación si el agente recarga sin haber gastado totopos).
+            document.getElementById('celebrate-earned').textContent = '+' + earned.toLocaleString();
+            document.getElementById('celebrate-total').textContent = 'Saldo total: ' + (state.karma || 0).toLocaleString() + ' totopos';
+            document.getElementById('karma-celebration').classList.add('show');
+            createCoinParticles();
+            playCashSound();
+            // Marcar como notificado AL MOSTRAR (no al dismiss). Si el usuario recarga
+            // la página sin cerrar el modal, no vuelve a salir la misma celebración.
             const totalEarned = (state.karmaLog || []).reduce((sum, k) => sum + (k.points || 0), 0);
             state.karmaLastNotified = totalEarned;
             syncToCloud();
         };
 
-        // Mantenida por compat (algun lado podía llamarla). El modal antiguo
-        // ya no se abre, así que esto es no-op pero defensivo.
         window.dismissKarmaCelebration = function () {
-            const el = document.getElementById('karma-celebration');
-            if (el) el.classList.remove('show');
+            document.getElementById('karma-celebration').classList.remove('show');
+            // (karmaLastNotified ya se actualizó al mostrar — aquí solo cerramos el modal)
         };
 
         async function awardKarma() {
@@ -3435,8 +3330,6 @@
                     const eId = escapeHtml(item.id || '');
                     const eCatalog = escapeHtml(catalogId);
                     const costoNum = Number(item.costo) || 0;
-                    // Si el item tiene imageUrl, mostramos thumbnail 100x100 clickeable.
-                    // Sino, fallback al emoji 36px como antes.
                     const eImgUrl = item.imageUrl ? escapeHtml(item.imageUrl) : '';
                     const visualHtml = eImgUrl
                         ? `<img src="${eImgUrl}" alt="${eNombre}" loading="lazy" onclick="openImagePreview('${eImgUrl}')" style="width:100px;height:100px;object-fit:cover;border-radius:10px;cursor:zoom-in;margin:0 auto;display:block;border:1px solid rgba(212,175,55,0.2);">`
@@ -3480,6 +3373,8 @@
             } catch(e) {}
         }
 
+        // Entry point del botón de canje. Reemplaza confirm() nativo por modal custom
+        // (confirm() no se ve dentro de PWA standalone iOS).
         // Image preview modal (thumbnail click → imagen grande)
         window.openImagePreview = function (url) {
             if (!url) return;
@@ -3496,8 +3391,6 @@
             if (img) img.src = '';
         };
 
-        // Entry point del botón de canje. Reemplaza confirm() nativo por modal custom
-        // (confirm() no se ve dentro de PWA standalone iOS).
         window.solicitarCanje = function(itemId, itemNombre, costo, emoji, catalogDoc) {
             if ((state.karma || 0) < costo) { alert('Totopos insuficientes.'); return; }
             openCanjeConfirm(itemId, itemNombre, costo, emoji, catalogDoc);
@@ -3603,8 +3496,8 @@
             document.getElementById('config-modal').classList.add('open');
         }
 
-        // (Toggle "No trabajo fines de semana" eliminado — los agentes marcan
-        // manualmente sabados/domingos con el boton "Sin intento de venta hoy"
+        // (Toggle "No trabajo fines de semana" eliminado en v1.9.3 — los agentes
+        // marcan manualmente sabados/domingos con el boton "Sin intento de venta hoy"
         // como cualquier otro dia. Fields legacy state.skipWeekends y
         // skipWeekendsActivatedAt quedan en docs pero no se leen ni escriben.)
 
@@ -3653,10 +3546,14 @@
             if (d.E < d.C) errors.push("Entrevistas (E) < Cotizaciones (C)");
             if (d.C < d.V) errors.push("Cotizaciones (C) < Cierres (V)");
             if (d.S < d.V) errors.push("Solicitudes (S) < Cierres (V)");
-            if (d.V === 0 && d.S > 0) errors.push("Si hay solicitudes, como mínimo tiene que haber 1 cierre");
-            if (d.S > d.V * 2) errors.push("Solicitudes (S) > Doble de Cierres (2V)");
+            if (d.V === 0 && d.S > 0) {
+                errors.push("Si hay solicitudes, como mínimo tiene que haber 1 cierre");
+            } else if (d.S > d.V * 2) {
+                errors.push("Solicitudes (S) > Doble de Cierres (2V)");
+            }
             if (d.S > 0 && d.prima < 1) errors.push("Debe ingresar Prima ($) si hay solicitudes");
-            // Regla inversa: si hay prima debe haber al menos 1 solicitud.
+            // Regla inversa: si hay prima debe haber al menos 1 solicitud (y por la regla
+            // V===0 && S>0 de arriba, eso obliga indirectamente a tener también ≥1 cierre).
             // Sin esto, el embudo aparecía verde con todo en 0 y prima > 0.
             if (d.prima > 0 && d.S === 0) errors.push("No puede haber Prima ($) sin al menos 1 Solicitud (S)");
             return { ok: errors.length === 0, errors };
@@ -3770,10 +3667,7 @@
                             </div>`).join('')}
                         <div class="m-field">
                             <label>$ <small>Prima</small></label>
-                            <div class="m-prima-wrap">
-                                <span class="m-prima-prefix">$</span>
-                                <input type="number" inputmode="decimal" min="0" class="m-prima-input" data-day="${dayName}" data-col="prima" value="0" step="0.01" oninput="updateTotals()">
-                            </div>
+                            <input type="number" inputmode="decimal" min="0" class="m-prima-input" data-day="${dayName}" data-col="prima" value="0" step="0.01" oninput="updateTotals()">
                         </div>
                     </div>
                     <div class="m-today-status">
@@ -3969,7 +3863,7 @@
             const mTotals = { P: 0, E: 0, C: 0, V: 0, S: 0, prima: 0 };
             state.entries.forEach(e => {
                 if (e.mes === currentMes) {
-                    COLS.forEach(c => mTotals[c] += (e.totales[c] || 0));
+                    COLS.forEach(c => mTotals[c] += e.totales[c]);
                     mTotals.prima += e.totales.prima;
                 }
             });
@@ -4198,6 +4092,71 @@
         window.closeKpiInfo = function () {
             document.getElementById('kpi-info-modal').classList.remove('open');
         };
+
+        // ─── REGLAS DE TOTOPOS (modal) ─────────────────────────────────────────────
+        // El agente toca su balance (#karma-badge) → abre modal con las reglas.
+        // La primera vez que abre la app, mostramos un tooltip flotante encima del
+        // balance "Toca para ver cómo ganar totopos" que se autodestruye al primer
+        // tap o tras 6 segundos. Marcamos localStorage para no repetirlo.
+        const LS_KARMA_TOOLTIP_KEY = 'pecvs.karmaTooltipSeen';
+
+        window.openRulesModal = function () {
+            document.getElementById('rules-modal').classList.add('open');
+            // Si el usuario tocó el badge, ya cumplió el propósito del tooltip — lo marcamos visto
+            _markKarmaTooltipSeen();
+        };
+
+        window.closeRulesModal = function () {
+            document.getElementById('rules-modal').classList.remove('open');
+        };
+
+        function _markKarmaTooltipSeen() {
+            try { localStorage.setItem(LS_KARMA_TOOLTIP_KEY, '1'); } catch (e) {}
+            const tt = document.querySelector('.karma-tooltip');
+            if (tt) {
+                tt.classList.remove('visible');
+                setTimeout(() => { try { tt.remove(); } catch (e) {} }, 400);
+            }
+        }
+
+        function _maybeShowKarmaTooltip() {
+            try {
+                if (localStorage.getItem(LS_KARMA_TOOLTIP_KEY) === '1') return;
+            } catch (e) { return; }
+            const badge = document.getElementById('karma-badge');
+            if (!badge) return;
+            // Aparece ~1.2s después del load para que primero vea su balance
+            setTimeout(() => {
+                if (localStorage.getItem(LS_KARMA_TOOLTIP_KEY) === '1') return;
+                const rect = badge.getBoundingClientRect();
+                if (!rect.width) return;
+                const tt = document.createElement('div');
+                tt.className = 'karma-tooltip';
+                tt.innerHTML = '📜 Toca para saber como ganarse los totopos';
+                // Posición: arriba-izq del badge
+                tt.style.top = (rect.top - 50) + 'px';
+                tt.style.left = Math.max(8, rect.left - 8) + 'px';
+                document.body.appendChild(tt);
+                requestAnimationFrame(() => tt.classList.add('visible'));
+                // Auto-fade tras 6 segundos
+                setTimeout(_markKarmaTooltipSeen, 6000);
+                // También se cierra si el usuario interactúa con cualquier parte
+                const dismissOnInteract = () => {
+                    _markKarmaTooltipSeen();
+                    document.removeEventListener('touchstart', dismissOnInteract, true);
+                    document.removeEventListener('click', dismissOnInteract, true);
+                };
+                document.addEventListener('touchstart', dismissOnInteract, true);
+                document.addEventListener('click', dismissOnInteract, true);
+            }, 1200);
+        }
+
+        // Llamamos al cargar (después del init) — defer hasta que DOM esté ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => _maybeShowKarmaTooltip());
+        } else {
+            _maybeShowKarmaTooltip();
+        }
 
         window.renderKPIs = function () {
             const period = document.getElementById('kpi-period-sel').value;
