@@ -184,8 +184,9 @@
             gap: 8px;
             flex-wrap: wrap;
         }
-        /* Bell button — circular, icon-only, visualmente distinto del menu de user */
-        #notif-bell-btn {
+        /* Bell + Megaphone — circulares, icon-only, visualmente distintos del menu de user */
+        #notif-bell-btn,
+        #anuncios-btn {
             width: 42px;
             height: 42px;
             padding: 0;
@@ -193,10 +194,31 @@
             flex-shrink: 0;
             position: relative;
         }
-        #notif-bell-btn i {
+        #notif-bell-btn i,
+        #anuncios-btn i {
             font-size: 16px;
             margin: 0;
         }
+        /* Badge numérico para anuncios sin leer (rojo, esquina superior derecha) */
+        #anuncios-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            background: #ef4444;
+            color: #fff;
+            border-radius: 9px;
+            font-size: 10px;
+            font-weight: 800;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--panel, #0f172a);
+            line-height: 1;
+        }
+        #anuncios-badge.show { display: flex; }
 
         /* BUTTONS */
         .btn {
@@ -1417,6 +1439,10 @@
                         style="border-color:var(--red) !important; color:var(--red) !important; display:inline-flex !important;"
                         onclick="logout()"><i class="fa fa-right-from-bracket"></i>Salir</button>
                 </div>
+                <button id="anuncios-btn" class="btn btn-sm" onclick="openAnunciosModal()" title="Anuncios del director">
+                    <i class="fa fa-bullhorn"></i>
+                    <span id="anuncios-badge">0</span>
+                </button>
                 <button id="notif-bell-btn" class="btn btn-sm" onclick="openNotifModal()" title="Notificaciones">
                     <i class="fa fa-bell"></i>
                     <span id="notif-bell-dot" style="display:none; position:absolute; top:6px; right:6px; width:9px; height:9px; background:var(--gold); border-radius:50%; border:1.5px solid var(--panel, #0f172a);"></span>
@@ -1926,6 +1952,30 @@
         </div>
     </div>
 
+    <!-- ANUNCIOS MODAL — feed de anuncios del director -->
+    <div class="modal-overlay" id="anuncios-modal">
+        <div class="modal-box">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:6px;">
+                <h2 style="font-family:'Playfair Display',serif; color:var(--gold); margin:0;"><i class="fa fa-bullhorn" style="margin-right:8px;"></i>Anuncios</h2>
+                <button id="anuncios-mark-all-btn" onclick="markAllAnunciosRead()" class="btn btn-sm" style="display:none; padding:6px 10px; font-size:11px;" title="Marcar todos como leídos"><i class="fa fa-check-double"></i></button>
+            </div>
+            <p style="font-size:12px; color:var(--slate); margin:0 0 16px;">Mensajes y broadcasts importantes del director.</p>
+
+            <!-- Lista de anuncios (se renderiza desde JS) -->
+            <div id="anuncios-list" style="display:flex; flex-direction:column; gap:10px; min-height:120px;">
+                <!-- Empty state placeholder — se reemplaza cuando hay datos -->
+                <div id="anuncios-empty" style="text-align:center; padding:40px 20px;">
+                    <div style="font-size:48px; opacity:0.3; margin-bottom:12px;">📢</div>
+                    <div style="font-size:14px; color:var(--slate); font-weight:600; margin-bottom:6px;">No tenés anuncios todavía</div>
+                    <div style="font-size:12px; color:rgba(255,255,255,0.4); line-height:1.5;">Cuando el director mande un anuncio, va a aparecer acá.</div>
+                </div>
+            </div>
+
+            <button class="btn btn-sm" style="margin-top:18px; width:100%;"
+                onclick="closeAnunciosModal()">Cerrar</button>
+        </div>
+    </div>
+
     <!-- HISTORY MODAL -->
     <div class="modal-overlay" id="history-modal">
         <div class="modal-box" style="max-width:500px;">
@@ -2404,6 +2454,44 @@
 
         window.closeNotifModal = function () {
             document.getElementById('notif-modal').classList.remove('open');
+        };
+
+        // ─── ANUNCIOS (placeholder, feed real se conecta a Firestore más adelante) ──
+        window.openAnunciosModal = function () {
+            document.getElementById('anuncios-modal').classList.add('open');
+            renderAnunciosList();
+        };
+
+        window.closeAnunciosModal = function () {
+            document.getElementById('anuncios-modal').classList.remove('open');
+        };
+
+        // Stub: cuando conectemos Firestore, esto leerá de /announcements o similar
+        // y renderizará cada anuncio. Por ahora solo decide mostrar el empty state.
+        function renderAnunciosList() {
+            const empty = document.getElementById('anuncios-empty');
+            const markBtn = document.getElementById('anuncios-mark-all-btn');
+            // Por ahora siempre vacío — TODO: state.anuncios.length cuando exista
+            if (empty) empty.style.display = '';
+            if (markBtn) markBtn.style.display = 'none';
+            updateAnunciosBadge(0);
+        }
+
+        function updateAnunciosBadge(count) {
+            const badge = document.getElementById('anuncios-badge');
+            if (!badge) return;
+            if (count > 0) {
+                badge.textContent = count > 99 ? '99+' : String(count);
+                badge.classList.add('show');
+            } else {
+                badge.classList.remove('show');
+            }
+        }
+
+        window.markAllAnunciosRead = function () {
+            // TODO: marcar readBy[user.email] en cada anuncio. Por ahora solo limpia el badge.
+            updateAnunciosBadge(0);
+            renderAnunciosList();
         };
 
         function showInAppToast(title, body) {
