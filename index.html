@@ -1751,6 +1751,7 @@
                     <label style="font-size:10px; color:var(--slate); font-weight:700; display:block; margin-bottom:8px;">🔔 NOTIFICACIONES PUSH</label>
                     <div id="notif-status" style="font-size:13px; font-weight:600; color:#fff; margin-bottom:10px; line-height:1.4;">Cargando…</div>
                     <div id="notif-debug" style="font-size:10px; color:rgba(255,255,255,0.5); font-family:monospace; margin-bottom:10px; word-break:break-all;"></div>
+                    <div id="notif-last-result" style="display:none; font-size:11px; font-family:monospace; padding:8px 10px; background:rgba(0,0,0,0.3); border-radius:6px; margin-bottom:10px; word-break:break-all; line-height:1.4;"></div>
                     <button id="notif-action-btn" class="btn btn-sm" style="display:none; width:100%;" onclick="onNotifActionClick()">Activar notificaciones</button>
                 </div>
 
@@ -2089,31 +2090,55 @@
             await registerPushToken();
         }
 
+        // Re-throws errores para que el caller los muestre. Devuelve el token en caso de éxito.
         async function registerPushToken() {
-            if (!messaging || !user) return;
+            if (!messaging) throw new Error('messaging no inicializado');
+            if (!user) throw new Error('no hay user logueado');
+            _setLastPushResult('Obteniendo token de FCM…', false);
+            const reg = await navigator.serviceWorker.ready;
+            let token;
             try {
-                const reg = await navigator.serviceWorker.ready;
-                const token = await getToken(messaging, {
+                token = await getToken(messaging, {
                     vapidKey: VAPID_KEY,
                     serviceWorkerRegistration: reg
                 });
-                if (!token) {
-                    console.warn('[push] getToken devolvió vacío');
-                    return;
-                }
-                // Usar primeros 40 chars como docId (los tokens FCM tienen ~140-180 chars).
-                // Esto permite multi-device (un doc por device/instalación).
-                const tokenId = token.substring(0, 40).replace(/[^a-zA-Z0-9_-]/g, '_');
+            } catch (err) {
+                const msg = 'getToken falló: ' + (err && err.code ? err.code + ' — ' : '') + (err && err.message ? err.message : err);
+                _setLastPushResult(msg, true);
+                throw new Error(msg);
+            }
+            if (!token) {
+                const msg = 'getToken devolvió vacío (permiso revocado?)';
+                _setLastPushResult(msg, true);
+                throw new Error(msg);
+            }
+            _setLastPushResult('Token obtenido (' + token.substring(0, 20) + '…). Guardando en Firestore…', false);
+            const tokenId = token.substring(0, 40).replace(/[^a-zA-Z0-9_-]/g, '_');
+            try {
                 await setDoc(doc(db, 'users', user.email, 'pushTokens', tokenId), {
                     token,
                     createdAt: new Date().toISOString(),
                     userAgent: navigator.userAgent,
                     platform: _getPlatform()
                 }, { merge: true });
-                console.log('[push] ✅ Token registrado:', token.substring(0, 30) + '...');
             } catch (err) {
-                console.error('[push] Error registrando token:', err);
+                const msg = 'setDoc falló (¿reglas Firestore?): ' + (err && err.code ? err.code + ' — ' : '') + (err && err.message ? err.message : err);
+                _setLastPushResult(msg, true);
+                throw new Error(msg);
             }
+            _setLastPushResult('✅ Token guardado: ' + token.substring(0, 30) + '…', false);
+            console.log('[push] ✅ Token registrado:', token.substring(0, 30) + '...');
+            return token;
+        }
+
+        // Display persistente del último resultado en la card de Mi Perfil.
+        // isError=true → texto en rojo. isError=false → texto en verde claro.
+        function _setLastPushResult(msg, isError) {
+            const el = document.getElementById('notif-last-result');
+            if (!el) return;
+            el.style.color = isError ? '#f87171' : '#34d399';
+            el.textContent = msg;
+            el.style.display = '';
         }
 
         function _getPlatform() {
@@ -2211,28 +2236,39 @@
         window.onNotifActionClick = async function () {
             const btn = document.getElementById('notif-action-btn');
             if (btn) { btn.disabled = true; btn.textContent = 'Procesando…'; }
+            // Mostrar el div del último resultado siempre que se intente
+            const resultEl = document.getElementById('notif-last-result');
+            if (resultEl) { resultEl.style.display = ''; resultEl.style.color = '#a3a3a3'; resultEl.textContent = 'Iniciando…'; }
             try {
                 const perm = Notification.permission;
                 if (perm === 'granted') {
-                    // Ya granted — re-registrar token (refresh)
                     await registerPushToken();
                     showInAppToast('✅ Token actualizado', 'Tu dispositivo está registrado.');
                 } else if (perm === 'default') {
-                    // Pedir permiso ahora
+                    _setLastPushResult('Pidiendo permiso al sistema…', false);
                     const result = await Notification.requestPermission();
                     if (result === 'granted') {
+                        _setLastPushResult('Permiso concedido. Registrando token…', false);
                         await registerPushToken();
                         showInAppToast('✅ Notificaciones activadas', 'Vas a recibir avisos importantes acá.');
                     } else if (result === 'denied') {
+                        _setLastPushResult('🚫 Permiso denegado por el usuario', true);
                         showInAppToast('🚫 Permiso denegado', 'Podés activarlo desde los ajustes del sistema.');
+                    } else {
+                        _setLastPushResult('⚠️ Prompt cerrado sin decisión (' + result + ')', true);
                     }
                 }
             } catch (err) {
                 console.error('[push] onNotifActionClick error:', err);
+                _setLastPushResult('❌ ' + (err && err.message ? err.message : String(err)), true);
                 showInAppToast('❌ Error', String(err && err.message ? err.message : err));
             } finally {
                 if (btn) btn.disabled = false;
-                window.updateNotifStatus();
+                // No llamar updateNotifStatus que pisa el debug — solo restaurar el botón
+                if (btn) {
+                    const p = Notification.permission;
+                    btn.textContent = p === 'granted' ? 'Re-registrar token' : 'Activar notificaciones';
+                }
             }
         };
 
