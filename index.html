@@ -72,29 +72,109 @@
         .header {
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            padding: 14px 16px;
-            /* bleed hacia los bordes del body para que el sticky cubra el viewport.
-               body tiene padding:15px en mobile, así que el margin compensa esos 15px.
-               margin-bottom queda 0 porque .app ya aplica gap:20px entre flex items. */
+            gap: 10px;
+            padding: 12px 14px;
+            /* bleed lateral hacia los bordes del body para que el sticky cubra el viewport. */
             margin: -15px -15px 0;
             position: sticky;
             top: 0;
             z-index: 100;
-            background: rgba(2, 6, 23, 0.85);
+            background: rgba(2, 6, 23, 0.92);
             backdrop-filter: blur(14px) saturate(140%);
             -webkit-backdrop-filter: blur(14px) saturate(140%);
             border-bottom: 1px solid rgba(212, 175, 55, 0.18);
             box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
         }
 
+        /* Filas del header */
+        .header .row-brand,
+        .header .row-info,
+        .header .row-menu {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header .row-brand { justify-content: space-between; }
+        .header .row-info { flex-wrap: wrap; }
+        .header .row-menu { gap: 8px; }
+        .header .row-menu .btn { flex: 1; }
+
         @media (min-width: 768px) {
             .header {
                 flex-direction: row;
-                justify-content: space-between;
+                flex-wrap: wrap;
                 align-items: center;
-                padding: 14px 24px;
+                padding: 12px 24px;
+                gap: 14px;
             }
+            .header .row-brand { flex: 0 0 auto; }
+            .header .row-info  { flex: 1 1 auto; justify-content: center; }
+            .header .row-menu  { flex: 0 0 auto; }
+            .header .row-menu .btn { flex: 0 0 auto; }
+        }
+
+        /* Brand block: monograma + título + version tag */
+        .brand-block { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .brand-title {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            min-width: 0;
+        }
+        .brand-title h1 {
+            font-size: 17px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.2px;
+            white-space: nowrap;
+            background: none;
+            -webkit-text-fill-color: #fff;
+            margin: 0;
+        }
+        .version-tag {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--gold);
+            background: rgba(212, 175, 55, 0.10);
+            border: 1px solid rgba(212, 175, 55, 0.30);
+            padding: 2px 7px;
+            border-radius: 5px;
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+            line-height: 1.2;
+        }
+
+        /* Icon buttons group (bell + bullhorn) */
+        .icon-btns {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        /* Row de info (agente name + karma) */
+        #agent-display {
+            margin: 0;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 600;
+        }
+        .dot-sep {
+            color: rgba(255, 255, 255, 0.25);
+            font-size: 16px;
+            line-height: 1;
+            user-select: none;
+        }
+        /* Karma badge inline (más compacto que el original) */
+        .header #karma-badge {
+            padding: 4px 10px 4px 8px;
+            margin-top: 0;
+            border-radius: 18px;
+        }
+        .header #karma-badge .star { font-size: 14px; }
+        .header #karma-badge .karma-num { font-size: 14px; letter-spacing: 0.5px; }
+        .header #karma-badge .karma-lbl { font-size: 9px; letter-spacing: 1.2px; }
+        .header #karma-badge .karma-info-i {
+            width: 14px; height: 14px; font-size: 8px; margin-left: 2px;
         }
 
         /* BRAND: monograma dorado + wordmark "Actividad" */
@@ -104,18 +184,18 @@
             gap: 14px;
         }
         .brand-mono {
-            width: 48px;
-            height: 48px;
-            border-radius: 11px;
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
             background: linear-gradient(135deg, var(--gold-l) 0%, var(--gold) 50%, #a08015 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             font-family: 'Playfair Display', serif;
             font-weight: 900;
-            font-size: 26px;
+            font-size: 20px;
             color: var(--bg);
-            box-shadow: 0 4px 14px rgba(212, 175, 55, 0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+            box-shadow: 0 3px 10px rgba(212, 175, 55, 0.25), inset 0 1px 0 rgba(255,255,255,0.2);
             flex-shrink: 0;
             line-height: 1;
         }
@@ -187,8 +267,8 @@
         /* Bell + Megaphone — circulares, icon-only, visualmente distintos del menu de user */
         #notif-bell-btn,
         #anuncios-btn {
-            width: 42px;
-            height: 42px;
+            width: 38px;
+            height: 38px;
             padding: 0;
             border-radius: 50%;
             flex-shrink: 0;
@@ -196,7 +276,7 @@
         }
         #notif-bell-btn i,
         #anuncios-btn i {
-            font-size: 16px;
+            font-size: 15px;
             margin: 0;
         }
         /* Badge numérico para anuncios sin leer (rojo, esquina superior derecha) */
@@ -1416,15 +1496,31 @@
     <div class="app">
         <!-- HEADER -->
         <div class="header">
-            <div class="header-left">
-                <div class="brand">
+            <!-- Row 1: brand (logo + título + versión) + icon buttons (bell, bocina) -->
+            <div class="row-brand">
+                <div class="brand-block">
                     <div class="brand-mono">A</div>
-                    <div>
+                    <div class="brand-title">
                         <h1>Actividad</h1>
-                        <div class="brand-sub"><span class="pulse-text">REGISTRO PROFESIONAL</span> <span class="ver" data-app-version>—</span></div>
+                        <span class="version-tag" data-app-version>—</span>
                     </div>
                 </div>
+                <div class="icon-btns">
+                    <button id="notif-bell-btn" class="btn" onclick="openNotifModal()" title="Notificaciones">
+                        <i class="fa fa-bell"></i>
+                        <span id="notif-bell-dot" style="display:none; position:absolute; top:6px; right:6px; width:9px; height:9px; background:var(--gold); border-radius:50%; border:1.5px solid var(--panel, #0f172a);"></span>
+                    </button>
+                    <button id="anuncios-btn" class="btn" onclick="openAnunciosModal()" title="Anuncios del director">
+                        <i class="fa fa-bullhorn"></i>
+                        <span id="anuncios-badge">0</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Row 2: agente + karma inline -->
+            <div class="row-info">
                 <p id="agent-display">Agente: —</p>
+                <span class="dot-sep">·</span>
                 <div id="karma-badge" onclick="openRulesModal()" role="button" tabindex="0" aria-label="Ver reglas de totopos" title="Toca para saber como ganarse los totopos">
                     <span class="star"><svg class="totopo-icon"><use href="#totopo"/></svg></span>
                     <span class="karma-num" id="karma-value">0</span>
@@ -1432,21 +1528,13 @@
                     <span class="karma-info-i"><i class="fa fa-info"></i></span>
                 </div>
             </div>
-            <div class="header-right">
-                <div class="user-menu">
-                    <button class="btn btn-sm" onclick="openConfig()"><i class="fa fa-user-gear"></i>Mi Perfil</button>
-                    <button id="logout-btn" class="btn btn-sm"
-                        style="border-color:var(--red) !important; color:var(--red) !important; display:inline-flex !important;"
-                        onclick="logout()"><i class="fa fa-right-from-bracket"></i>Salir</button>
-                </div>
-                <button id="anuncios-btn" class="btn btn-sm" onclick="openAnunciosModal()" title="Anuncios del director">
-                    <i class="fa fa-bullhorn"></i>
-                    <span id="anuncios-badge">0</span>
-                </button>
-                <button id="notif-bell-btn" class="btn btn-sm" onclick="openNotifModal()" title="Notificaciones">
-                    <i class="fa fa-bell"></i>
-                    <span id="notif-bell-dot" style="display:none; position:absolute; top:6px; right:6px; width:9px; height:9px; background:var(--gold); border-radius:50%; border:1.5px solid var(--panel, #0f172a);"></span>
-                </button>
+
+            <!-- Row 3: user menu (Mi Perfil + Salir) -->
+            <div class="row-menu">
+                <button class="btn btn-sm" onclick="openConfig()"><i class="fa fa-user-gear"></i>Mi Perfil</button>
+                <button id="logout-btn" class="btn btn-sm"
+                    style="border-color:var(--red) !important; color:var(--red) !important; display:inline-flex !important;"
+                    onclick="logout()"><i class="fa fa-right-from-bracket"></i>Salir</button>
             </div>
         </div>
 
