@@ -1746,6 +1746,14 @@
                     <span id="disp-myregion" style="font-size:16px; font-weight:700; color:#fff;">—</span>
                 </div>
 
+                <!-- Notificaciones push -->
+                <div id="notif-card" style="background:rgba(59,130,246,0.10); border:1px solid rgba(59,130,246,0.35); border-radius:10px; padding:14px;">
+                    <label style="font-size:10px; color:var(--slate); font-weight:700; display:block; margin-bottom:8px;">🔔 NOTIFICACIONES PUSH</label>
+                    <div id="notif-status" style="font-size:13px; font-weight:600; color:#fff; margin-bottom:10px; line-height:1.4;">Cargando…</div>
+                    <div id="notif-debug" style="font-size:10px; color:rgba(255,255,255,0.5); font-family:monospace; margin-bottom:10px; word-break:break-all;"></div>
+                    <button id="notif-action-btn" class="btn btn-sm" style="display:none; width:100%;" onclick="onNotifActionClick()">Activar notificaciones</button>
+                </div>
+
                 <button class="btn btn-sm"
                     onclick="document.getElementById('config-modal').classList.remove('open')">Cerrar</button>
             </div>
@@ -2132,6 +2140,100 @@
         window.dismissPushBanner = function () {
             hidePushPermissionBanner();
             sessionStorage.setItem('pushBannerDismissed', '1');
+        };
+
+        // Estado visible para iPhone (donde no podemos abrir DevTools).
+        // Muestra el estado actual del permiso + diagnóstico técnico debajo del status.
+        window.updateNotifStatus = function () {
+            const statusEl = document.getElementById('notif-status');
+            const debugEl  = document.getElementById('notif-debug');
+            const btnEl    = document.getElementById('notif-action-btn');
+            if (!statusEl || !btnEl) return;
+
+            const isIOSDevice = /iPhone|iPad|iPod/i.test(navigator.userAgent) && !window.MSStream;
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+                || window.navigator.standalone === true;
+            const hasNotifAPI  = ('Notification' in window);
+            const perm = hasNotifAPI ? Notification.permission : 'no-api';
+            const messagingOK = !!messaging;
+
+            // Línea de diagnóstico técnica (chiquita, abajo)
+            const diag = [
+                'platform=' + (isIOSDevice ? 'iOS' : (/Android/i.test(navigator.userAgent) ? 'Android' : 'Desktop')),
+                'standalone=' + isStandalone,
+                'notifAPI=' + hasNotifAPI,
+                'perm=' + perm,
+                'messaging=' + messagingOK
+            ].join(' · ');
+            if (debugEl) debugEl.textContent = diag;
+
+            // Caso 1: iOS sin instalar como PWA → no se puede
+            if (isIOSDevice && !isStandalone) {
+                statusEl.innerHTML = '⚠️ <b>Instalá la app como PWA primero.</b> Compartir → Agregar a inicio en Safari.';
+                btnEl.style.display = 'none';
+                return;
+            }
+            // Caso 2: Notif API no disponible
+            if (!hasNotifAPI) {
+                statusEl.innerHTML = '❌ Este navegador no soporta notificaciones.';
+                btnEl.style.display = 'none';
+                return;
+            }
+            // Caso 3: Firebase Messaging no se inicializó
+            if (!messagingOK) {
+                statusEl.innerHTML = '❌ Firebase Messaging no disponible en este contexto.';
+                btnEl.style.display = 'none';
+                return;
+            }
+            // Caso 4: Granted — ya activadas. Chequear si tenemos token guardado.
+            if (perm === 'granted') {
+                statusEl.innerHTML = '✅ <b style="color:#34d399;">Notificaciones activadas</b><br><span style="font-size:11px; color:var(--slate);">Tu dispositivo va a recibir avisos del director.</span>';
+                btnEl.textContent = 'Re-registrar token';
+                btnEl.style.display = '';
+                return;
+            }
+            // Caso 5: Denied — usuario bloqueó. Necesita ir a Settings.
+            if (perm === 'denied') {
+                if (isIOSDevice) {
+                    statusEl.innerHTML = '🚫 <b style="color:#f87171;">Notificaciones bloqueadas en iOS.</b><br><span style="font-size:11px; color:var(--slate);">Para activar: Ajustes → Notificaciones → buscá esta app → Permitir notificaciones.</span>';
+                } else {
+                    statusEl.innerHTML = '🚫 <b style="color:#f87171;">Notificaciones bloqueadas.</b><br><span style="font-size:11px; color:var(--slate);">Click en el candado/info al lado de la URL → Permisos → Notificaciones → Permitir. Luego refrescá.</span>';
+                }
+                btnEl.style.display = 'none';
+                return;
+            }
+            // Caso 6: Default — nunca preguntado
+            statusEl.innerHTML = '🔕 <b>Notificaciones desactivadas.</b><br><span style="font-size:11px; color:var(--slate);">Activalas para recibir avisos del director y reconocimientos.</span>';
+            btnEl.textContent = 'Activar notificaciones';
+            btnEl.style.display = '';
+        };
+
+        window.onNotifActionClick = async function () {
+            const btn = document.getElementById('notif-action-btn');
+            if (btn) { btn.disabled = true; btn.textContent = 'Procesando…'; }
+            try {
+                const perm = Notification.permission;
+                if (perm === 'granted') {
+                    // Ya granted — re-registrar token (refresh)
+                    await registerPushToken();
+                    showInAppToast('✅ Token actualizado', 'Tu dispositivo está registrado.');
+                } else if (perm === 'default') {
+                    // Pedir permiso ahora
+                    const result = await Notification.requestPermission();
+                    if (result === 'granted') {
+                        await registerPushToken();
+                        showInAppToast('✅ Notificaciones activadas', 'Vas a recibir avisos importantes acá.');
+                    } else if (result === 'denied') {
+                        showInAppToast('🚫 Permiso denegado', 'Podés activarlo desde los ajustes del sistema.');
+                    }
+                }
+            } catch (err) {
+                console.error('[push] onNotifActionClick error:', err);
+                showInAppToast('❌ Error', String(err && err.message ? err.message : err));
+            } finally {
+                if (btn) btn.disabled = false;
+                window.updateNotifStatus();
+            }
         };
 
         function showPushPermissionBanner() {
@@ -3153,6 +3255,8 @@
             if (emailEl)  emailEl.textContent  = (user && user.email) || state.email || '—';
             if (codeEl)   codeEl.textContent   = state.companyCode || state.teamCode || '—';
             if (regionEl) regionEl.textContent = state.regionName || '—';
+            // Refrescar estado de notificaciones (puede haber cambiado mientras la app estaba abierta)
+            if (typeof window.updateNotifStatus === 'function') window.updateNotifStatus();
             document.getElementById('config-modal').classList.add('open');
         }
 
