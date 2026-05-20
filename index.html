@@ -2028,20 +2028,36 @@
 
     <!-- ANUNCIOS MODAL — feed de anuncios del director -->
     <div class="modal-overlay" id="anuncios-modal">
-        <div class="modal-box">
+        <div class="modal-box" style="padding-top:48px;">
+            <!-- × sticky en esquina superior derecha (siempre alcanzable aún con muchas notifs) -->
+            <button onclick="closeAnunciosModal()" aria-label="Cerrar"
+                style="position:absolute; top:12px; right:12px; width:32px; height:32px; padding:0; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.12); border-radius:50%; font-size:18px; line-height:1; cursor:pointer; z-index:10; display:flex; align-items:center; justify-content:center;">&times;</button>
+
             <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:6px;">
                 <h2 style="font-family:'Playfair Display',serif; color:var(--gold); margin:0;"><i class="fa fa-bullhorn" style="margin-right:8px;"></i>Anuncios</h2>
-                <button id="anuncios-mark-all-btn" onclick="markAllAnunciosRead()" class="btn btn-sm" style="display:none; padding:6px 10px; font-size:11px;" title="Marcar todos como leídos"><i class="fa fa-check-double"></i></button>
             </div>
-            <p style="font-size:12px; color:var(--slate); margin:0 0 16px;">Mensajes y broadcasts importantes del director.</p>
+            <p style="font-size:12px; color:var(--slate); margin:0 0 12px;">Mensajes y broadcasts importantes del director, promotor y coach.</p>
+
+            <!-- Acciones bulk: mark all read + clear hidden -->
+            <div id="anuncios-bulk-actions" style="display:none; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
+                <button id="anuncios-mark-all-btn" onclick="markAllAnunciosRead()" class="btn btn-sm" style="flex:1; min-width:130px; padding:7px 10px; font-size:11px;" title="Marcar todos como leídos">
+                    <i class="fa fa-check-double"></i> Marcar leídos
+                </button>
+                <button id="anuncios-clear-read-btn" onclick="clearReadAnuncios()" class="btn btn-sm" style="flex:1; min-width:130px; padding:7px 10px; font-size:11px;" title="Limpiar (ocultar) los que ya leíste">
+                    <i class="fa fa-broom"></i> Limpiar leídos
+                </button>
+                <button id="anuncios-clear-all-btn" onclick="clearAllAnuncios()" class="btn btn-sm" style="flex:1; min-width:130px; padding:7px 10px; font-size:11px; border-color:rgba(239,68,68,0.5); color:#f87171;" title="Ocultar todos los anuncios (siguen disponibles si querés volver a verlos manualmente)">
+                    <i class="fa fa-trash-can"></i> Limpiar todos
+                </button>
+            </div>
 
             <!-- Lista de anuncios (se renderiza desde JS) -->
             <div id="anuncios-list" style="display:flex; flex-direction:column; gap:10px; min-height:120px;">
                 <!-- Empty state placeholder — se reemplaza cuando hay datos -->
                 <div id="anuncios-empty" style="text-align:center; padding:40px 20px;">
                     <div style="font-size:48px; opacity:0.3; margin-bottom:12px;">📢</div>
-                    <div style="font-size:14px; color:var(--slate); font-weight:600; margin-bottom:6px;">No tenés anuncios todavía</div>
-                    <div style="font-size:12px; color:rgba(255,255,255,0.4); line-height:1.5;">Cuando el director mande un anuncio, va a aparecer acá.</div>
+                    <div style="font-size:14px; color:var(--slate); font-weight:600; margin-bottom:6px;">No tenés anuncios</div>
+                    <div style="font-size:12px; color:rgba(255,255,255,0.4); line-height:1.5;">Cuando el director, promotor o coach mande algo, aparece acá.</div>
                 </div>
             </div>
 
@@ -2541,9 +2557,11 @@
         let _anunciosCache = [];         // array ordenado, derivado del dict para render
 
         function _rebuildAnunciosCache() {
-            _anunciosCache = Object.values(_anunciosDict)
-                .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
             const myId = user?.email || '';
+            // Excluir los que el user ocultó manualmente (hiddenBy)
+            _anunciosCache = Object.values(_anunciosDict)
+                .filter(a => !(a.hiddenBy || []).includes(myId))
+                .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
             const unread = _anunciosCache.filter(a => !(a.readBy || []).includes(myId)).length;
             updateAnunciosBadge(unread);
             if (document.getElementById('anuncios-modal').classList.contains('open')) {
@@ -2632,15 +2650,18 @@
         };
 
         function renderAnunciosList() {
-            const empty   = document.getElementById('anuncios-empty');
-            const listEl  = document.getElementById('anuncios-list');
-            const markBtn = document.getElementById('anuncios-mark-all-btn');
-            const myId    = user?.email || '';
+            const empty    = document.getElementById('anuncios-empty');
+            const listEl   = document.getElementById('anuncios-list');
+            const markBtn  = document.getElementById('anuncios-mark-all-btn');
+            const bulkBar  = document.getElementById('anuncios-bulk-actions');
+            const clearReadBtn = document.getElementById('anuncios-clear-read-btn');
+            const myId     = user?.email || '';
+
+            // Bulk actions visible solo si hay items
+            if (bulkBar) bulkBar.style.display = _anunciosCache.length ? 'flex' : 'none';
 
             if (!_anunciosCache.length) {
-                if (empty)   empty.style.display = '';
-                if (markBtn) markBtn.style.display = 'none';
-                // Si hay items renderizados, limpiar (excepto el empty state)
+                if (empty) empty.style.display = '';
                 if (listEl) {
                     Array.from(listEl.children).forEach(c => {
                         if (c.id !== 'anuncios-empty') c.remove();
@@ -2650,11 +2671,12 @@
             }
             if (empty) empty.style.display = 'none';
             const hasUnread = _anunciosCache.some(a => !(a.readBy || []).includes(myId));
-            if (markBtn) markBtn.style.display = hasUnread ? '' : 'none';
+            const hasRead   = _anunciosCache.some(a =>  (a.readBy || []).includes(myId));
+            if (markBtn)       markBtn.style.display       = hasUnread ? '' : 'none';
+            if (clearReadBtn)  clearReadBtn.style.display  = hasRead ? '' : 'none';
 
             // Render cards
             if (listEl) {
-                // Remover items previos (excepto el empty placeholder)
                 Array.from(listEl.children).forEach(c => {
                     if (c.id !== 'anuncios-empty') c.remove();
                 });
@@ -2663,20 +2685,26 @@
                     const dt = a.createdAt ? new Date(a.createdAt).toLocaleString('es-MX',
                         { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
                     const card = document.createElement('div');
-                    card.style.cssText = `padding:12px 14px; background:${isUnread ? 'rgba(212,175,55,0.08)' : 'rgba(255,255,255,0.03)'};
+                    card.style.cssText = `position:relative; padding:12px 36px 12px 14px; background:${isUnread ? 'rgba(212,175,55,0.08)' : 'rgba(255,255,255,0.03)'};
                         border:1px solid ${isUnread ? 'rgba(212,175,55,0.35)' : 'rgba(255,255,255,0.08)'};
-                        border-radius:8px; cursor:pointer; transition:background .15s;`;
+                        border-radius:8px; transition:background .15s;`;
                     card.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:6px;">
-                            <div style="font-weight:700; color:${isUnread ? 'var(--gold-l)' : '#fff'}; font-size:14px; line-height:1.3;">
-                                ${isUnread ? '<span style="color:#ef4444; margin-right:4px;">●</span>' : ''}${escapeHtml(a.title || '')}
+                        <button onclick="event.stopPropagation(); hideAnuncio('${a.id}')" aria-label="Ocultar"
+                            style="position:absolute; top:8px; right:8px; width:24px; height:24px; padding:0; background:transparent; color:rgba(255,255,255,0.4); border:none; font-size:18px; line-height:1; cursor:pointer; border-radius:50%; display:flex; align-items:center; justify-content:center;">&times;</button>
+                        <div style="cursor:pointer;" data-mark-read>
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:6px; padding-right:8px;">
+                                <div style="font-weight:700; color:${isUnread ? 'var(--gold-l)' : '#fff'}; font-size:14px; line-height:1.3;">
+                                    ${isUnread ? '<span style="color:#ef4444; margin-right:4px;">●</span>' : ''}${escapeHtml(a.title || '')}
+                                </div>
+                                <div style="font-size:11px; color:var(--slate); white-space:nowrap; flex-shrink:0;">${dt}</div>
                             </div>
-                            <div style="font-size:11px; color:var(--slate); white-space:nowrap; flex-shrink:0;">${dt}</div>
+                            <div style="font-size:13px; color:rgba(255,255,255,0.85); line-height:1.45; margin-bottom:6px; white-space:pre-wrap;">${escapeHtml(a.body || '')}</div>
+                            <div style="font-size:10px; color:var(--slate);">— ${escapeHtml(a.createdByName || a.createdBy || '')}</div>
                         </div>
-                        <div style="font-size:13px; color:rgba(255,255,255,0.85); line-height:1.45; margin-bottom:6px; white-space:pre-wrap;">${escapeHtml(a.body || '')}</div>
-                        <div style="font-size:10px; color:var(--slate);">— ${escapeHtml(a.createdByName || a.createdBy || '')}</div>
                     `;
-                    card.onclick = () => markAnuncioRead(a.id);
+                    // Click on card (excepto en el botón ×) marca como leído
+                    const inner = card.querySelector('[data-mark-read]');
+                    if (inner) inner.onclick = () => markAnuncioRead(a.id);
                     listEl.appendChild(card);
                 });
             }
@@ -2718,6 +2746,46 @@
             const unread = _anunciosCache.filter(a => !(a.readBy || []).includes(myId));
             for (const a of unread) {
                 await markAnuncioRead(a.id);
+            }
+        };
+
+        // Oculta un anuncio para mí (otros agentes lo siguen viendo). También lo marca como leído.
+        window.hideAnuncio = async function (annId) {
+            if (!user || !annId) return;
+            const myId = user.email;
+            const ann = _anunciosDict[annId];
+            if (!ann) return;
+            const hiddenBy = Array.isArray(ann.hiddenBy) ? ann.hiddenBy : [];
+            const readBy   = Array.isArray(ann.readBy)   ? ann.readBy   : [];
+            if (hiddenBy.includes(myId)) return;
+            try {
+                const newHiddenBy = [...new Set([...hiddenBy, myId])];
+                const newReadBy   = [...new Set([...readBy, myId])];
+                await setDoc(doc(db, 'announcements', annId),
+                    { hiddenBy: newHiddenBy, readBy: newReadBy }, { merge: true });
+                // El onSnapshot lo va a sacar del cache automáticamente
+            } catch (err) {
+                console.error('[anuncios] hide error:', err);
+            }
+        };
+
+        // Oculta todos los que ya leí
+        window.clearReadAnuncios = async function () {
+            if (!user) return;
+            const myId = user.email;
+            const toHide = _anunciosCache.filter(a => (a.readBy || []).includes(myId));
+            for (const a of toHide) {
+                await hideAnuncio(a.id);
+            }
+        };
+
+        // Oculta TODOS (también marca como leídos)
+        window.clearAllAnuncios = async function () {
+            if (!user) return;
+            if (!confirm('¿Ocultar todos los anuncios? Esta acción solo afecta tu vista — el director y otros agentes siguen viéndolos.')) return;
+            const all = [..._anunciosCache];
+            for (const a of all) {
+                await hideAnuncio(a.id);
             }
         };
 
