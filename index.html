@@ -2530,37 +2530,94 @@
             document.getElementById('notif-modal').classList.remove('open');
         };
 
-        // ─── ANUNCIOS (feed real desde Firestore) ──────────────────────────────
-        // Real-time listener a /announcements filtrado por:
-        //   - targetDirectorCode === state.directorCode (mi región)
-        //   - targetRoles includes 'users' (soy agente)
-        // Cuando hay anuncios nuevos, los renderizamos en el modal y actualizamos badge.
-        let _anunciosUnsubscribe = null;
-        let _anunciosCache = [];  // array de { id, ...data }
+        // ─── ANUNCIOS (feed real desde Firestore — 3 scopes: region, promoter, coach) ──
+        // 3 listeners independientes que escriben a un cache dict (dedup por id):
+        //   1. Region:   targetDirectorCode === state.directorCode (anuncios del director)
+        //   2. Promoter: targetPromotorTeamCode === mi coach's promotorTeamCode
+        //   3. Coach:    targetTeamCode === state.teamCode (anuncios del coach directo)
+        // El modal renderiza la unión, badge cuenta no-leídos del total.
+        let _anunciosUnsubs = [];       // array de unsubscribe functions
+        let _anunciosDict = {};          // { [id]: { id, ...data } } — dedup natural
+        let _anunciosCache = [];         // array ordenado, derivado del dict para render
 
-        function startAnunciosListener() {
-            if (!user || !state.directorCode) return;
-            if (_anunciosUnsubscribe) return; // ya está activo
-            const q = query(
-                collection(db, 'announcements'),
-                where('targetDirectorCode', '==', state.directorCode),
-                where('targetRoles', 'array-contains', 'users')
-            );
-            _anunciosUnsubscribe = onSnapshot(q, (snap) => {
-                _anunciosCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                // Sort desc por createdAt
-                _anunciosCache.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-                // Actualizar badge con count de no leídos
-                const myId = user.email;
-                const unread = _anunciosCache.filter(a => !(a.readBy || []).includes(myId)).length;
-                updateAnunciosBadge(unread);
-                // Si el modal está abierto, re-renderizar
-                if (document.getElementById('anuncios-modal').classList.contains('open')) {
-                    renderAnunciosList();
+        function _rebuildAnunciosCache() {
+            _anunciosCache = Object.values(_anunciosDict)
+                .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+            const myId = user?.email || '';
+            const unread = _anunciosCache.filter(a => !(a.readBy || []).includes(myId)).length;
+            updateAnunciosBadge(unread);
+            if (document.getElementById('anuncios-modal').classList.contains('open')) {
+                renderAnunciosList();
+            }
+        }
+
+        function _handleAnunciosSnapshot(snap) {
+            snap.docChanges().forEach(change => {
+                if (change.type === 'removed') {
+                    delete _anunciosDict[change.doc.id];
+                } else {
+                    _anunciosDict[change.doc.id] = { id: change.doc.id, ...change.doc.data() };
                 }
-            }, (err) => {
-                console.error('[anuncios] listener error:', err);
             });
+            _rebuildAnunciosCache();
+        }
+
+        async function startAnunciosListener() {
+            if (!user) return;
+            // Cleanup any previous listeners (en caso de re-login)
+            stopAnunciosListener();
+
+            // ── Listener 1: scope REGION (director del agente) ──
+            if (state.directorCode) {
+                const qRegion = query(
+                    collection(db, 'announcements'),
+                    where('targetDirectorCode', '==', state.directorCode),
+                    where('targetRoles', 'array-contains', 'users')
+                );
+                _anunciosUnsubs.push(onSnapshot(qRegion, _handleAnunciosSnapshot,
+                    (err) => console.error('[anuncios] region listener:', err)));
+            }
+
+            // ── Listener 2: scope COACH (anuncios mandados directo por mi coach) ──
+            if (state.teamCode) {
+                const qCoach = query(
+                    collection(db, 'announcements'),
+                    where('targetTeamCode', '==', state.teamCode),
+                    where('targetRoles', 'array-contains', 'users')
+                );
+                _anunciosUnsubs.push(onSnapshot(qCoach, _handleAnunciosSnapshot,
+                    (err) => console.error('[anuncios] coach listener:', err)));
+            }
+
+            // ── Listener 3: scope PROMOTER (necesita lookup del coach para saber promotorTeamCode) ──
+            // El agente no guarda promotorTeamCode directo, hay que leerlo del coach.
+            if (state.teamCode) {
+                try {
+                    const cs = await getDocs(query(collection(db, 'coaches'),
+                        where('teamCode', '==', state.teamCode)));
+                    if (!cs.empty) {
+                        const promotorTeamCode = cs.docs[0].data().promotorTeamCode;
+                        if (promotorTeamCode) {
+                            const qPromoter = query(
+                                collection(db, 'announcements'),
+                                where('targetPromotorTeamCode', '==', promotorTeamCode),
+                                where('targetRoles', 'array-contains', 'users')
+                            );
+                            _anunciosUnsubs.push(onSnapshot(qPromoter, _handleAnunciosSnapshot,
+                                (err) => console.error('[anuncios] promoter listener:', err)));
+                        }
+                    }
+                } catch (e) {
+                    console.warn('[anuncios] coach lookup failed:', e);
+                }
+            }
+        }
+
+        function stopAnunciosListener() {
+            _anunciosUnsubs.forEach(u => { try { u(); } catch(e){} });
+            _anunciosUnsubs = [];
+            _anunciosDict = {};
+            _anunciosCache = [];
         }
 
         window.openAnunciosModal = function () {

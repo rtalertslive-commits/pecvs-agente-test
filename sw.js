@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pecvs-agent-testnet-v3.5.0';
+const CACHE_NAME = 'pecvs-agent-testnet-v3.6.0';
 const assets = [
     './',
     './index.html',
