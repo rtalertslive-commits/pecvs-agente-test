@@ -1956,6 +1956,21 @@
                     <span id="disp-myregion" style="font-size:16px; font-weight:700; color:#fff;">—</span>
                 </div>
 
+                <!-- DEBUG: panel temporal para probar las guardas anti data-loss en iPhone -->
+                <details style="background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.3); border-radius:10px; padding:10px 14px;">
+                    <summary style="font-size:11px; color:#fca5a5; font-weight:700; cursor:pointer; user-select:none;">🛡️ TEST GUARDAS ANTI DATA-LOSS</summary>
+                    <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;">
+                        <div id="dbg-guard-state" style="font-size:10px; font-family:monospace; color:rgba(255,255,255,0.7); padding:6px 8px; background:rgba(0,0,0,0.25); border-radius:6px; word-break:break-all;">cargando…</div>
+                        <button class="btn btn-sm" style="font-size:11px;" onclick="testGuardLoadFail()">1️⃣ Simular falla de carga</button>
+                        <button class="btn btn-sm" style="font-size:11px;" onclick="testGuardStateEmpty()">2️⃣ Simular state vacío + intentar sync</button>
+                        <button class="btn btn-sm" style="font-size:11px;" onclick="testGuardReset()">🔄 Resetear (volver a estado normal)</button>
+                        <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; line-height:1.4;">
+                            <b>1️⃣</b> simula que loadFromCloud falló → debería aparecer banner rojo arriba.<br>
+                            <b>2️⃣</b> simula que state.entries quedó vacío → al sincronizar, debería bloquear con alert.
+                        </div>
+                    </div>
+                </details>
+
                 <button class="btn btn-sm"
                     onclick="document.getElementById('config-modal').classList.remove('open')">Cerrar</button>
             </div>
@@ -3208,6 +3223,57 @@
             if (banner) banner.style.display = 'none';
         }
 
+        // ─── TEST HELPERS (temporal, para validar guardas desde iPhone) ─────────
+        // Actualiza el panel de debug en Mi Perfil con el estado actual.
+        function updateGuardDebugPanel() {
+            const el = document.getElementById('dbg-guard-state');
+            if (!el) return;
+            const cur = Array.isArray(state.entries) ? state.entries.length : 0;
+            el.innerHTML =
+                `_cloudLoadOk: <b style="color:${_cloudLoadOk ? '#34d399' : '#f87171'}">${_cloudLoadOk}</b><br>` +
+                `_lastKnownCloudSize: <b>${_lastKnownCloudSize}</b><br>` +
+                `state.entries.length: <b>${cur}</b><br>` +
+                `(Si cur < lastKnown → sync se bloquea)`;
+        }
+
+        // Test 1: forzar el escenario "loadFromCloud falló"
+        window.testGuardLoadFail = function () {
+            _cloudLoadOk = false;
+            showLoadErrorBanner(new Error('TEST: simulación de falla de carga'));
+            updateGuardDebugPanel();
+            alert('✅ Test 1: _cloudLoadOk=false. Ahora cerrá este modal y mirá si aparece el BANNER ROJO arriba. Si intentás reportar, debería bloquear.');
+        };
+
+        // Test 2: simular state corrupto y tratar de sincronizar
+        window.testGuardStateEmpty = async function () {
+            const backup = [...(state.entries || [])];
+            const prevSize = _lastKnownCloudSize;
+            // Asegurar que _lastKnownCloudSize > 0 para que la guarda se active
+            if (_lastKnownCloudSize === 0) {
+                _lastKnownCloudSize = 1; // forzar para el test
+            }
+            state.entries = []; // simular el bug
+            updateGuardDebugPanel();
+            try {
+                await syncToCloud();
+            } catch (e) {}
+            // Restaurar despues del test
+            state.entries = backup;
+            _lastKnownCloudSize = prevSize;
+            updateGuardDebugPanel();
+            // El alert dentro de syncToCloud ya se mostró si la guarda funcionó.
+            // Si no apareció ningún alert, la guarda NO funcionó.
+        };
+
+        // Test 3: resetear todo a estado normal
+        window.testGuardReset = function () {
+            _cloudLoadOk = true;
+            _lastKnownCloudSize = Array.isArray(state.entries) ? state.entries.length : 0;
+            hideLoadErrorBanner();
+            updateGuardDebugPanel();
+            alert('🔄 Reset OK. Vuelta al estado normal.');
+        };
+
         // ─── REAL-TIME LISTENER del doc del agente ─────────────────────────────
         // Escucha cambios en users/{email} y actualiza state automáticamente.
         // Disparadores externos:
@@ -4028,6 +4094,8 @@
             if (emailEl)  emailEl.textContent  = (user && user.email) || state.email || '—';
             if (codeEl)   codeEl.textContent   = state.companyCode || state.teamCode || '—';
             if (regionEl) regionEl.textContent = state.regionName || '—';
+            // Refrescar panel de debug de guardas (temporal)
+            if (typeof updateGuardDebugPanel === 'function') updateGuardDebugPanel();
             document.getElementById('config-modal').classList.add('open');
         }
 
