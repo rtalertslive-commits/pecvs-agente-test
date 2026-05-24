@@ -307,6 +307,19 @@
         }
         #novedades-badge.show { display: flex; }
 
+        /* Glow dorado pulsante para botones referenciados por novedades unread.
+           Se aplica/quita dinámicamente desde JS según highlightKey de la novedad.
+           Click en el botón → novedad marcada como leída → glow desaparece. */
+        .novedad-glow {
+            position: relative;
+            animation: novedadGlowPulse 1.6s ease-in-out infinite;
+            border-radius: 8px;
+        }
+        @keyframes novedadGlowPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.65); }
+            50%      { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0); }
+        }
+
         /* BUTTONS */
         .btn {
             display: inline-flex;
@@ -2827,6 +2840,19 @@
             return user?.email || user?.uid || '';
         }
 
+        // Map: highlightKey → selector del elemento DOM en esta app.
+        // Las keys deben matchear las del director (registro NOVEDAD_UI_ELEMENTS).
+        // Si una key no tiene selector acá, simplemente se ignora (no glow).
+        const NOVEDAD_HIGHLIGHT_SELECTORS = {
+            notif:     '#notif-bell-btn',
+            anuncios:  '#anuncios-btn',
+            novedades: '#novedades-btn',
+            karma:     '#karma-badge',
+            perfil:    '#mi-perfil-btn',
+            historial: '#history-btn',
+            // tienda/config/equipo/reportes: no aplican al agente o no tienen selector único acá
+        };
+
         async function startNovedadesListener() {
             if (!user) return;
             stopNovedadesListener();
@@ -2840,10 +2866,49 @@
                     .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
                 const unread = _novedadesCache.filter(n => !(n.readBy || []).includes(myId)).length;
                 updateNovedadesBadge(unread);
+                applyNovedadGlows();
                 if (document.getElementById('novedades-modal').classList.contains('open')) {
                     renderNovedadesList();
                 }
             }, (err) => console.error('[novedades] listener:', err));
+        }
+
+        // Aplica/quita .novedad-glow a los elementos DOM según las novedades unread
+        // que tengan highlightKey. Re-evaluado en cada update del cache.
+        function applyNovedadGlows() {
+            if (!user) return;
+            const myId = _myNovedadId();
+            const activeKeys = new Set();
+            _novedadesCache.forEach(n => {
+                if (n.highlightKey && !(n.readBy || []).includes(myId)) {
+                    activeKeys.add(n.highlightKey);
+                }
+            });
+            Object.entries(NOVEDAD_HIGHLIGHT_SELECTORS).forEach(([key, selector]) => {
+                const el = document.querySelector(selector);
+                if (!el) return;
+                if (activeKeys.has(key)) {
+                    el.classList.add('novedad-glow');
+                    _attachNovedadGlowHandler(el, key);
+                } else {
+                    el.classList.remove('novedad-glow');
+                }
+            });
+        }
+
+        // Engancha (una sola vez por elemento) un listener que, al click del user,
+        // marca como leídas todas las novedades unread con esta highlightKey.
+        // El onSnapshot subsiguiente va a quitar el glow automáticamente.
+        function _attachNovedadGlowHandler(el, key) {
+            if (el.dataset.novedadGlowKey === key) return;
+            el.dataset.novedadGlowKey = key;
+            el.addEventListener('click', () => {
+                const myId = _myNovedadId();
+                const related = _novedadesCache.filter(n =>
+                    n.highlightKey === key && !(n.readBy || []).includes(myId)
+                );
+                related.forEach(n => markNovedadRead(n.id));
+            });
         }
 
         function stopNovedadesListener() {
