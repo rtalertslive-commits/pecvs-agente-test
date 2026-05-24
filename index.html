@@ -307,6 +307,19 @@
         }
         #novedades-badge.show { display: flex; }
 
+        /* Glow dorado pulsante para botones nuevos del producto.
+           Se aplica automáticamente cuando el dev agrega una entry a
+           NEW_FEATURES_TO_GLOW y el user todavía no tocó ese botón. */
+        .novedad-glow {
+            position: relative;
+            animation: novedadGlowPulse 1.6s ease-in-out infinite;
+            border-radius: 8px;
+        }
+        @keyframes novedadGlowPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.65); }
+            50%      { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0); }
+        }
+
         /* BUTTONS */
         .btn {
             display: inline-flex;
@@ -2932,6 +2945,54 @@
             }
         }
 
+        // ─── GLOW DE FEATURES NUEVAS (automático, controlado por código) ─────
+        // Lista hardcoded de botones nuevos del producto. Cada vez que el dev
+        // agrega un botón importante, lo suma acá con su selector. Los users
+        // que no tienen state.seenFeatures[feature] ven el botón pulsando con
+        // glow dorado hasta que lo tocan (eso lo marca como seen en Firestore).
+        //
+        // Para agregar un feature nuevo: empujá una entry { feature, selector }.
+        // Para "deprecar" un feature: sacalo del array (el glow se va para todos).
+        const NEW_FEATURES_TO_GLOW = [
+            { feature: 'novedades', selector: '#novedades-btn' },
+            // Futuras entries: { feature: 'tienda', selector: '#tienda-tab' }, etc.
+        ];
+
+        function applyFeatureGlows() {
+            if (!user) return;
+            const seen = (state && state.seenFeatures) || {};
+            NEW_FEATURES_TO_GLOW.forEach(({ feature, selector }) => {
+                const el = document.querySelector(selector);
+                if (!el) return;
+                if (seen[feature]) {
+                    el.classList.remove('novedad-glow');
+                } else {
+                    el.classList.add('novedad-glow');
+                    _attachFeatureGlowHandler(el, feature);
+                }
+            });
+        }
+
+        // Engancha (una sola vez por elemento) un listener que marca el feature
+        // como seen al primer click del user. El glow se quita al refrescar.
+        function _attachFeatureGlowHandler(el, feature) {
+            if (el.dataset.featureGlowKey === feature) return;
+            el.dataset.featureGlowKey = feature;
+            el.addEventListener('click', async () => {
+                if (!user) return;
+                state.seenFeatures = Object.assign({}, state.seenFeatures || {}, { [feature]: true });
+                el.classList.remove('novedad-glow');
+                try {
+                    // El doc del agente puede ser 'users/<email>' o 'users/tg_<id>' (Telegram).
+                    // user.uid funciona para ambos casos como id del doc.
+                    await setDoc(doc(db, 'users', user.uid || user.email),
+                        { seenFeatures: state.seenFeatures }, { merge: true });
+                } catch (err) {
+                    console.error('[featureGlow] save error:', err);
+                }
+            });
+        }
+
         // Oculta todos los que ya leí
         window.clearReadAnuncios = async function () {
             if (!user) return;
@@ -3144,6 +3205,7 @@
                         // Iniciar listener de anuncios para mantener badge y modal actualizados
                         startAnunciosListener();
                         startNovedadesListener();
+                        applyFeatureGlows();
                     } else if (status === 'inactive') {
                         document.getElementById('login-overlay').classList.add('hidden');
                         document.getElementById('revoked-overlay').style.display = 'flex';
@@ -3315,6 +3377,7 @@
                     if (typeof state.companyCode !== 'string') state.companyCode = '';
                     if (typeof state.skipWeekends !== 'boolean') state.skipWeekends = false;
                     if (state.skipWeekendsActivatedAt === undefined) state.skipWeekendsActivatedAt = null;
+                    if (!state.seenFeatures || typeof state.seenFeatures !== 'object') state.seenFeatures = {};
                     if (!state.notifPrefs || typeof state.notifPrefs !== 'object') {
                         state.notifPrefs = { ...DEFAULT_NOTIF_PREFS };
                     } else {
