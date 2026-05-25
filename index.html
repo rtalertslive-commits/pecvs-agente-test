@@ -2791,8 +2791,8 @@
         // Para agregar un feature nuevo: empujá una entry { feature, selector }.
         // Para "deprecar" un feature: sacalo del array (el glow se va para todos).
         const NEW_FEATURES_TO_GLOW = [
-            // Vacío por ahora — agregá entries cuando lances un botón/feature nuevo.
-            // Ejemplo: { feature: 'racha', selector: '#racha-badge' }
+            { feature: 'notif',    selector: '#notif-bell-btn' },
+            { feature: 'anuncios', selector: '#anuncios-btn' },
         ];
 
         function applyFeatureGlows() {
