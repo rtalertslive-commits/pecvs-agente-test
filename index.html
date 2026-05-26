@@ -1940,8 +1940,8 @@
             <h2 style="font-family:'Inter',sans-serif;font-weight:800;color:var(--white);margin:0 0 12px;font-size:18px;">Confirmar canje</h2>
             <p id="canje-confirm-text" style="color:var(--slate);font-size:13px;margin:0 0 20px;line-height:1.5;"></p>
             <div style="display:flex;gap:10px;">
-                <button class="btn btn-sm" style="flex:1;" onclick="cancelCanje()">Cancelar</button>
-                <button class="btn btn-sm" style="flex:1;border-color:var(--green) !important;color:var(--green) !important;" onclick="confirmCanje()">Solicitar</button>
+                <button id="canje-cancel-btn" class="btn btn-sm" style="flex:1;" onclick="cancelCanje()">Cancelar</button>
+                <button id="canje-confirm-btn" class="btn btn-sm" style="flex:1;border-color:var(--green) !important;color:var(--green) !important;" onclick="confirmCanje()">Solicitar</button>
             </div>
         </div>
     </div>
@@ -3914,9 +3914,14 @@
 
         // ─── TIENDA ───────────────────────────────────────────────────────────────────
         window.initAgenteTienda = async function() {
-            await renderTiendaItems();
+            // Cargar primero las solicitudes (pobla _pendingCanjeItemIds) para que
+            // renderTiendaItems pueda deshabilitar los botones de items ya solicitados.
             await renderMisSolicitudes();
+            await renderTiendaItems();
         };
+
+        // Set de itemIds que el user tiene actualmente en estado 'pending'.
+        let _pendingCanjeItemIds = new Set();
 
         async function renderTiendaItems() {
             const container = document.getElementById('tienda-items');
@@ -3933,9 +3938,7 @@
                 container.innerHTML = items.map(item => {
                     const puedo = (state.karma || 0) >= item.costo;
                     const sinStock = item.stock === 0;
-                    // Escapar TODOS los strings que vengan del catálogo (controlado por
-                    // director) — si tiene apóstrofes rompe el onclick, si tiene HTML
-                    // se ejecuta en el navegador del agente (XSS).
+                    const yaPedido = _pendingCanjeItemIds.has(item.id);
                     const eEmoji = escapeHtml(item.emoji || '🎁');
                     const eNombre = escapeHtml(item.nombre || '');
                     const eDesc = escapeHtml(item.descripcion || '');
@@ -3946,14 +3949,20 @@
                     const visualHtml = eImgUrl
                         ? `<img src="${eImgUrl}" alt="${eNombre}" loading="lazy" onclick="openImagePreview('${eImgUrl}')" style="width:100px;height:100px;object-fit:cover;border-radius:10px;cursor:zoom-in;margin:0 auto;display:block;border:1px solid rgba(212,175,55,0.2);">`
                         : `<div style="font-size:36px;text-align:center;">${eEmoji}</div>`;
+                    const disabled = !puedo || sinStock || yaPedido;
+                    let btnLabel;
+                    if (yaPedido)        btnLabel = '⏳ Ya solicitado';
+                    else if (sinStock)   btnLabel = 'Sin stock';
+                    else if (!puedo)     btnLabel = 'Totopos insuficientes';
+                    else                 btnLabel = '🛒 Solicitar canje';
                     return `<div style="background:var(--panel2);border-radius:12px;padding:16px;border:1px solid rgba(212,175,55,0.15);display:flex;flex-direction:column;gap:8px;">
                         ${visualHtml}
                         <div style="font-weight:700;font-size:14px;text-align:center;">${eNombre}</div>
                         <div style="font-size:12px;color:var(--slate);text-align:center;">${eDesc}</div>
                         <div style="text-align:center;font-weight:800;color:var(--gold);"><svg class="totopo-icon"><use href="#totopo"/></svg> ${costoNum} totopos</div>
                         ${item.stock >= 0 ? `<div style="text-align:center;font-size:11px;color:var(--slate);">Stock: ${Number(item.stock)||0}</div>` : ''}
-                        <button class="btn btn-sm ${puedo&&!sinStock?'btn-green':''}" ${(!puedo||sinStock)?'disabled':''} onclick="solicitarCanje('${eId}','${eNombre}',${costoNum},'${eEmoji}','${eCatalog}')" style="${sinStock?'opacity:0.4':''}">
-                            ${sinStock ? 'Sin stock' : !puedo ? 'Totopos insuficientes' : '🛒 Solicitar canje'}
+                        <button class="btn btn-sm ${(!disabled)?'btn-green':''}" ${disabled?'disabled':''} onclick="solicitarCanje('${eId}','${eNombre}',${costoNum},'${eEmoji}','${eCatalog}')" style="${(sinStock||yaPedido)?'opacity:0.5':''}">
+                            ${btnLabel}
                         </button>
                     </div>`;
                 }).join('');
@@ -3967,6 +3976,8 @@
                 const q = query(collection(db, 'redemptionRequests'), where('emailSolicitante', '==', user.email));
                 const snap = await getDocs(q);
                 const reqs = snap.docs.map(d => d.data()).sort((a,b) => (b.fechaSolicitud||'').localeCompare(a.fechaSolicitud||''));
+                // Actualizar cache de items pending (usado por renderTiendaItems para deshabilitar botones)
+                _pendingCanjeItemIds = new Set(reqs.filter(r => r.status === 'pending' && r.itemId).map(r => r.itemId));
                 container.innerHTML = reqs.length ? reqs.map(r => {
                     const color = r.status==='approved'?'var(--green)':r.status==='rejected'?'var(--red)':'var(--orange)';
                     const label = r.status==='approved'?'✓ Aprobado':r.status==='rejected'?'✗ Rechazado':'⏳ Pendiente';
@@ -4005,6 +4016,11 @@
 
         window.solicitarCanje = function(itemId, itemNombre, costo, emoji, catalogDoc) {
             if ((state.karma || 0) < costo) { alert('Totopos insuficientes.'); return; }
+            // Guard antiduplicado: si ya hay una solicitud pendiente del mismo item, bloquear.
+            if (_pendingCanjeItemIds.has(itemId)) {
+                alert(`Ya tenés una solicitud pendiente de "${itemNombre}". Esperá a que el director la apruebe o rechace.`);
+                return;
+            }
             openCanjeConfirm(itemId, itemNombre, costo, emoji, catalogDoc);
         };
 
@@ -4018,10 +4034,19 @@
         };
         window.confirmCanje = async function () {
             const c = _pendingCanje;
-            document.getElementById('canje-confirm-modal').classList.remove('open');
+            const confirmBtn = document.getElementById('canje-confirm-btn');
+            const cancelBtn  = document.getElementById('canje-cancel-btn');
+            if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Enviando…'; }
+            if (cancelBtn)  cancelBtn.disabled = true;
             _pendingCanje = null;
-            if (!c) return;
-            await window._doSolicitarCanje(c.itemId, c.itemNombre, c.costo, c.emoji, c.catalogDoc);
+            try {
+                if (!c) return;
+                await window._doSolicitarCanje(c.itemId, c.itemNombre, c.costo, c.emoji, c.catalogDoc);
+            } finally {
+                document.getElementById('canje-confirm-modal').classList.remove('open');
+                if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.innerHTML = 'Solicitar'; }
+                if (cancelBtn)  cancelBtn.disabled = false;
+            }
         };
         window.cancelCanje = function () {
             document.getElementById('canje-confirm-modal').classList.remove('open');
