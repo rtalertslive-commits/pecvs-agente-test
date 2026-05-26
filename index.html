@@ -1938,7 +1938,24 @@
         <div class="modal-box" style="max-width:380px;text-align:center;">
             <div style="font-size:42px;margin-bottom:8px;">🛒</div>
             <h2 style="font-family:'Inter',sans-serif;font-weight:800;color:var(--white);margin:0 0 12px;font-size:18px;">Confirmar canje</h2>
-            <p id="canje-confirm-text" style="color:var(--slate);font-size:13px;margin:0 0 20px;line-height:1.5;"></p>
+            <p id="canje-confirm-text" style="color:var(--slate);font-size:13px;margin:0 0 16px;line-height:1.5;"></p>
+
+            <!-- Selector de cantidad: − [N] + -->
+            <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin:0 0 14px;">
+                <span style="color:var(--slate);font-size:12px;">Cantidad:</span>
+                <button id="canje-qty-dec" type="button" onclick="changeCanjeQty(-1)" style="width:34px;height:34px;border-radius:50%;border:1px solid var(--gold);background:rgba(15,23,42,0.8);color:var(--gold-l);font-size:18px;font-weight:700;cursor:pointer;padding:0;">−</button>
+                <span id="canje-qty-display" style="font-size:20px;font-weight:800;color:var(--white);min-width:40px;display:inline-block;">1</span>
+                <button id="canje-qty-inc" type="button" onclick="changeCanjeQty(1)" style="width:34px;height:34px;border-radius:50%;border:1px solid var(--gold);background:rgba(15,23,42,0.8);color:var(--gold-l);font-size:18px;font-weight:700;cursor:pointer;padding:0;">+</button>
+            </div>
+
+            <!-- Resumen: costo total y limit info -->
+            <div style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.25);border-radius:8px;padding:10px 12px;margin:0 0 16px;font-size:12px;">
+                <div style="color:var(--gold-l);font-weight:700;font-size:15px;margin-bottom:4px;">
+                    <svg class="totopo-icon"><use href="#totopo"/></svg> <span id="canje-total-display">0</span> totopos
+                </div>
+                <div id="canje-limit-info" style="color:var(--slate);font-size:11px;line-height:1.4;"></div>
+            </div>
+
             <div style="display:flex;gap:10px;">
                 <button id="canje-cancel-btn" class="btn btn-sm" style="flex:1;" onclick="cancelCanje()">Cancelar</button>
                 <button id="canje-confirm-btn" class="btn btn-sm" style="flex:1;border-color:var(--green) !important;color:var(--green) !important;" onclick="confirmCanje()">Solicitar</button>
@@ -3920,8 +3937,11 @@
             await renderTiendaItems();
         };
 
-        // Set de itemIds que el user tiene actualmente en estado 'pending'.
-        let _pendingCanjeItemIds = new Set();
+        // Totopos "comprometidos" — suma del costo*cantidad de TODAS las solicitudes
+        // del user en estado 'pending'. El karma disponible para nuevas compras es
+        // state.karma - _karmaComprometido. Permite múltiples solicitudes del mismo
+        // item siempre que alcance el karma disponible.
+        let _karmaComprometido = 0;
 
         async function renderTiendaItems() {
             const container = document.getElementById('tienda-items');
@@ -3935,24 +3955,24 @@
                 const snap = await getDoc(doc(db, 'store', catalogId));
                 const items = snap.exists() ? (snap.data().items || []).filter(i => i.activo) : [];
                 if (!items.length) { container.innerHTML = '<div class="empty-state"><i class="fa fa-box-open"></i> Sin items disponibles por ahora.</div>'; return; }
+                const karmaDisponible = (state.karma || 0) - _karmaComprometido;
                 container.innerHTML = items.map(item => {
-                    const puedo = (state.karma || 0) >= item.costo;
                     const sinStock = item.stock === 0;
-                    const yaPedido = _pendingCanjeItemIds.has(item.id);
+                    const costoNum = Number(item.costo) || 0;
+                    // Puedo comprar al menos 1 si el karma DISPONIBLE (no total) lo cubre.
+                    const puedo = karmaDisponible >= costoNum;
                     const eEmoji = escapeHtml(item.emoji || '🎁');
                     const eNombre = escapeHtml(item.nombre || '');
                     const eDesc = escapeHtml(item.descripcion || '');
                     const eId = escapeHtml(item.id || '');
                     const eCatalog = escapeHtml(catalogId);
-                    const costoNum = Number(item.costo) || 0;
                     const eImgUrl = item.imageUrl ? escapeHtml(item.imageUrl) : '';
                     const visualHtml = eImgUrl
                         ? `<img src="${eImgUrl}" alt="${eNombre}" loading="lazy" onclick="openImagePreview('${eImgUrl}')" style="width:100px;height:100px;object-fit:cover;border-radius:10px;cursor:zoom-in;margin:0 auto;display:block;border:1px solid rgba(212,175,55,0.2);">`
                         : `<div style="font-size:36px;text-align:center;">${eEmoji}</div>`;
-                    const disabled = !puedo || sinStock || yaPedido;
+                    const disabled = !puedo || sinStock;
                     let btnLabel;
-                    if (yaPedido)        btnLabel = '⏳ Ya solicitado';
-                    else if (sinStock)   btnLabel = 'Sin stock';
+                    if (sinStock)        btnLabel = 'Sin stock';
                     else if (!puedo)     btnLabel = 'Totopos insuficientes';
                     else                 btnLabel = '🛒 Solicitar canje';
                     return `<div style="background:var(--panel2);border-radius:12px;padding:16px;border:1px solid rgba(212,175,55,0.15);display:flex;flex-direction:column;gap:8px;">
@@ -3961,7 +3981,7 @@
                         <div style="font-size:12px;color:var(--slate);text-align:center;">${eDesc}</div>
                         <div style="text-align:center;font-weight:800;color:var(--gold);"><svg class="totopo-icon"><use href="#totopo"/></svg> ${costoNum} totopos</div>
                         ${item.stock >= 0 ? `<div style="text-align:center;font-size:11px;color:var(--slate);">Stock: ${Number(item.stock)||0}</div>` : ''}
-                        <button class="btn btn-sm ${(!disabled)?'btn-green':''}" ${disabled?'disabled':''} onclick="solicitarCanje('${eId}','${eNombre}',${costoNum},'${eEmoji}','${eCatalog}')" style="${(sinStock||yaPedido)?'opacity:0.5':''}">
+                        <button class="btn btn-sm ${(!disabled)?'btn-green':''}" ${disabled?'disabled':''} onclick="solicitarCanje('${eId}','${eNombre}',${costoNum},'${eEmoji}','${eCatalog}',${item.stock >= 0 ? Number(item.stock) : -1})" style="${sinStock?'opacity:0.5':''}">
                             ${btnLabel}
                         </button>
                     </div>`;
@@ -3976,8 +3996,12 @@
                 const q = query(collection(db, 'redemptionRequests'), where('emailSolicitante', '==', user.email));
                 const snap = await getDocs(q);
                 const reqs = snap.docs.map(d => d.data()).sort((a,b) => (b.fechaSolicitud||'').localeCompare(a.fechaSolicitud||''));
-                // Actualizar cache de items pending (usado por renderTiendaItems para deshabilitar botones)
-                _pendingCanjeItemIds = new Set(reqs.filter(r => r.status === 'pending' && r.itemId).map(r => r.itemId));
+                // Calcular karma comprometido — suma del costo*cantidad de TODAS las pending.
+                // renderTiendaItems usa state.karma - _karmaComprometido para decidir si
+                // el botón "Solicitar canje" se habilita.
+                _karmaComprometido = reqs
+                    .filter(r => r.status === 'pending')
+                    .reduce((sum, r) => sum + (Number(r.costo) || 0) * (Number(r.cantidad) || 1), 0);
                 container.innerHTML = reqs.length ? reqs.map(r => {
                     const color = r.status==='approved'?'var(--green)':r.status==='rejected'?'var(--red)':'var(--orange)';
                     const label = r.status==='approved'?'✓ Aprobado':r.status==='rejected'?'✗ Rechazado':'⏳ Pendiente';
@@ -3985,10 +4009,16 @@
                     const eEmoji = escapeHtml(r.emoji || '🎁');
                     const eName = escapeHtml(r.itemNombre || '');
                     const costoNum = Number(r.costo) || 0;
+                    const cantidad = Number(r.cantidad) || 1;
+                    const totalNum = costoNum * cantidad;
+                    const cantidadLabel = cantidad > 1 ? ` <span style="color:var(--gold-l);font-weight:700;">×${cantidad}</span>` : '';
+                    const costoText = cantidad > 1
+                        ? `${costoNum} × ${cantidad} = ${totalNum}`
+                        : String(costoNum);
                     return `<div style="padding:10px 14px;background:var(--panel);border-radius:8px;border-left:3px solid ${color};display:flex;justify-content:space-between;align-items:center;gap:8px;">
                         <div>
-                            <div style="font-weight:600;font-size:13px;">${eEmoji} ${eName}</div>
-                            <div style="font-size:11px;color:var(--slate);"><svg class="totopo-icon"><use href="#totopo"/></svg> ${costoNum} totopos &nbsp;·&nbsp; ${new Date(r.fechaSolicitud).toLocaleDateString('es-MX')}</div>
+                            <div style="font-weight:600;font-size:13px;">${eEmoji} ${eName}${cantidadLabel}</div>
+                            <div style="font-size:11px;color:var(--slate);"><svg class="totopo-icon"><use href="#totopo"/></svg> ${costoText} totopos &nbsp;·&nbsp; ${new Date(r.fechaSolicitud).toLocaleDateString('es-MX')}</div>
                         </div>
                         <span style="color:${color};font-size:11px;font-weight:700;white-space:nowrap;">${label}</span>
                     </div>`;
@@ -4014,24 +4044,62 @@
             if (img) img.src = '';
         };
 
-        window.solicitarCanje = function(itemId, itemNombre, costo, emoji, catalogDoc) {
-            if ((state.karma || 0) < costo) { alert('Totopos insuficientes.'); return; }
-            // Guard antiduplicado: si ya hay una solicitud pendiente del mismo item, bloquear.
-            if (_pendingCanjeItemIds.has(itemId)) {
-                alert(`Ya tenés una solicitud pendiente de "${itemNombre}". Esperá a que el director la apruebe o rechace.`);
+        // Entry point del botón de canje en el catálogo. Si el karma disponible
+        // (state.karma - _karmaComprometido) no cubre 1 unidad, bloquea. Si cubre,
+        // abre el modal con un selector de cantidad limitado por stock + karma.
+        window.solicitarCanje = function(itemId, itemNombre, costo, emoji, catalogDoc, stockDisponible) {
+            const karmaDisponible = (state.karma || 0) - _karmaComprometido;
+            if (karmaDisponible < costo) {
+                alert(`Totopos insuficientes. Te quedan ${karmaDisponible} totopos disponibles (ya tenés ${_karmaComprometido} comprometidos en otras solicitudes pendientes).`);
                 return;
             }
-            openCanjeConfirm(itemId, itemNombre, costo, emoji, catalogDoc);
+            openCanjeConfirm(itemId, itemNombre, costo, emoji, catalogDoc, stockDisponible);
         };
 
         // Estado del modal de confirmación de canje
         let _pendingCanje = null;
-        window.openCanjeConfirm = function (itemId, itemNombre, costo, emoji, catalogDoc) {
-            _pendingCanje = { itemId, itemNombre, costo, emoji, catalogDoc };
+        window.openCanjeConfirm = function (itemId, itemNombre, costo, emoji, catalogDoc, stockDisponible) {
+            const karmaDisponible = (state.karma || 0) - _karmaComprometido;
+            const maxPorKarma = costo > 0 ? Math.floor(karmaDisponible / costo) : 1;
+            const stockNum = Number(stockDisponible);
+            const maxPorStock = stockNum < 0 ? Infinity : stockNum; // stock < 0 = ilimitado
+            const maxCantidad = Math.max(1, Math.min(maxPorKarma, maxPorStock === Infinity ? 999 : maxPorStock));
+            _pendingCanje = { itemId, itemNombre, costo, emoji, catalogDoc, cantidad: 1, maxCantidad };
             document.getElementById('canje-confirm-text').textContent =
-                `¿Solicitar canje de "${itemNombre}" por ${costo} totopos? El item te queda reservado hasta que el director apruebe.`;
+                `¿Solicitar canje de "${itemNombre}"? El item te queda reservado hasta que el director apruebe.`;
+            // Renderizar el selector + costo total inicial
+            _updateCanjeQtyDisplay();
             document.getElementById('canje-confirm-modal').classList.add('open');
         };
+
+        // Cambia la cantidad del modal por +delta, clamped a [1, maxCantidad].
+        window.changeCanjeQty = function (delta) {
+            if (!_pendingCanje) return;
+            const next = (_pendingCanje.cantidad || 1) + delta;
+            const max = _pendingCanje.maxCantidad || 1;
+            _pendingCanje.cantidad = Math.max(1, Math.min(max, next));
+            _updateCanjeQtyDisplay();
+        };
+
+        function _updateCanjeQtyDisplay() {
+            if (!_pendingCanje) return;
+            const { costo, cantidad, maxCantidad } = _pendingCanje;
+            const total = costo * cantidad;
+            const qtyEl = document.getElementById('canje-qty-display');
+            const totEl = document.getElementById('canje-total-display');
+            const infoEl = document.getElementById('canje-limit-info');
+            const decBtn = document.getElementById('canje-qty-dec');
+            const incBtn = document.getElementById('canje-qty-inc');
+            if (qtyEl) qtyEl.textContent = String(cantidad);
+            if (totEl) totEl.textContent = String(total);
+            if (decBtn) { decBtn.disabled = cantidad <= 1; decBtn.style.opacity = cantidad <= 1 ? '0.4' : '1'; }
+            if (incBtn) { incBtn.disabled = cantidad >= maxCantidad; incBtn.style.opacity = cantidad >= maxCantidad ? '0.4' : '1'; }
+            if (infoEl) {
+                const karmaDisponible = (state.karma || 0) - _karmaComprometido;
+                infoEl.innerHTML = `Te quedan ${karmaDisponible} totopos disponibles${_karmaComprometido > 0 ? ` (${_karmaComprometido} ya comprometidos en otras solicitudes)` : ''}. Máx esta orden: ${maxCantidad}.`;
+            }
+        }
+
         window.confirmCanje = async function () {
             const c = _pendingCanje;
             const confirmBtn = document.getElementById('canje-confirm-btn');
@@ -4041,7 +4109,7 @@
             _pendingCanje = null;
             try {
                 if (!c) return;
-                await window._doSolicitarCanje(c.itemId, c.itemNombre, c.costo, c.emoji, c.catalogDoc);
+                await window._doSolicitarCanje(c.itemId, c.itemNombre, c.costo, c.emoji, c.catalogDoc, c.cantidad);
             } finally {
                 document.getElementById('canje-confirm-modal').classList.remove('open');
                 if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.innerHTML = 'Solicitar'; }
@@ -4053,17 +4121,15 @@
             _pendingCanje = null;
         };
 
-        // Lógica real (llamada desde confirmCanje del modal)
-        window._doSolicitarCanje = async function(itemId, itemNombre, costo, emoji, catalogDoc) {
+        // Lógica real (llamada desde confirmCanje del modal). Cantidad >= 1.
+        window._doSolicitarCanje = async function(itemId, itemNombre, costo, emoji, catalogDoc, cantidad) {
+            const qty = Math.max(1, Number(cantidad) || 1);
             try {
                 // Transacción atómica: validar stock + decrementar + crear solicitud en un solo paso.
-                // Si dos agentes solicitan el último item al mismo tiempo, solo uno gana —
-                // el otro recibe error "ya alguien lo compró" y NO se crea solicitud.
                 const catRef = doc(db, 'store', catalogDoc);
-                const newReqRef = doc(collection(db, 'redemptionRequests')); // ID generado para set en tx
+                const newReqRef = doc(collection(db, 'redemptionRequests'));
 
                 await runTransaction(db, async (tx) => {
-                    // ── READS ──
                     const catSnap = await tx.get(catRef);
                     if (!catSnap.exists()) throw new Error('El catálogo de la tienda no existe.');
                     const items = (catSnap.data().items || []).slice();
@@ -4072,12 +4138,13 @@
                     const item = items[idx];
                     if (item.activo === false) throw new Error(`El item "${itemNombre}" fue desactivado.`);
                     const stock = Number(item.stock);
-                    if (stock === 0) throw new Error(`Ya alguien compró el último "${itemNombre}". Sin stock disponible.`);
-                    // stock < 0 = infinito, stock > 0 = decrementable
+                    // stock < 0 = ilimitado, stock >= 0 = decrementable
+                    if (stock >= 0 && stock < qty) {
+                        throw new Error(`Stock insuficiente para "${itemNombre}". Quedan ${stock} disponibles y pediste ${qty}.`);
+                    }
 
-                    // ── WRITES ──
-                    if (stock > 0) {
-                        items[idx] = { ...item, stock: stock - 1 };
+                    if (stock >= 0) {
+                        items[idx] = { ...item, stock: stock - qty };
                         tx.update(catRef, { items });
                     }
                     tx.set(newReqRef, {
@@ -4088,17 +4155,18 @@
                         directorCode: state.directorCode || '',
                         regionName: state.regionName || '',
                         itemId, itemNombre, costo, emoji, catalogDoc,
+                        cantidad: qty,
                         status: 'pending',
-                        stockReservado: stock > 0,   // marca si hubo decremento (para reincrementar al rechazar)
+                        stockReservado: stock >= 0,   // marca si hubo decremento (para reincrementar al rechazar)
                         fechaSolicitud: new Date().toISOString()
                     });
                 });
-                alert(`✅ Solicitud enviada. El item te queda reservado hasta que el director apruebe o rechace.`);
+                const totalCosto = costo * qty;
+                alert(`✅ Solicitud enviada (${qty} × ${itemNombre} = ${totalCosto} totopos). El director va a aprobar o rechazar.`);
                 await renderMisSolicitudes();
                 await renderTiendaItems();
             } catch(e) {
                 alert('No se pudo solicitar el canje:\n' + e.message);
-                // Refrescar la tienda para mostrar el stock actualizado
                 try { await renderTiendaItems(); } catch {}
             }
         };
