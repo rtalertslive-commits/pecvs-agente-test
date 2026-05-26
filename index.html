@@ -3995,7 +3995,7 @@
             try {
                 const q = query(collection(db, 'redemptionRequests'), where('emailSolicitante', '==', user.email));
                 const snap = await getDocs(q);
-                const reqs = snap.docs.map(d => d.data()).sort((a,b) => (b.fechaSolicitud||'').localeCompare(a.fechaSolicitud||''));
+                const reqs = snap.docs.map(d => ({ _id: d.id, ...d.data() })).sort((a,b) => (b.fechaSolicitud||'').localeCompare(a.fechaSolicitud||''));
                 // Calcular karma comprometido — suma del costo*cantidad de TODAS las pending.
                 // renderTiendaItems usa state.karma - _karmaComprometido para decidir si
                 // el botón "Solicitar canje" se habilita.
@@ -4003,11 +4003,14 @@
                     .filter(r => r.status === 'pending')
                     .reduce((sum, r) => sum + (Number(r.costo) || 0) * (Number(r.cantidad) || 1), 0);
                 container.innerHTML = reqs.length ? reqs.map(r => {
-                    const color = r.status==='approved'?'var(--green)':r.status==='rejected'?'var(--red)':'var(--orange)';
-                    const label = r.status==='approved'?'✓ Aprobado':r.status==='rejected'?'✗ Rechazado':'⏳ Pendiente';
+                    const isPending = r.status === 'pending';
+                    const isCancelled = r.status === 'cancelled';
+                    const color = r.status==='approved'?'var(--green)':r.status==='rejected'?'var(--red)':isCancelled?'var(--slate)':'var(--orange)';
+                    const label = r.status==='approved'?'✓ Aprobado':r.status==='rejected'?'✗ Rechazado':isCancelled?'⊘ Cancelado':'⏳ Pendiente';
                     // Escapar strings de Firestore antes de inyectar en innerHTML
                     const eEmoji = escapeHtml(r.emoji || '🎁');
                     const eName = escapeHtml(r.itemNombre || '');
+                    const eReqId = escapeHtml(r._id || '');
                     const costoNum = Number(r.costo) || 0;
                     const cantidad = Number(r.cantidad) || 1;
                     const totalNum = costoNum * cantidad;
@@ -4015,12 +4018,20 @@
                     const costoText = cantidad > 1
                         ? `${costoNum} × ${cantidad} = ${totalNum}`
                         : String(costoNum);
-                    return `<div style="padding:10px 14px;background:var(--panel);border-radius:8px;border-left:3px solid ${color};display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                    const rightSide = isPending
+                        ? `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+                               <span style="color:${color};font-size:11px;font-weight:700;white-space:nowrap;">${label}</span>
+                               <button class="btn btn-sm" onclick="cancelarMiSolicitud('${eReqId}','${eName.replace(/'/g, "\\'")}')" style="padding:4px 10px;font-size:11px;border-color:rgba(239,68,68,0.5) !important;color:#fca5a5 !important;">
+                                   <i class="fa fa-times"></i> Cancelar
+                               </button>
+                           </div>`
+                        : `<span style="color:${color};font-size:11px;font-weight:700;white-space:nowrap;">${label}</span>`;
+                    return `<div style="padding:10px 14px;background:var(--panel);border-radius:8px;border-left:3px solid ${color};display:flex;justify-content:space-between;align-items:center;gap:8px;${isCancelled?'opacity:0.6;':''}">
                         <div>
                             <div style="font-weight:600;font-size:13px;">${eEmoji} ${eName}${cantidadLabel}</div>
                             <div style="font-size:11px;color:var(--slate);"><svg class="totopo-icon"><use href="#totopo"/></svg> ${costoText} totopos &nbsp;·&nbsp; ${new Date(r.fechaSolicitud).toLocaleDateString('es-MX')}</div>
                         </div>
-                        <span style="color:${color};font-size:11px;font-weight:700;white-space:nowrap;">${label}</span>
+                        ${rightSide}
                     </div>`;
                 }).join('') : '<div class="empty-state"><i class="fa fa-inbox"></i> Sin solicitudes aún.</div>';
             } catch(e) {}
@@ -4119,6 +4130,50 @@
         window.cancelCanje = function () {
             document.getElementById('canje-confirm-modal').classList.remove('open');
             _pendingCanje = null;
+        };
+
+        // Cancela una solicitud propia pendiente. Restaura stock (si stockReservado),
+        // marca status='cancelled' (preserva historial) y refresca UI. Las rules
+        // permiten al owner cambiar pending→cancelled sin tocar otros campos.
+        window.cancelarMiSolicitud = async function (requestId, itemNombre) {
+            if (!user || !requestId) return;
+            if (!confirm(`¿Cancelar tu solicitud de "${itemNombre}"? Si el item se reservó del stock, vuelve a estar disponible.`)) return;
+            try {
+                const reqRef = doc(db, 'redemptionRequests', requestId);
+                await runTransaction(db, async (tx) => {
+                    // ── READS ──
+                    const reqSnap = await tx.get(reqRef);
+                    if (!reqSnap.exists()) throw new Error('La solicitud ya no existe.');
+                    const req = reqSnap.data();
+                    if (req.status !== 'pending') throw new Error('Esta solicitud ya fue procesada.');
+                    if (req.emailSolicitante !== user.email && req.emailSolicitante !== user.uid) {
+                        throw new Error('No podés cancelar una solicitud que no es tuya.');
+                    }
+                    const qty = Math.max(1, Number(req.cantidad) || 1);
+                    let catRef = null, catSnap = null;
+                    if (req.stockReservado && req.catalogDoc && req.itemId) {
+                        catRef = doc(db, 'store', req.catalogDoc);
+                        catSnap = await tx.get(catRef);
+                    }
+                    // ── WRITES ──
+                    if (req.stockReservado && catSnap && catSnap.exists()) {
+                        const items = (catSnap.data().items || []).slice();
+                        const idx = items.findIndex(i => i.id === req.itemId);
+                        if (idx >= 0) {
+                            const stock = Number(items[idx].stock);
+                            if (stock >= 0) {
+                                items[idx] = { ...items[idx], stock: stock + qty };
+                                tx.update(catRef, { items });
+                            }
+                        }
+                    }
+                    tx.update(reqRef, { status: 'cancelled', fechaResolucion: new Date().toISOString() });
+                });
+                await renderMisSolicitudes();
+                await renderTiendaItems();
+            } catch (e) {
+                alert('No se pudo cancelar la solicitud:\n' + e.message);
+            }
         };
 
         // Lógica real (llamada desde confirmCanje del modal). Cantidad >= 1.
