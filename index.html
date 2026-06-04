@@ -1853,8 +1853,14 @@
             <!-- Sub-view: ACTIVIDAD (feed + leaderboard) -->
             <div id="ts-view-actividad" style="display:none;">
                 <div class="card" style="margin-bottom:16px;">
-                    <p class="card-title">🏆 Top del mes</p>
-                    <p style="font-size:11px;color:var(--slate);margin-bottom:12px;">Los agentes que más gastaron en tu región este mes.</p>
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
+                        <p class="card-title" style="margin:0;">🏆 <span id="lb-period-label">Top del mes</span></p>
+                        <div id="lb-period-toggle" style="display:flex; gap:4px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.10); border-radius:8px; padding:3px;">
+                            <button id="lb-btn-month" onclick="switchLeaderboardPeriod('month')" style="padding:5px 14px; background:rgba(212,175,55,0.18); border:none; border-radius:5px; color:var(--gold-l); font-weight:700; font-size:12px; cursor:pointer;">Mes</button>
+                            <button id="lb-btn-year" onclick="switchLeaderboardPeriod('year')" style="padding:5px 14px; background:transparent; border:none; border-radius:5px; color:rgba(255,255,255,0.6); font-weight:600; font-size:12px; cursor:pointer;">Año</button>
+                        </div>
+                    </div>
+                    <p style="font-size:11px;color:var(--slate);margin:0 0 12px;">Los agentes que más gastaron en tu región.</p>
                     <div id="tienda-leaderboard" style="display:flex;flex-direction:column;gap:6px;">
                         <div class="empty-state"><i class="fa fa-spinner fa-spin"></i> Cargando...</div>
                     </div>
@@ -4190,8 +4196,33 @@
             return new Date(iso).toLocaleDateString('es-MX', { day: '2-digit', month: 'short' });
         }
 
-        // Carga las solicitudes aprobadas de toda la región del agente y renderiza:
-        //   1) Leaderboard top 5 gastadores del mes actual (más mi posición si no estoy)
+        // Cache de las solicitudes aprobadas de la región — evita re-querear cuando
+        // el user solo cambia el período del leaderboard (mes ↔ año).
+        let _actividadCache = null;
+        let _actividadPeriod = 'month'; // 'month' | 'year'
+
+        // Cambia entre top mensual y top anual; sin re-querear si ya hay cache.
+        window.switchLeaderboardPeriod = function (period) {
+            _actividadPeriod = period;
+            const monthBtn = document.getElementById('lb-btn-month');
+            const yearBtn  = document.getElementById('lb-btn-year');
+            const label    = document.getElementById('lb-period-label');
+            if (monthBtn && yearBtn) {
+                const active = period === 'month' ? monthBtn : yearBtn;
+                const inactive = period === 'month' ? yearBtn : monthBtn;
+                active.style.background = 'rgba(212,175,55,0.18)';
+                active.style.color = 'var(--gold-l)';
+                active.style.fontWeight = '700';
+                inactive.style.background = 'transparent';
+                inactive.style.color = 'rgba(255,255,255,0.6)';
+                inactive.style.fontWeight = '600';
+            }
+            if (label) label.textContent = period === 'month' ? 'Top del mes' : 'Top del año';
+            if (_actividadCache) _renderLeaderboardFromCache();
+        };
+
+        // Carga las solicitudes aprobadas de toda la región y renderiza:
+        //   1) Leaderboard top 5 gastadores del período elegido (mes o año)
         //   2) Feed cronológico de las últimas 20 compras aprobadas
         async function renderActividadTab() {
             const feedEl = document.getElementById('tienda-feed');
@@ -4212,6 +4243,7 @@
                 const snap = await getDocs(q);
                 const reqs = snap.docs.map(d => d.data())
                     .sort((a, b) => (b.fechaResolucion || '').localeCompare(a.fechaResolucion || ''));
+                _actividadCache = reqs;
 
                 // ── FEED: últimas 20 compras aprobadas ──
                 const recientes = reqs.slice(0, 20);
@@ -4228,53 +4260,65 @@
                             const dt = _relativeTimeEs(r.fechaResolucion || r.fechaSolicitud);
                             const isMine = r.emailSolicitante === user.email;
                             return `<div style="padding:10px 12px; background:${isMine ? 'rgba(212,175,55,0.10)' : 'var(--panel)'}; border-radius:8px; ${isMine ? 'border:1px solid rgba(212,175,55,0.35);' : ''}">
-                                <div style="font-weight:700; font-size:13px; color:${isMine ? 'var(--gold-l)' : '#fff'};">👤 ${eName}${isMine ? ' (vos)' : ''}</div>
+                                <div style="font-weight:700; font-size:13px; color:${isMine ? 'var(--gold-l)' : '#fff'};">👤 ${eName}${isMine ? ' (tú)' : ''}</div>
                                 <div style="font-size:12px; color:rgba(255,255,255,0.75); margin-top:3px;">${eEmoji} ${eItem}${cantStr} · <span style="color:var(--gold); font-weight:700;"><svg class="totopo-icon"><use href="#totopo"/></svg> ${costoTotal}</span> · <span style="color:var(--slate);">${dt}</span></div>
                             </div>`;
                         }).join('')
                         : '<div class="empty-state"><i class="fa fa-inbox"></i> Sin compras aprobadas en tu región todavía.</div>';
                 }
 
-                // ── LEADERBOARD: top 5 gastadores del mes actual ──
-                const now = new Date();
-                const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-                const reqsMes = reqs.filter(r => (r.fechaResolucion || '') >= monthStart);
-                const byEmail = {};
-                reqsMes.forEach(r => {
-                    const email = r.emailSolicitante || '?';
-                    const name  = r.nombreSolicitante || email;
-                    const spent = (Number(r.costo) || 0) * (Number(r.cantidad) || 1);
-                    if (!byEmail[email]) byEmail[email] = { email, name, total: 0 };
-                    byEmail[email].total += spent;
-                });
-                const ranking = Object.values(byEmail).sort((a, b) => b.total - a.total);
-                const top5 = ranking.slice(0, 5).map((r, i) => ({ ...r, position: i + 1 }));
-                const myIdx = ranking.findIndex(r => r.email === user.email);
-                if (myIdx >= 5) {
-                    top5.push({ ...ranking[myIdx], position: myIdx + 1, _separator: true });
-                }
-                const medals = { 1: '🥇', 2: '🥈', 3: '🥉' };
-                if (lbEl) {
-                    lbEl.innerHTML = top5.length
-                        ? top5.map(r => {
-                            const isMe = r.email === user.email;
-                            const medal = medals[r.position] || (r.position + '.');
-                            const sepGap = r._separator ? 'margin-top:10px; position:relative;' : '';
-                            const sepLine = r._separator
-                                ? `<div style="position:absolute; top:-7px; left:0; right:0; border-top:1px dashed rgba(255,255,255,0.2);"></div>` : '';
-                            return `<div style="padding:8px 12px; background:${isMe ? 'rgba(212,175,55,0.15)' : 'var(--panel)'}; border-radius:8px; ${isMe ? 'border:1px solid rgba(212,175,55,0.4);' : ''} display:flex; justify-content:space-between; align-items:center; ${sepGap}">
-                                ${sepLine}
-                                <span style="font-size:13px; ${isMe ? 'font-weight:700; color:var(--gold-l);' : ''}">${medal} ${escapeHtml(r.name)}${isMe ? ' (vos)' : ''}</span>
-                                <span style="color:var(--gold); font-weight:700; font-size:13px;"><svg class="totopo-icon"><use href="#totopo"/></svg> ${r.total}</span>
-                            </div>`;
-                        }).join('')
-                        : '<div class="empty-state"><i class="fa fa-inbox"></i> Sin gastos en lo que va del mes.</div>';
-                }
+                _renderLeaderboardFromCache();
             } catch (e) {
                 console.error('[actividad]', e);
                 if (feedEl) feedEl.innerHTML = '<div class="empty-state">Error cargando actividad.</div>';
                 if (lbEl)   lbEl.innerHTML   = '';
             }
+        }
+
+        // Renderiza el leaderboard usando _actividadCache según _actividadPeriod.
+        // Separado de renderActividadTab para poder re-renderizar al cambiar mes/año
+        // sin pegarle a Firestore otra vez.
+        function _renderLeaderboardFromCache() {
+            const lbEl = document.getElementById('tienda-leaderboard');
+            if (!lbEl || !_actividadCache) return;
+            const now = new Date();
+            const startDate = _actividadPeriod === 'year'
+                ? new Date(now.getFullYear(), 0, 1)
+                : new Date(now.getFullYear(), now.getMonth(), 1);
+            const startISO = startDate.toISOString();
+            const reqsPeriod = _actividadCache.filter(r => (r.fechaResolucion || '') >= startISO);
+            const byEmail = {};
+            reqsPeriod.forEach(r => {
+                const email = r.emailSolicitante || '?';
+                const name  = r.nombreSolicitante || email;
+                const spent = (Number(r.costo) || 0) * (Number(r.cantidad) || 1);
+                if (!byEmail[email]) byEmail[email] = { email, name, total: 0 };
+                byEmail[email].total += spent;
+            });
+            const ranking = Object.values(byEmail).sort((a, b) => b.total - a.total);
+            const top5 = ranking.slice(0, 5).map((r, i) => ({ ...r, position: i + 1 }));
+            const myIdx = ranking.findIndex(r => r.email === user.email);
+            if (myIdx >= 5) {
+                top5.push({ ...ranking[myIdx], position: myIdx + 1, _separator: true });
+            }
+            const medals = { 1: '🥇', 2: '🥈', 3: '🥉' };
+            const emptyMsg = _actividadPeriod === 'year'
+                ? 'Sin gastos en lo que va del año.'
+                : 'Sin gastos en lo que va del mes.';
+            lbEl.innerHTML = top5.length
+                ? top5.map(r => {
+                    const isMe = r.email === user.email;
+                    const medal = medals[r.position] || (r.position + '.');
+                    const sepGap = r._separator ? 'margin-top:10px; position:relative;' : '';
+                    const sepLine = r._separator
+                        ? `<div style="position:absolute; top:-7px; left:0; right:0; border-top:1px dashed rgba(255,255,255,0.2);"></div>` : '';
+                    return `<div style="padding:8px 12px; background:${isMe ? 'rgba(212,175,55,0.15)' : 'var(--panel)'}; border-radius:8px; ${isMe ? 'border:1px solid rgba(212,175,55,0.4);' : ''} display:flex; justify-content:space-between; align-items:center; ${sepGap}">
+                        ${sepLine}
+                        <span style="font-size:13px; ${isMe ? 'font-weight:700; color:var(--gold-l);' : ''}">${medal} ${escapeHtml(r.name)}${isMe ? ' (tú)' : ''}</span>
+                        <span style="color:var(--gold); font-weight:700; font-size:13px;"><svg class="totopo-icon"><use href="#totopo"/></svg> ${r.total}</span>
+                    </div>`;
+                }).join('')
+                : `<div class="empty-state"><i class="fa fa-inbox"></i> ${emptyMsg}</div>`;
         }
 
         // Entry point del botón de canje en el catálogo. Si el karma disponible
