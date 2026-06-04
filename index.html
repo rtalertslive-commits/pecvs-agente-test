@@ -3484,8 +3484,18 @@
 
             // Check for uncelebrated karma (earned since last app open)
             // Comparamos karma TOTAL GANADO (suma de karmaLog) vs karmaLastNotified,
-            // no el balance actual (que puede bajar al gastar en la tienda)
-            const totalEarned = (state.karmaLog || []).reduce((sum, k) => sum + (k.points || 0), 0);
+            // no el balance actual (que puede bajar al gastar en la tienda).
+            // IMPORTANTE: filtrar solo entries POSITIVOS — los canjes aprobados
+            // dejan entries negativos en karmaLog y contaminarían el delta
+            // (ej: ganó 10 + canjeó 5 daba "+5" en lugar de "+10").
+            const totalEarned = (state.karmaLog || [])
+                .filter(k => (Number(k.points) || 0) > 0)
+                .reduce((sum, k) => sum + (Number(k.points) || 0), 0);
+            // Migración defensiva: karmaLastNotified pudo haberse guardado con la
+            // fórmula vieja (que incluía negativos). Clamp para no quedar > totalEarned.
+            if ((Number(state.karmaLastNotified) || 0) > totalEarned) {
+                state.karmaLastNotified = totalEarned;
+            }
             const uncelebrated = totalEarned - (state.karmaLastNotified || 0);
             if (uncelebrated > 0) {
                 setTimeout(() => showKarmaCelebration(uncelebrated), 800);
@@ -3612,8 +3622,14 @@
                     updateKarmaDisplay();
                 }
 
-                // Mostrar celebración si hay karma nuevo sin notificar
-                const totalEarned = (state.karmaLog || []).reduce((sum, k) => sum + (k.points || 0), 0);
+                // Mostrar celebración si hay karma nuevo sin notificar.
+                // Solo positivos — los canjes aprobados no cuentan como ganado.
+                const totalEarned = (state.karmaLog || [])
+                    .filter(k => (Number(k.points) || 0) > 0)
+                    .reduce((sum, k) => sum + (Number(k.points) || 0), 0);
+                if ((Number(state.karmaLastNotified) || 0) > totalEarned) {
+                    state.karmaLastNotified = totalEarned;
+                }
                 const uncelebrated = totalEarned - (state.karmaLastNotified || 0);
                 if (uncelebrated > 0) {
                     setTimeout(() => showKarmaCelebration(uncelebrated), 400);
@@ -3825,7 +3841,10 @@
             playCashSound();
             // Marcar como notificado AL MOSTRAR (no al dismiss). Si el usuario recarga
             // la página sin cerrar el modal, no vuelve a salir la misma celebración.
-            const totalEarned = (state.karmaLog || []).reduce((sum, k) => sum + (k.points || 0), 0);
+            // Solo positivos — debe matchear cómo se calcula uncelebrated.
+            const totalEarned = (state.karmaLog || [])
+                .filter(k => (Number(k.points) || 0) > 0)
+                .reduce((sum, k) => sum + (Number(k.points) || 0), 0);
             state.karmaLastNotified = totalEarned;
             syncToCloud();
         };
