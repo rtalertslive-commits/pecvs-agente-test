@@ -254,7 +254,8 @@
         }
         /* Bell + Megaphone — circulares, icon-only, visualmente distintos del menu de user */
         #notif-bell-btn,
-        #anuncios-btn {
+        #anuncios-btn,
+        #buzon-btn {
             width: 38px;
             height: 38px;
             padding: 0;
@@ -263,7 +264,8 @@
             position: relative;
         }
         #notif-bell-btn i,
-        #anuncios-btn i {
+        #anuncios-btn i,
+        #buzon-btn i {
             font-size: 15px;
             margin: 0;
         }
@@ -1507,6 +1509,9 @@
                     </div>
                 </div>
                 <div class="icon-btns">
+                    <button id="buzon-btn" class="btn" onclick="openBuzonModal()" title="Enviar sugerencias, errores o comentarios al director">
+                        <i class="fa fa-inbox"></i>
+                    </button>
                     <button id="notif-bell-btn" class="btn" onclick="openNotifModal()" title="Notificaciones">
                         <i class="fa fa-bell"></i>
                         <span id="notif-bell-dot" style="display:none; position:absolute; top:6px; right:6px; width:9px; height:9px; background:var(--gold); border-radius:50%; border:1.5px solid var(--panel, #0f172a);"></span>
@@ -1514,9 +1519,6 @@
                     <button id="anuncios-btn" class="btn" onclick="openAnunciosModal()" title="Anuncios de la dirección">
                         <i class="fa fa-bullhorn"></i>
                         <span id="anuncios-badge">0</span>
-                    </button>
-                    <button id="buzon-btn" class="btn" onclick="openBuzonModal()" title="Enviar quejas o sugerencias al director">
-                        <i class="fa fa-inbox"></i>
                     </button>
                 </div>
             </div>
@@ -2157,21 +2159,12 @@
                 <label style="display:block; font-size:11px; color:var(--slate); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Tipo</label>
                 <select id="buzon-tipo" style="width:100%; margin-bottom:12px;">
                     <option value="sugerencia">💡 Sugerencia</option>
-                    <option value="queja">😤 Queja</option>
-                    <option value="reconocimiento">🙌 Reconocimiento</option>
+                    <option value="bug">🐞 Errores en la app</option>
                     <option value="otro">💬 Otro</option>
                 </select>
 
                 <label style="display:block; font-size:11px; color:var(--slate); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Mensaje <span id="buzon-charcount" style="float:right; text-transform:none; letter-spacing:0; color:rgba(255,255,255,0.4);">0 / 500</span></label>
-                <textarea id="buzon-texto" maxlength="500" rows="6" placeholder="Escribí lo que quieras compartir con tu director..." style="width:100%; resize:vertical; margin-bottom:12px; font-family:inherit; padding:10px; background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:var(--white); font-size:13px;" oninput="_updateBuzonCharCount()"></textarea>
-
-                <label style="display:flex; align-items:center; gap:8px; margin-bottom:16px; cursor:pointer; padding:10px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px;">
-                    <input type="checkbox" id="buzon-anonimo" style="width:16px; height:16px; cursor:pointer;">
-                    <div>
-                        <div style="font-size:12px; font-weight:600; color:var(--white);">Enviar anónimamente</div>
-                        <div style="font-size:10px; color:var(--slate);">Tu director no verá tu nombre. Ideal para quejas honestas.</div>
-                    </div>
-                </label>
+                <textarea id="buzon-texto" maxlength="500" rows="6" placeholder="Escribí lo que quieras compartir con tu director..." style="width:100%; resize:vertical; margin-bottom:16px; font-family:inherit; padding:10px; background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:var(--white); font-size:13px;" oninput="_updateBuzonCharCount()"></textarea>
 
                 <button id="buzon-send-btn" onclick="sendBuzonMensaje()" style="width:100%; padding:12px; background:var(--gold); color:#000; border:none; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;">
                     <i class="fa fa-paper-plane"></i> Enviar al buzón
@@ -2835,7 +2828,6 @@
             const btn = document.getElementById('buzon-send-btn');
             const texto = (document.getElementById('buzon-texto').value || '').trim();
             const tipo = document.getElementById('buzon-tipo').value;
-            const isAnon = document.getElementById('buzon-anonimo').checked;
             if (!texto) { alert('Escribí algo antes de enviar.'); return; }
             if (texto.length > 500) { alert('Máximo 500 caracteres.'); return; }
             if (!user?.email) { alert('Sesión no lista. Reintentá en unos segundos.'); return; }
@@ -2846,7 +2838,6 @@
                     from: user.email,
                     fromName: state.agentName || user.email,
                     fromRole: 'agente',
-                    isAnonymous: !!isAnon,
                     directorCode: state.directorCode || '',
                     regionName: state.regionName || '',
                     teamCode: state.teamCode || '',
@@ -2856,7 +2847,6 @@
                     createdAt: serverTimestamp()
                 });
                 document.getElementById('buzon-texto').value = '';
-                document.getElementById('buzon-anonimo').checked = false;
                 _updateBuzonCharCount();
                 btn.innerHTML = '<i class="fa fa-check"></i> ¡Enviado! Gracias por tu aporte.';
                 btn.style.background = 'var(--green)';
@@ -2892,14 +2882,14 @@
                     return;
                 }
                 const escapeHtml = s => String(s || '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-                const tipoEmoji = { queja: '😤', sugerencia: '💡', reconocimiento: '🙌', otro: '💬' };
-                const tipoLabel = { queja: 'Queja', sugerencia: 'Sugerencia', reconocimiento: 'Reconocimiento', otro: 'Otro' };
+                const tipoEmoji = { sugerencia: '💡', bug: '🐞', otro: '💬' };
+                const tipoLabel = { sugerencia: 'Sugerencia', bug: 'Errores en la app', otro: 'Otro' };
                 listEl.innerHTML = items.map(it => {
                     const fecha = it.createdAt?.toDate?.().toLocaleString?.('es-MX', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) || '—';
                     return `
                         <div style="padding:12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px;">
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                                <span style="font-size:11px; color:var(--gold-l); font-weight:700;">${tipoEmoji[it.tipo] || '💬'} ${tipoLabel[it.tipo] || it.tipo}${it.isAnonymous ? ' · <span style="color:var(--slate); font-weight:500;">anónimo</span>' : ''}</span>
+                                <span style="font-size:11px; color:var(--gold-l); font-weight:700;">${tipoEmoji[it.tipo] || '💬'} ${tipoLabel[it.tipo] || it.tipo}</span>
                                 <span style="font-size:10px; color:var(--slate);">${escapeHtml(fecha)}</span>
                             </div>
                             <div style="font-size:12px; color:var(--white); white-space:pre-wrap; line-height:1.5;">${escapeHtml(it.texto)}</div>
