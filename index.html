@@ -1653,7 +1653,7 @@
                         <tbody id="week-body"></tbody>
                         <tfoot>
                             <tr>
-                                <td style="color:var(--gold-l); font-weight:700;">TOTAL SEM</td>
+                                <td style="color:var(--gold-l); font-weight:700;">TOTAL SEM <span id="tt-week-suffix" style="font-weight:500; font-size:10px; opacity:0.75;"></span></td>
                                 <td id="tt-P" style="text-align:center;">0</td>
                                 <td id="tt-E" style="text-align:center;">0</td>
                                 <td id="tt-C" style="text-align:center;">0</td>
@@ -1682,7 +1682,7 @@
                 <!-- MOBILE TOTALS: solo prima semana + prima mes -->
                 <div class="m-totals">
                     <div class="m-total-card">
-                        <div class="m-total-label">Prima Semana</div>
+                        <div class="m-total-label">Prima Semana <span id="m-tt-week-suffix" style="font-weight:500; font-size:10px; opacity:0.75;"></span></div>
                         <div class="m-total-value" id="m-tt-$">0.00</div>
                     </div>
                     <div class="m-total-card m-total-month">
@@ -5261,6 +5261,18 @@
             // Totales semanales: mobile (solo prima)
             const mTtPrima = document.getElementById('m-tt-$');
             if (mTtPrima) mTtPrima.textContent = '$' + totals.prima.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            // Suffix "N/M del mes" para el label de Prima Semana (mobile + desktop tfoot).
+            // Se calcula desde el selector de semana y el total de semanas del mes actual.
+            {
+                const semN = parseInt(document.getElementById('sel-semana').value) || 1;
+                const totalSemanas = (currentWeeks && currentWeeks.length) || 0;
+                const suffix = totalSemanas > 0 ? `${semN}/${totalSemanas}` : '';
+                const ttSuf = document.getElementById('tt-week-suffix');
+                const mTtSuf = document.getElementById('m-tt-week-suffix');
+                if (ttSuf) ttSuf.textContent = suffix;
+                if (mTtSuf) mTtSuf.textContent = suffix;
+            }
 
             // ─── FIX: guardar ANTES de calcular el TOTAL MENSUAL ─────────────
             // Antes, mTotals leia state.entries ANTES del save, asi que mostraba
