@@ -2255,7 +2255,7 @@
                 <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(239,68,68,0.5)"></span> 🔴 Con errores</div>
                 <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(255,255,255,0.1)"></span> ⚪ Sin reporte</div>
             </div>
-            <div class="cal-day-detail" id="my-cal-day-detail"><span class="cal-detail-empty">Toca un día para ver detalles o saltar a esa semana en la bitácora.</span></div>
+            <div class="cal-day-detail" id="my-cal-day-detail"><span class="cal-detail-empty">Toca un día para ver detalles.</span></div>
         </div>
     </div>
 
@@ -3078,7 +3078,7 @@
             }
             grid.innerHTML = cells.join('');
             const detail = document.getElementById('my-cal-day-detail');
-            if (detail) detail.innerHTML = '<span class="cal-detail-empty">Toca un día para ver detalles o saltar a esa semana en la bitácora.</span>';
+            if (detail) detail.innerHTML = '<span class="cal-detail-empty">Toca un día para ver detalles.</span>';
         }
 
         window._myCalShowDayDetail = function (date) {
@@ -3093,14 +3093,13 @@
 
             const mesNombre = MONTHS_ES[_myCalMonth - 1];
             const fechaStr = `${date} de ${mesNombre} (${info.dayName})`;
-            const jumpBtn = `<button onclick="_myCalJumpToWeek(${info.semana})" style="margin-top:8px; width:100%; padding:8px 12px; background:var(--gold); color:#000; border:none; border-radius:8px; font-weight:700; font-size:11px; cursor:pointer;"><i class="fa fa-arrow-right"></i> Ir a la semana ${info.semana} en la bitácora</button>`;
 
             if (info.status === 'none') {
-                detail.innerHTML = `<strong>${fechaStr}</strong><br><span class="cal-detail-empty">⚪ No reportaste este día.</span>${jumpBtn}`;
+                detail.innerHTML = `<strong>${fechaStr}</strong><br><span class="cal-detail-empty">⚪ No reportaste este día.</span>`;
                 return;
             }
             if (info.status === 'sin-actividad') {
-                detail.innerHTML = `<strong>${fechaStr}</strong><br>🌙 Declaraste "Sin intento de venta".${jumpBtn}`;
+                detail.innerHTML = `<strong>${fechaStr}</strong><br>🌙 Declaraste "Sin intento de venta".`;
                 return;
             }
             const d = info.dia || {};
@@ -3119,29 +3118,7 @@
                     <span>S:<strong>${Number(d.S)||0}</strong></span>
                     <span style="color:var(--gold)">$<strong>${primaFmt}</strong></span>
                 </div>
-                ${jumpBtn}
             `;
-        };
-
-        window._myCalJumpToWeek = function (semana) {
-            // Setear los inputs de bitácora al mes/año del calendario + semana clickeada
-            const selMonth = document.getElementById('sel-month');
-            const inpYear = document.getElementById('inp-year');
-            const selSemana = document.getElementById('sel-semana');
-            if (selMonth) selMonth.value = _myCalMonth;
-            if (inpYear) inpYear.value = _myCalYear;
-            if (typeof updateBitacoraCalendar === 'function') updateBitacoraCalendar();
-            // updateBitacoraCalendar repuebla sel-semana. Después seleccionamos la semana.
-            setTimeout(() => {
-                if (selSemana) {
-                    selSemana.value = String(semana);
-                    if (typeof updateWeekTable === 'function') updateWeekTable();
-                }
-                closeMyCalendar();
-                // Asegurar que estemos en la pestaña Bitácora
-                const tabBit = document.querySelector('[data-tab="bitacora"]');
-                if (tabBit && typeof switchTab === 'function') switchTab('bitacora', tabBit);
-            }, 50);
         };
 
         function renderAnunciosList() {
