@@ -3070,6 +3070,7 @@
                     : info.status === 'ok-no-close' ? '🌱'
                     : info.status === 'red' ? '🔴'
                     : info.status === 'sin-actividad' ? '🌙'
+                    : info.status === 'none' ? '⚪'
                     : '';
                 const selected = (_myCalSelectedDate === d) ? ' selected' : '';
                 cells.push(`<div class="cal-cell ${info.status}${selected}" onclick="_myCalShowDayDetail(${d})">
