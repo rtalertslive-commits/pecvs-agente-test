@@ -2250,7 +2250,7 @@
             </div>
             <div class="cal-grid-body" id="my-cal-grid-body"></div>
             <div class="cal-legend">
-                <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(16,185,129,0.5)"></span> 🟢 Actividad con cierre</div>
+                <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(16,185,129,0.5)"></span> 💪 Actividad con cierre</div>
                 <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(16,185,129,0.5)"></span> 🌱 Actividad sin cierre</div>
                 <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(245,158,11,0.5)"></span> 🌙 Sin intento</div>
                 <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(239,68,68,0.5)"></span> 🔴 Con errores</div>
@@ -3066,7 +3066,7 @@
                     continue;
                 }
                 const info = _myCalDayMap[d] || { status: 'none' };
-                const icon = info.status === 'ok' ? '🟢'
+                const icon = info.status === 'ok' ? '💪'
                     : info.status === 'ok-no-close' ? '🌱'
                     : info.status === 'red' ? '🔴'
                     : info.status === 'sin-actividad' ? '🌙'
@@ -3104,8 +3104,8 @@
                 return;
             }
             const d = info.dia || {};
-            const statusLabel = info.status === 'ok' ? '🟢 Actividad con cierre — vendiste!'
-                : info.status === 'ok-no-close' ? '🌱 Actividad sin cierre — el próximo cae'
+            const statusLabel = info.status === 'ok' ? '💪 Actividad con cierre — vendiste!'
+                : info.status === 'ok-no-close' ? '🌱 Sin venta pero sembraste, el cierre está en camino'
                 : '🔴 Con errores en el reporte';
             const primaFmt = (Number(d.prima)||0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             detail.innerHTML = `
@@ -5205,7 +5205,7 @@
                 const any = Object.values(dvals).some(v => typeof v === 'number' && v > 0) || dvals.prima > 0;
                 const cell = document.getElementById('funnel-' + day);
                 if (cell) {
-                    cell.textContent = sinActividad ? '🌙' : (!any ? '—' : (ok ? '🟢' : '🔴'));
+                    cell.textContent = sinActividad ? '🌙' : (!any ? '—' : (ok ? '💪' : '🔴'));
                     cell.title = sinActividad
                         ? 'Día declarado sin intento de venta — +totopos por honestidad'
                         : (ok ? 'Todo correcto' : '⚠️ ERRORES:\n• ' + errors.join('\n• '));
