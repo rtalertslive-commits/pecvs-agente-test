@@ -920,7 +920,8 @@
         .cal-cell.empty { visibility: hidden; }
         .cal-cell.none { background: rgba(255,255,255,0.04); color: var(--slate); }
         .cal-cell.ok { background: rgba(16,185,129,0.18); color: #10b981; border-color: rgba(16,185,129,0.35); }
-        .cal-cell.ok-no-close { background: rgba(234,179,8,0.18); color: #eab308; border-color: rgba(234,179,8,0.35); }
+        /* Verde igual que .ok — la carita triste hace la diferencia semántica */
+        .cal-cell.ok-no-close { background: rgba(16,185,129,0.18); color: #10b981; border-color: rgba(16,185,129,0.35); }
         .cal-cell.red { background: rgba(239,68,68,0.18); color: #ef4444; border-color: rgba(239,68,68,0.35); }
         .cal-cell.sin-actividad { background: rgba(245,158,11,0.18); color: #f59e0b; border-color: rgba(245,158,11,0.35); }
         .cal-cell.future { opacity: 0.22; cursor: not-allowed; background: rgba(255,255,255,0.015); color: var(--slate); pointer-events: none; }
@@ -2250,7 +2251,7 @@
             <div class="cal-grid-body" id="my-cal-grid-body"></div>
             <div class="cal-legend">
                 <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(16,185,129,0.5)"></span> 🟢 Actividad con cierre</div>
-                <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(234,179,8,0.5)"></span> 🟡 Actividad sin cierre</div>
+                <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(16,185,129,0.5)"></span> 😞 Actividad sin cierre</div>
                 <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(245,158,11,0.5)"></span> 🌙 Sin intento</div>
                 <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(239,68,68,0.5)"></span> 🔴 Con errores</div>
                 <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(255,255,255,0.1)"></span> ⚪ Sin reporte</div>
@@ -3066,7 +3067,7 @@
                 }
                 const info = _myCalDayMap[d] || { status: 'none' };
                 const icon = info.status === 'ok' ? '🟢'
-                    : info.status === 'ok-no-close' ? '🟡'
+                    : info.status === 'ok-no-close' ? '😞'
                     : info.status === 'red' ? '🔴'
                     : info.status === 'sin-actividad' ? '🌙'
                     : '';
@@ -3104,7 +3105,7 @@
             }
             const d = info.dia || {};
             const statusLabel = info.status === 'ok' ? '🟢 Actividad con cierre — vendiste!'
-                : info.status === 'ok-no-close' ? '🟡 Actividad sin cierre — el próximo cae'
+                : info.status === 'ok-no-close' ? '😞 Actividad sin cierre — el próximo cae'
                 : '🔴 Con errores en el reporte';
             const primaFmt = (Number(d.prima)||0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             detail.innerHTML = `
