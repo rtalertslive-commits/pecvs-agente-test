@@ -2193,7 +2193,7 @@
                 style="position:absolute; top:12px; right:12px; width:32px; height:32px; padding:0; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.12); border-radius:50%; font-size:18px; line-height:1; cursor:pointer; z-index:10; display:flex; align-items:center; justify-content:center;">&times;</button>
 
             <h2 style="font-family:'Playfair Display',serif; color:var(--gold); margin:0 0 6px;"><i class="fa fa-envelope" style="margin-right:8px;"></i>Buzón</h2>
-            <p style="font-size:12px; color:var(--slate); margin:0 0 16px;">Escribile a tu director. No esperes respuesta — es un buzón, no un chat.</p>
+            <p style="font-size:12px; color:var(--slate); margin:0 0 16px;">Tu voz cuenta. Mandale a tu director tus ideas, sugerencias o errores que veas — él las lee todas.</p>
 
             <!-- Tabs: Nuevo / Mis envíos -->
             <div style="display:flex; gap:6px; margin-bottom:16px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:8px;">
@@ -2928,7 +2928,7 @@
                 });
                 document.getElementById('buzon-texto').value = '';
                 _updateBuzonCharCount();
-                btn.innerHTML = '<i class="fa fa-check"></i> ¡Enviado! Gracias por tu aporte.';
+                btn.innerHTML = '<i class="fa fa-check"></i> ¡Recibido! Gracias por hacer mejor la app 💪';
                 btn.style.background = 'var(--green)';
                 setTimeout(() => {
                     btn.disabled = false;
@@ -3254,6 +3254,7 @@
         const NEW_FEATURES_TO_GLOW = [
             { feature: 'notif',    selector: '#notif-bell-btn' },
             { feature: 'anuncios', selector: '#anuncios-btn' },
+            { feature: 'buzon',    selector: '#buzon-btn' },
         ];
 
         function applyFeatureGlows() {
