@@ -4502,33 +4502,64 @@
             const esFuturo = new Date(_myCalYear, _myCalMonth - 1, 1) > new Date(hoy.getFullYear(), hoy.getMonth(), 1);
             if (esFuturo) { foot.style.display = 'none'; return; }
 
+            const base      = (pointsConfig && pointsConfig.agentDailyPoints) || 10;
             const total     = _daysInMonth(_myCalYear, _myCalMonth);
             const reportados= _reportedDaysInMonth(_myCalYear, _myCalMonth);
-            const faltan    = Math.max(0, (esActual ? hoy.getDate() : total) - reportados);
-            const mesSig    = MONTHS_ES[_myCalMonth % 12];
+            const pct       = total ? Math.round((reportados / total) * 100) : 0;
+            const mesSig    = MONTHS_ES[_myCalMonth % 12].toLowerCase();
+            const mesEste   = MONTHS_ES[_myCalMonth - 1].toLowerCase();
 
-            let msg;
+            let titulo, detalle, colorBarra = 'var(--gold)';
+
             if (esActual) {
-                msg = faltan === 0
-                    ? `Llevas <b style="color:var(--green);">${reportados} de ${total}</b> días. Sigue así y tu multiplicador de ${mesSig.toLowerCase()} entra al 100%.`
-                    : `<b style="color:var(--gold);">${faltan} ${faltan === 1 ? 'día' : 'días'}</b> sin reportar este mes.<br>Cada día que reportes sube tu multiplicador de ${mesSig.toLowerCase()}.`;
+                // Mes en curso: los días que faltan se cuentan solo hasta hoy.
+                const faltan = Math.max(0, hoy.getDate() - reportados);
+                titulo  = `Construyendo tu multiplicador de ${mesSig}`;
+                detalle = faltan === 0
+                    ? `Vas al día. Si sigues así, tu multiplicador de ${mesSig} entra completo.`
+                    : `Te faltan <b style="color:var(--gold);">${faltan} ${faltan === 1 ? 'día' : 'días'}</b> de ${mesEste}. Cada día que reportes lo sube.`;
             } else {
                 const mx = state.multiplier;
-                const aplicaAEsteMes = mx && mx.earned === true && mx.basedOn &&
+                const esElMesEvaluado = mx && mx.basedOn &&
                     mx.basedOn.trim() === (MONTHS_ES[_myCalMonth - 1] + ' ' + _myCalYear);
-                if (aplicaAEsteMes) {
-                    const base = (pointsConfig && pointsConfig.agentDailyPoints) || 10;
-                    const val  = Math.round(base * (1 + (Number(mx.bonusPct) || 0) / 100));
-                    const pleno= Math.round(base * (1 + (Number(mx.tierPct)  || 0) / 100));
-                    msg = val >= pleno
-                        ? `Reportaste <b style="color:var(--green);">${reportados} de ${total}</b> días. Por eso tu día vale <b>${val}</b>.`
-                        : `Reportaste <b>${reportados} de ${total}</b> días.<br>Por eso tu día vale <b style="color:var(--gold);">${val}</b> y no ${pleno}.`;
+
+                if (esElMesEvaluado && mx.earned === true) {
+                    // Acá está el "por qué no me dieron el hasta": mostramos el techo
+                    // del escalón, la cobertura, y el resultado, en ese orden.
+                    const val   = Math.round(base * (1 + (Number(mx.bonusPct) || 0) / 100));
+                    const pleno = Math.round(base * (1 + (Number(mx.tierPct)  || 0) / 100));
+                    const mesQueCobra = _mesLargo(mx.month);
+                    titulo = `Así quedó tu multiplicador de ${mesQueCobra}`;
+                    detalle = val >= pleno
+                        ? `Reportaste el mes completo, así que cobras el escalón entero: <b style="color:var(--green);">+${mx.tierPct}%</b>. Cada día de ${mesQueCobra} vale <b style="color:var(--green);">${val}</b>.`
+                        : `Tu escalón daba <b>hasta +${mx.tierPct}%</b>, pero con <b>${pct}%</b> de los días quedó en <b style="color:var(--gold);">+${mx.bonusPct}%</b>.<br>Por eso cada día de ${mesQueCobra} vale <b style="color:var(--gold);">${val}</b> y no ${pleno}.`;
+                    colorBarra = val >= pleno ? 'var(--green)' : 'var(--gold)';
+                } else if (esElMesEvaluado) {
+                    titulo  = `${MONTHS_ES[_myCalMonth - 1]} no te dio multiplicador`;
+                    detalle = mx.reason === 'escalon'
+                        ? `No alcanzaste el escalón mínimo de ${_money(mx.tierMin || 2500)} de prima ingresada.`
+                        : `Lo que reportaste no coincidió con lo que se ingresó en Promessa.`;
+                    colorBarra = 'var(--slate)';
                 } else {
-                    msg = `Reportaste <b>${reportados} de ${total}</b> días.`;
+                    titulo  = `Lo que reportaste en ${mesEste}`;
+                    detalle = `${reportados} de ${total} días.`;
+                    colorBarra = 'var(--slate)';
                 }
             }
+
             foot.style.display = 'block';
-            foot.innerHTML = `<div style="margin-top:12px; padding:12px 14px; background:rgba(212,175,55,0.07); border:1px solid rgba(212,175,55,0.22); border-radius:8px; font-size:12px; color:var(--slate); line-height:1.55; text-align:center;">${msg}</div>`;
+            foot.innerHTML = `
+                <div style="margin-top:12px; padding:13px 15px; background:rgba(212,175,55,0.07); border:1px solid rgba(212,175,55,0.22); border-radius:8px;">
+                    <div style="font-size:10.5px; color:var(--slate); text-transform:uppercase; letter-spacing:1px; font-weight:700; margin-bottom:7px;">${titulo}</div>
+                    <div class="cov-bar" style="margin:0 0 6px;">
+                        <div class="cov-fill" style="width:${Math.min(100, pct)}%; background:${colorBarra};"></div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:11.5px; color:var(--slate); margin-bottom:8px;">
+                        <span><b style="color:var(--white); font-size:13px;">${reportados}</b> de ${total} días</span>
+                        <span style="font-variant-numeric:tabular-nums;">${pct}%</span>
+                    </div>
+                    <div style="font-size:12px; color:var(--slate); line-height:1.55;">${detalle}</div>
+                </div>`;
         }
 
         // Barra en la bitácora: el OTRO reloj. El badge dice lo que cobra hoy,
@@ -6071,14 +6102,20 @@
             const bp = document.getElementById('rules-base-pts');
             if (bp) bp.textContent = base;
 
+            // "hasta" en cada fila: el escalón es el techo, no una garantía.
+            // Lo que cobra de verdad depende de los días que reporte. La fila
+            // base no lleva "hasta" porque esa sí es fija.
             const filas = tiers.map((t, i) => {
                 const rango = tiers[i + 1]
                     ? `${_money(t.min)} — ${_money(tiers[i + 1].min - 1)}`
                     : `${_money(t.min)} o más`;
                 return `<tr>
                     <td style="padding:6px 0; font-size:12px; border-bottom:1px solid rgba(255,255,255,0.05);">${rango}</td>
-                    <td style="padding:6px 0; text-align:right; font-size:11.5px; color:var(--slate); border-bottom:1px solid rgba(255,255,255,0.05); font-variant-numeric:tabular-nums;">+${t.pct}%</td>
-                    <td style="padding:6px 0 6px 12px; text-align:right; font-size:15px; font-weight:800; color:var(--gold); border-bottom:1px solid rgba(255,255,255,0.05); font-variant-numeric:tabular-nums;">${Math.round(base * (1 + t.pct / 100))}</td>
+                    <td style="padding:6px 0; text-align:right; font-size:11.5px; color:var(--slate); border-bottom:1px solid rgba(255,255,255,0.05); font-variant-numeric:tabular-nums; white-space:nowrap;">hasta +${t.pct}%</td>
+                    <td style="padding:6px 0 6px 12px; text-align:right; border-bottom:1px solid rgba(255,255,255,0.05); white-space:nowrap;">
+                        <span style="font-size:10px; color:var(--slate);">hasta</span>
+                        <span style="font-size:15px; font-weight:800; color:var(--gold); font-variant-numeric:tabular-nums;">${Math.round(base * (1 + t.pct / 100))}</span>
+                    </td>
                 </tr>`;
             }).join('');
 
@@ -6112,8 +6149,9 @@
                     </table>
                     </div>
                     <p style="margin:10px 0 0; font-size:12px; color:var(--slate); line-height:1.6;">
-                        Y los días que reportes deciden cuánto de eso cobras: si reportas medio mes,
-                        te llevas la mitad.
+                        <strong style="color:var(--white);">Dice «hasta» porque depende de los días que reportes.</strong>
+                        Si reportas el mes completo lo cobras entero; si reportas medio mes,
+                        te llevas la mitad. Míralo en tu calendario de reportes.
                     </p>
                 </div>`;
         }
