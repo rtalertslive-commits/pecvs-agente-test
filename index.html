@@ -4422,8 +4422,8 @@
                 } else {
                     const margen = (pointsConfig && pointsConfig.multMargin) || 10;
                     titulo  = 'No coincidió tu reporte';
-                    detalle = `Reportaste <b>${_money(mx.reportado)}</b> y el corporativo registró <b>${_money(mx.ingresado)}</b>.<br>Diferencia del <b>${Math.round((mx.desvio || 0) * 100)}%</b> — se acepta hasta <b>${margen}%</b>.`;
-                    accion  = 'Reporta tus ventas el día que las cierras — así tus números y los del corporativo cuadran solos.';
+                    detalle = `Reportaste <b>${_money(mx.reportado)}</b> y en Promessa se ingresó <b>${_money(mx.ingresado)}</b>.<br>Diferencia del <b>${Math.round((mx.desvio || 0) * 100)}%</b> — se acepta hasta <b>${margen}%</b>.`;
+                    accion  = 'Registra tus ventas el mismo día en que las cierras.';
                 }
                 el.innerHTML = head + `
                     <div class="mrec-row">
@@ -4452,7 +4452,7 @@
                     <div class="mrec-ico">✓</div>
                     <div>
                         <div class="mrec-k">Coincidencia</div>
-                        <div class="mrec-v">Reportaste ${_money(mx.reportado)}<br>El corporativo registró ${_money(mx.ingresado)}</div>
+                        <div class="mrec-v">Reportaste ${_money(mx.reportado)}<br>Se ingresó en Promessa ${_money(mx.ingresado)}</div>
                     </div>
                     <div class="mrec-n" style="color:var(--green);">${Math.round((mx.desvio || 0) * 100)}%</div>
                 </div>
@@ -4596,20 +4596,40 @@
             const piso   = tiers[0];
             const margen = (pointsConfig && pointsConfig.multMargin) || 10;
 
-            const filas = tiers.map(t => {
+            // Filas con RANGOS, no umbrales sueltos: el agente tiene que poder
+            // ubicarse ("vendí $6,200, entonces caigo acá"). Y arranca con la fila
+            // de abajo del piso, mostrando 10 y 10 — sin eso no hay forma de
+            // deducir que 10 es el valor sin multiplicador.
+            const escala = [{ min: 0, max: tiers[0].min - 1, pct: 0 }].concat(
+                tiers.map((t, i) => ({
+                    min: t.min,
+                    max: tiers[i + 1] ? tiers[i + 1].min - 1 : null,
+                    pct: t.pct
+                }))
+            );
+            const filas = escala.map(t => {
                 const ahora = Math.round(base * (1 + (t.pct * cov) / 100));
                 const pleno = Math.round(base * (1 + t.pct / 100));
-                return `<tr>
-                    <td style="padding:7px 0; font-size:12.5px;">Si vendes <b>${_money(t.min)}</b></td>
-                    <td style="padding:7px 0; text-align:right; font-size:15px; font-weight:800; color:var(--gold); font-variant-numeric:tabular-nums;">${ahora}</td>
-                    <td style="padding:7px 0 7px 12px; text-align:right; font-size:12.5px; color:var(--slate); font-variant-numeric:tabular-nums;">${pleno}</td>
+                const rango = t.pct === 0
+                    ? `menos de ${_money(tiers[0].min)}`
+                    : (t.max === null ? `${_money(t.min)} o más` : `${_money(t.min)} — ${_money(t.max)}`);
+                const off = t.pct === 0;
+                return `<tr style="${off ? 'opacity:0.6;' : ''}">
+                    <td style="padding:8px 0; font-size:12.5px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                        ${rango}${off ? '' : `<br><span style="font-size:10.5px; color:var(--slate);">+${t.pct}% de multiplicador</span>`}
+                    </td>
+                    <td style="padding:8px 0; text-align:right; font-size:16px; font-weight:800; color:${off ? 'var(--slate)' : 'var(--gold)'}; font-variant-numeric:tabular-nums; border-bottom:1px solid rgba(255,255,255,0.05);">${ahora}</td>
+                    <td style="padding:8px 0 8px 14px; text-align:right; font-size:13px; color:var(--slate); font-variant-numeric:tabular-nums; border-bottom:1px solid rgba(255,255,255,0.05);">${pleno}</td>
                 </tr>`;
             }).join('');
 
             el.innerHTML = `
                 <h2 style="font-family:'Playfair Display',serif; color:var(--gold); margin:0 0 4px; font-size:20px;">Tu multiplicador de ${mesSig}</h2>
-                <div style="font-size:12px; color:var(--slate); margin-bottom:16px; line-height:1.55;">
-                    Lo que hacés en ${mesAct} decide cuánto vale cada día tuyo en ${mesSig}.
+                <div style="font-size:12.5px; color:var(--slate); margin-bottom:16px; line-height:1.55;">
+                    Hoy cada día que reportas vale <b style="color:var(--white);">${base}</b> totopos.
+                    Lo que hagas en <b style="color:var(--white); text-transform:capitalize;">${mesAct}</b>
+                    decide cuánto vale cada día que reportes en
+                    <b style="color:var(--gold); text-transform:capitalize;">${mesSig}</b>.
                 </div>
 
                 <div style="background:rgba(212,175,55,0.08); border:1px solid rgba(212,175,55,0.25); border-radius:8px; padding:14px; margin-bottom:16px;">
@@ -4625,7 +4645,7 @@
                     <div class="mrec-ico">1</div>
                     <div>
                         <div class="mrec-k">Que tus números cuadren</div>
-                        <div class="mrec-v">Al cerrar el mes comparamos lo que reportaste aquí contra lo que registró el corporativo. Se acepta una diferencia de hasta <b style="color:var(--white);">${margen}%</b>, para arriba o para abajo.<br>Reporta tus ventas el día que las cierras y cuadran solas.</div>
+                        <div class="mrec-v">Al cerrar el mes comparamos lo que reportaste aquí contra lo que se ingresó en Promessa. Se acepta una diferencia de hasta <b style="color:var(--white);">${margen}% de margen de error</b>.</div>
                     </div><div></div>
                 </div>
                 <div class="mrec-row">
@@ -4638,17 +4658,21 @@
 
                 <div style="margin-top:18px; font-size:12.5px; color:var(--slate); line-height:1.6;">
                     Y los días que reportes deciden <b style="color:var(--white);">cuánto de eso cobras</b>.
-                    Con tus <b style="color:var(--white);">${rep} de ${total}</b> días, cada día de ${mesSig} te quedaría así:
                 </div>
 
-                <table style="width:100%; border-collapse:collapse; margin-top:10px;">
-                    <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.12);">
-                        <th style="text-align:left; font-size:10px; color:var(--slate); text-transform:uppercase; letter-spacing:1px; font-weight:500; padding-bottom:6px;">Si cierras el mes con…</th>
-                        <th style="text-align:right; font-size:10px; color:var(--gold); text-transform:uppercase; letter-spacing:1px; font-weight:700; padding-bottom:6px;">Hoy</th>
-                        <th style="text-align:right; font-size:10px; color:var(--slate); text-transform:uppercase; letter-spacing:1px; font-weight:500; padding-bottom:6px; padding-left:12px;">Mes completo</th>
+                <div style="font-size:11px; color:var(--gold); text-transform:uppercase; letter-spacing:1px; margin:16px 0 4px; font-weight:700;">
+                    Lo que valdría cada día de ${mesSig}
+                </div>
+                <div style="overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse;">
+                    <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.14);">
+                        <th style="text-align:left; font-size:10px; color:var(--slate); text-transform:uppercase; letter-spacing:1px; font-weight:500; padding-bottom:7px;">Si cierras ${mesAct} con…</th>
+                        <th style="text-align:right; font-size:10px; color:var(--gold); text-transform:uppercase; letter-spacing:0.5px; font-weight:700; padding-bottom:7px;">Con tus<br>${rep} días</th>
+                        <th style="text-align:right; font-size:10px; color:var(--slate); text-transform:uppercase; letter-spacing:0.5px; font-weight:500; padding-bottom:7px; padding-left:14px;">Si reportas<br>los ${total}</th>
                     </tr></thead>
                     <tbody>${filas}</tbody>
                 </table>
+                </div>
 
                 ${faltan > 0 ? `
                 <div style="background:rgba(16,185,129,0.10); border:1px solid rgba(16,185,129,0.35); border-radius:8px; padding:13px 15px; margin-top:16px; font-size:12.5px; color:var(--slate); line-height:1.6;">
@@ -4659,10 +4683,22 @@
                     Llevas el mes completo. Tu multiplicador va a entrar al 100%.
                 </div>`}
 
-                <div style="font-size:11.5px; color:var(--slate); margin-top:16px; line-height:1.65; border-top:1px solid rgba(255,255,255,0.08); padding-top:12px;">
-                    <b style="color:var(--white);">Cuentan todos los días que reportas:</b><br>
-                    💪 actividad con cierre · 🌱 actividad sin cierre · 🌙 sin intento de venta<br>
-                    <span style="opacity:0.8;">No cuentan ⚪ los días sin reportar ni 🔴 los que quedan con errores.</span>
+                <div style="margin-top:18px; border-top:1px solid rgba(255,255,255,0.10); padding-top:14px; display:flex; flex-direction:column; gap:10px;">
+                    <div style="background:rgba(16,185,129,0.08); border-left:3px solid var(--green); border-radius:0 6px 6px 0; padding:10px 12px;">
+                        <div style="font-size:10.5px; color:#6ee7b7; text-transform:uppercase; letter-spacing:1px; font-weight:800; margin-bottom:6px;">✓ Días que sí cuentan</div>
+                        <div style="font-size:12px; color:var(--slate); line-height:1.85;">
+                            💪 &nbsp;Actividad con cierre<br>
+                            🌱 &nbsp;Actividad sin cierre<br>
+                            🌙 &nbsp;Sin intento de venta
+                        </div>
+                    </div>
+                    <div style="background:rgba(239,68,68,0.07); border-left:3px solid var(--red); border-radius:0 6px 6px 0; padding:10px 12px;">
+                        <div style="font-size:10.5px; color:#f87171; text-transform:uppercase; letter-spacing:1px; font-weight:800; margin-bottom:6px;">✗ Días que no cuentan</div>
+                        <div style="font-size:12px; color:var(--slate); line-height:1.85;">
+                            ⚪ &nbsp;Sin reportar<br>
+                            🔴 &nbsp;Con errores en el embudo
+                        </div>
+                    </div>
                 </div>`;
         }
 
