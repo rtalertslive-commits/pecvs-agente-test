@@ -2511,18 +2511,53 @@
         // Sync versión de la app desde sw.js (single source of truth).
         // Lee CACHE_NAME del service worker y la muestra en title + login footer + header.
         // Así no tenemos que mantener la versión hardcoded en 3 lugares — basta bumpear sw.js.
+        // Version HORNEADA en este archivo. Tiene que coincidir con CACHE_NAME en sw.js.
+        // Antes el indicador leía la versión desde ./sw.js por red, así que mostraba la
+        // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
+        // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
+        // Eso hacía imposible saber si un cambio había llegado o no.
+        window.APP_HTML_VERSION = 'v3.36.0';
+
         (async () => {
-            try {
-                const r = await fetch('./sw.js', { cache: 'no-cache' });
-                const text = await r.text();
-                const match = text.match(/CACHE_NAME\s*=\s*['"`][^'"`]*?v(\d+\.\d+\.\d+)['"`]/);
-                if (!match) return;
-                const v = 'v' + match[1];
-                document.title = 'Actividad — ' + v;
+            const RUNNING = window.APP_HTML_VERSION;
+            const paint = (txt, warn) => {
                 document.querySelectorAll('[data-app-version]').forEach(el => {
-                    el.textContent = v;
+                    el.textContent = txt;
+                    if (warn) {
+                        el.style.color = '#f59e0b';
+                        el.style.fontWeight = '700';
+                        el.title = 'Estás corriendo una versión vieja. Recarga para actualizar.';
+                    }
                 });
-            } catch (e) { /* ignore — el placeholder "—" queda visible */ }
+            };
+            document.title = 'Actividad — ' + RUNNING;
+            paint(RUNNING, false);
+
+            try {
+                const r = await fetch('./sw.js', { cache: 'no-store' });
+                const match = (await r.text()).match(/CACHE_NAME\s*=\s*['"`][^'"`]*?v(\d+\.\d+\.\d+)['"`]/);
+                if (!match) return;
+                const PUBLISHED = 'v' + match[1];
+                if (PUBLISHED === RUNNING) return;
+
+                // El HTML que estoy ejecutando NO es el publicado: el SW sirvió cache.
+                // Esto es deteccion directa — no depende de eventos del ciclo de vida
+                // del SW, que en iOS PWA no siempre disparan.
+                paint(RUNNING + ' → ' + PUBLISHED, true);
+                console.warn('[version] corriendo', RUNNING, 'pero publicado es', PUBLISHED, '— HTML servido desde cache');
+
+                // Reusa el modal de actualización que ya existe. Se define en el
+                // script type="module" de abajo, que puede no haber corrido todavía.
+                let tries = 0;
+                const t = setInterval(() => {
+                    if (typeof window.showUpdateModal === 'function') {
+                        clearInterval(t);
+                        window.showUpdateModal();
+                    } else if (++tries > 40) {
+                        clearInterval(t);
+                    }
+                }, 250);
+            } catch (e) { /* sin red: queda la versión horneada, que es la verdad */ }
         })();
     </script>
 
