@@ -1587,7 +1587,7 @@
             <h3>Instalar Actividad en tu iPhone</h3>
             <ol>
                 <li>Pulsá el botón <strong>Compartir</strong> <span class="share-icon"></span> en la barra de Safari (abajo).</li>
-                <li>Deslizá hacia abajo y elegí <strong>"Agregar a pantalla de inicio"</strong>.</li>
+                <li>Desliza hacia abajo y elige <strong>"Agregar a pantalla de inicio"</strong>.</li>
                 <li>Confirmá tocando <strong>"Agregar"</strong> arriba a la derecha.</li>
             </ol>
             <button class="close-btn" onclick="closeIosInstall()">Entendido</button>
@@ -2229,7 +2229,7 @@
                 <button id="anuncios-clear-read-btn" onclick="clearReadAnuncios()" class="btn btn-sm" style="flex:1; min-width:130px; padding:7px 10px; font-size:11px;" title="Limpiar (ocultar) los que ya leíste">
                     <i class="fa fa-broom"></i> Limpiar leídos
                 </button>
-                <button id="anuncios-clear-all-btn" onclick="clearAllAnuncios()" class="btn btn-sm" style="flex:1; min-width:130px; padding:7px 10px; font-size:11px; border-color:rgba(239,68,68,0.5); color:#f87171;" title="Ocultar todos los anuncios (siguen disponibles si querés volver a verlos manualmente)">
+                <button id="anuncios-clear-all-btn" onclick="clearAllAnuncios()" class="btn btn-sm" style="flex:1; min-width:130px; padding:7px 10px; font-size:11px; border-color:rgba(239,68,68,0.5); color:#f87171;" title="Ocultar todos los anuncios (siguen disponibles si quieres volver a verlos manualmente)">
                     <i class="fa fa-trash-can"></i> Limpiar todos
                 </button>
             </div>
@@ -2239,7 +2239,7 @@
                 <!-- Empty state placeholder — se reemplaza cuando hay datos -->
                 <div id="anuncios-empty" style="text-align:center; padding:40px 20px;">
                     <div style="font-size:48px; opacity:0.3; margin-bottom:12px;">📢</div>
-                    <div style="font-size:14px; color:var(--slate); font-weight:600; margin-bottom:6px;">No tenés anuncios</div>
+                    <div style="font-size:14px; color:var(--slate); font-weight:600; margin-bottom:6px;">No tienes anuncios</div>
                     <div style="font-size:12px; color:rgba(255,255,255,0.4); line-height:1.5;">Cuando el director, promotor o coach mande algo, aparece acá.</div>
                 </div>
             </div>
@@ -2274,7 +2274,7 @@
                 </select>
 
                 <label style="display:block; font-size:11px; color:var(--slate); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Mensaje <span id="buzon-charcount" style="float:right; text-transform:none; letter-spacing:0; color:rgba(255,255,255,0.4);">0 / 500</span></label>
-                <textarea id="buzon-texto" maxlength="500" rows="6" placeholder="Escribí lo que quieras compartir con tu director..." style="width:100%; resize:vertical; margin-bottom:16px; font-family:inherit; padding:10px; background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:var(--white); font-size:13px;" oninput="_updateBuzonCharCount()"></textarea>
+                <textarea id="buzon-texto" maxlength="500" rows="6" placeholder="Escribe lo que quieras compartir con tu director..." style="width:100%; resize:vertical; margin-bottom:16px; font-family:inherit; padding:10px; background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:var(--white); font-size:13px;" oninput="_updateBuzonCharCount()"></textarea>
 
                 <button id="buzon-send-btn" onclick="sendBuzonMensaje()" style="width:100%; padding:12px; background:var(--gold); color:#000; border:none; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;">
                     <i class="fa fa-paper-plane"></i> Enviar al buzón
@@ -2778,7 +2778,7 @@
                     showInAppToast('✅ Notificaciones activadas', 'Vas a recibir avisos importantes.');
                 } else if (result === 'denied') {
                     await _setNotifPrefsField({ subscribed: false });
-                    showInAppToast('🚫 Permiso denegado', 'Podés activarlo desde Ajustes del iPhone.');
+                    showInAppToast('🚫 Permiso denegado', 'Puedes activarlo desde Ajustes del iPhone.');
                 }
             } catch (err) {
                 console.error('[push] requestPermission error:', err);
@@ -2991,7 +2991,7 @@
             const btn = document.getElementById('buzon-send-btn');
             const texto = (document.getElementById('buzon-texto').value || '').trim();
             const tipo = document.getElementById('buzon-tipo').value;
-            if (!texto) { alert('Escribí algo antes de enviar.'); return; }
+            if (!texto) { alert('Escribe algo antes de enviar.'); return; }
             if (texto.length > 500) { alert('Máximo 500 caracteres.'); return; }
             if (!user?.email) { alert('Sesión no lista. Reintentá en unos segundos.'); return; }
             btn.disabled = true;
@@ -4420,9 +4420,10 @@
                     detalle = `Ingresaste <b>${_money(mx.ingresado)}</b> en ${mx.basedOn || 'el mes evaluado'}.<br>El primer escalón empieza en <b>${_money(mx.tierMin || 2500)}</b>.`;
                     accion  = `Te faltaron <b>${_money(Math.max(0, (mx.tierMin || 2500) - (mx.ingresado || 0)))}</b>.`;
                 } else {
+                    const margen = (pointsConfig && pointsConfig.multMargin) || 10;
                     titulo  = 'No coincidió tu reporte';
-                    detalle = `Reportaste <b>${_money(mx.reportado)}</b> y el corporativo registró <b>${_money(mx.ingresado)}</b>.<br>Diferencia del <b>${Math.round((mx.desvio || 0) * 100)}%</b>.`;
-                    accion  = 'Reportá tus ventas el día que las cerrás — así tus números y los del corporativo cuadran solos.';
+                    detalle = `Reportaste <b>${_money(mx.reportado)}</b> y el corporativo registró <b>${_money(mx.ingresado)}</b>.<br>Diferencia del <b>${Math.round((mx.desvio || 0) * 100)}%</b> — se acepta hasta <b>${margen}%</b>.`;
+                    accion  = 'Reporta tus ventas el día que las cierras — así tus números y los del corporativo cuadran solos.';
                 }
                 el.innerHTML = head + `
                     <div class="mrec-row">
@@ -4505,7 +4506,7 @@
             let msg;
             if (esActual) {
                 msg = faltan === 0
-                    ? `Llevás <b style="color:var(--green);">${reportados} de ${total}</b> días. Seguí así y tu multiplicador de ${mesSig.toLowerCase()} entra al 100%.`
+                    ? `Llevas <b style="color:var(--green);">${reportados} de ${total}</b> días. Sigue así y tu multiplicador de ${mesSig.toLowerCase()} entra al 100%.`
                     : `<b style="color:var(--gold);">${faltan} ${faltan === 1 ? 'día' : 'días'}</b> sin reportar este mes.<br>Cada día que reportes sube tu multiplicador de ${mesSig.toLowerCase()}.`;
             } else {
                 const mx = state.multiplier;
@@ -4593,12 +4594,13 @@
             const faltan = Math.max(0, total - rep);
             const tiers  = _tiersFromConfig();
             const piso   = tiers[0];
+            const margen = (pointsConfig && pointsConfig.multMargin) || 10;
 
             const filas = tiers.map(t => {
                 const ahora = Math.round(base * (1 + (t.pct * cov) / 100));
                 const pleno = Math.round(base * (1 + t.pct / 100));
                 return `<tr>
-                    <td style="padding:7px 0; font-size:12.5px;">Si vendés <b>${_money(t.min)}</b></td>
+                    <td style="padding:7px 0; font-size:12.5px;">Si vendes <b>${_money(t.min)}</b></td>
                     <td style="padding:7px 0; text-align:right; font-size:15px; font-weight:800; color:var(--gold); font-variant-numeric:tabular-nums;">${ahora}</td>
                     <td style="padding:7px 0 7px 12px; text-align:right; font-size:12.5px; color:var(--slate); font-variant-numeric:tabular-nums;">${pleno}</td>
                 </tr>`;
@@ -4611,37 +4613,37 @@
                 </div>
 
                 <div style="background:rgba(212,175,55,0.08); border:1px solid rgba(212,175,55,0.25); border-radius:8px; padding:14px; margin-bottom:16px;">
-                    <div style="font-size:12px; color:var(--slate); margin-bottom:6px;">Llevás</div>
+                    <div style="font-size:12px; color:var(--slate); margin-bottom:6px;">Llevas</div>
                     <div style="font-size:26px; font-weight:900; color:var(--white); line-height:1;">${rep} <span style="font-size:15px; font-weight:600; color:var(--slate);">de ${total} días</span></div>
                     <div class="cov-bar" style="margin-top:10px; margin-bottom:0;"><div class="cov-fill" style="width:${Math.round(cov*100)}%;"></div></div>
                 </div>
 
                 <div style="font-size:12.5px; color:var(--slate); line-height:1.6; margin-bottom:14px;">
-                    Para que se active necesitás <b style="color:var(--white);">dos cosas</b>:
+                    Para que se active necesitas <b style="color:var(--white);">dos cosas</b>:
                 </div>
                 <div class="mrec-row">
                     <div class="mrec-ico">1</div>
                     <div>
                         <div class="mrec-k">Que tus números cuadren</div>
-                        <div class="mrec-v">Al cerrar el mes comparamos lo que reportaste acá contra lo que registró el corporativo. Reportá tus ventas el día que las cerrás y cuadran solas.</div>
+                        <div class="mrec-v">Al cerrar el mes comparamos lo que reportaste aquí contra lo que registró el corporativo. Se acepta una diferencia de hasta <b style="color:var(--white);">${margen}%</b>, para arriba o para abajo.<br>Reporta tus ventas el día que las cierras y cuadran solas.</div>
                     </div><div></div>
                 </div>
                 <div class="mrec-row">
                     <div class="mrec-ico">2</div>
                     <div>
                         <div class="mrec-k">Vender al menos ${_money(piso.min)} en el mes</div>
-                        <div class="mrec-v">Mientras más vendas, más fuerte queda.</div>
+                        <div class="mrec-v">Entre más vendas, más vale tu día.</div>
                     </div><div></div>
                 </div>
 
                 <div style="margin-top:18px; font-size:12.5px; color:var(--slate); line-height:1.6;">
-                    Y los días que reportes deciden <b style="color:var(--white);">qué tan fuerte</b> queda.
+                    Y los días que reportes deciden <b style="color:var(--white);">cuánto de eso cobras</b>.
                     Con tus <b style="color:var(--white);">${rep} de ${total}</b> días, cada día de ${mesSig} te quedaría así:
                 </div>
 
                 <table style="width:100%; border-collapse:collapse; margin-top:10px;">
                     <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.12);">
-                        <th style="text-align:left; font-size:10px; color:var(--slate); text-transform:uppercase; letter-spacing:1px; font-weight:500; padding-bottom:6px;">Si cerrás el mes con…</th>
+                        <th style="text-align:left; font-size:10px; color:var(--slate); text-transform:uppercase; letter-spacing:1px; font-weight:500; padding-bottom:6px;">Si cierras el mes con…</th>
                         <th style="text-align:right; font-size:10px; color:var(--gold); text-transform:uppercase; letter-spacing:1px; font-weight:700; padding-bottom:6px;">Hoy</th>
                         <th style="text-align:right; font-size:10px; color:var(--slate); text-transform:uppercase; letter-spacing:1px; font-weight:500; padding-bottom:6px; padding-left:12px;">Mes completo</th>
                     </tr></thead>
@@ -4651,14 +4653,16 @@
                 ${faltan > 0 ? `
                 <div style="background:rgba(16,185,129,0.10); border:1px solid rgba(16,185,129,0.35); border-radius:8px; padding:13px 15px; margin-top:16px; font-size:12.5px; color:var(--slate); line-height:1.6;">
                     Te faltan <b style="color:#6ee7b7;">${faltan} ${faltan === 1 ? 'día' : 'días'}</b> de ${mesAct}.
-                    Reportá hoy y la columna de la izquierda se acerca a la de la derecha.
+                    Reporta hoy y la columna de la izquierda se acerca a la de la derecha.
                 </div>` : `
                 <div style="background:rgba(16,185,129,0.10); border:1px solid rgba(16,185,129,0.35); border-radius:8px; padding:13px 15px; margin-top:16px; font-size:12.5px; color:#6ee7b7; line-height:1.6; text-align:center;">
-                    Llevás el mes completo. Tu multiplicador va a entrar al 100%.
+                    Llevas el mes completo. Tu multiplicador va a entrar al 100%.
                 </div>`}
 
-                <div style="font-size:11px; color:var(--slate); margin-top:14px; text-align:center; line-height:1.5; opacity:0.8;">
-                    Los días 🌙 sin intento de venta también cuentan. Los días sin reportar, no.
+                <div style="font-size:11.5px; color:var(--slate); margin-top:16px; line-height:1.65; border-top:1px solid rgba(255,255,255,0.08); padding-top:12px;">
+                    <b style="color:var(--white);">Cuentan todos los días que reportas:</b><br>
+                    💪 actividad con cierre · 🌱 actividad sin cierre · 🌙 sin intento de venta<br>
+                    <span style="opacity:0.8;">No cuentan ⚪ los días sin reportar ni 🔴 los que quedan con errores.</span>
                 </div>`;
         }
 
@@ -5168,7 +5172,7 @@
         window.solicitarCanje = function(itemId, itemNombre, costo, emoji, catalogDoc, stockDisponible) {
             const karmaDisponible = (state.karma || 0) - _karmaComprometido;
             if (karmaDisponible < costo) {
-                alert(`Totopos insuficientes. Te quedan ${karmaDisponible} totopos disponibles (ya tenés ${_karmaComprometido} comprometidos en otras solicitudes pendientes).`);
+                alert(`Totopos insuficientes. Te quedan ${karmaDisponible} totopos disponibles (ya tienes ${_karmaComprometido} comprometidos en otras solicitudes pendientes).`);
                 return;
             }
             openCanjeConfirm(itemId, itemNombre, costo, emoji, catalogDoc, stockDisponible);
@@ -5254,7 +5258,7 @@
                     const req = reqSnap.data();
                     if (req.status !== 'pending') throw new Error('Esta solicitud ya fue procesada.');
                     if (req.emailSolicitante !== user.email && req.emailSolicitante !== user.uid) {
-                        throw new Error('No podés cancelar una solicitud que no es tuya.');
+                        throw new Error('No puedes cancelar una solicitud que no es tuya.');
                     }
                     const qty = Math.max(1, Number(req.cantidad) || 1);
                     let catRef = null, catSnap = null;
