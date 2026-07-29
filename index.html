@@ -1161,6 +1161,39 @@
         .mrec-k { font-size: 12px; font-weight: 700; color: var(--white); }
         .mrec-v { font-size: 11.5px; color: var(--slate); margin-top: 2px; line-height: 1.45; }
         .mrec-n { font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        /* ── Tarjeta invitación del multiplicador (solo hasta el primer tap) ──
+           Verde a propósito: es el mismo color del badge que van a ver cuando
+           lo ganen, así asocian las dos cosas sin que nadie se lo explique. */
+        .cov-invite {
+            border: 1.5px solid rgba(16,185,129,0.5);
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(16,185,129,0.14), rgba(16,185,129,0.03));
+            padding: 14px;
+            cursor: pointer;
+        }
+        .cov-invite .cov-fill { background: linear-gradient(90deg, var(--green), #6ee7b7); }
+        .cov-invite-head {
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 11px; flex-wrap: wrap;
+        }
+        .cov-chip-nuevo {
+            display: inline-flex; align-items: center; gap: 4px;
+            background: #6ee7b7; color: #04231a;
+            font-size: 9.5px; font-weight: 900; letter-spacing: 0.09em;
+            padding: 3px 8px; border-radius: 20px;
+            text-transform: uppercase; white-space: nowrap;
+        }
+        .cov-invite-claim { font-size: 12.5px; font-weight: 800; color: #6ee7b7; }
+        .cov-invite-btn {
+            display: block; width: 100%; margin-top: 12px;
+            background: rgba(16,185,129,0.9); color: #04231a;
+            border: none; border-radius: 8px; padding: 11px;
+            font-size: 12.5px; font-weight: 800; cursor: pointer;
+            font-family: inherit;
+        }
+        .cov-invite-btn:active { transform: scale(0.98); }
+        .cov-invite-btn:focus-visible { outline: 2px solid #6ee7b7; outline-offset: 2px; }
+
         /* Barra de cobertura */
         .cov-bar {
             height: 9px;
@@ -2516,7 +2549,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.37.0';
+        window.APP_HTML_VERSION = 'v3.38.0';
 
         (async () => {
             const RUNNING = window.APP_HTML_VERSION;
@@ -4672,6 +4705,25 @@
 
         // Barra en la bitácora: el OTRO reloj. El badge dice lo que cobra hoy,
         // esto dice lo que está construyendo. Nunca deben ir juntos.
+        // El multiplicador es función nueva: hasta el primer tap se muestra como
+        // tarjeta de invitación en verde (el color del badge que van a ganar) con
+        // el chip NUEVO y el pulso. Después colapsa a la barra sencilla — si no,
+        // el aviso grita "nuevo" para siempre y en dos semanas es ruido invisible.
+        const _MULT_FEATURE = 'multiplicador';
+        function _multFeatureSeen() {
+            return !!(state && state.seenFeatures && state.seenFeatures[_MULT_FEATURE]);
+        }
+        async function _markMultFeatureSeen() {
+            if (!user || _multFeatureSeen()) return;
+            state.seenFeatures = Object.assign({}, state.seenFeatures || {}, { [_MULT_FEATURE]: true });
+            try {
+                // El doc puede ser 'users/<email>' o 'users/tg_<id>'; uid sirve para ambos.
+                await setDoc(doc(db, 'users', user.uid || user.email),
+                    { seenFeatures: state.seenFeatures }, { merge: true });
+            } catch (err) { console.error('[mult] seenFeatures:', err); }
+            renderCoverageBar();
+        }
+
         function renderCoverageBar() {
             const el = document.getElementById('cov-block');
             if (!el || !serverNow) return;
@@ -4680,6 +4732,55 @@
             const rep   = _reportedDaysInMonth(y, m);
             const pct   = Math.min(100, Math.round((rep / total) * 100));
             const mesSig= MONTHS_ES[m % 12].toLowerCase();
+            const base  = (pointsConfig && pointsConfig.agentDailyPoints) || 10;
+            const tiers = _tiersFromConfig();
+            const techo = tiers.length ? tiers[tiers.length - 1].pct : 200;
+            // "el triple" solo si el escalón máximo de verdad lo triplica.
+            const veces = Math.round(base * (1 + techo / 100)) / base;
+            const cuanto = veces >= 3 ? 'el triple' : (veces >= 2 ? 'el doble' : 'mucho más');
+
+            // Reset de handlers/atributos: la misma función pinta los dos modos.
+            el.onclick = null; el.onkeydown = null;
+            el.removeAttribute('role'); el.removeAttribute('tabindex');
+            el.removeAttribute('aria-label'); el.style.cursor = '';
+
+            const barra = `
+                <div class="cov-bar"><div class="cov-fill" style="width:${pct}%;"></div></div>
+                <div style="display:flex; justify-content:space-between; font-size:11.5px; color:var(--slate);">
+                    <span><b style="color:var(--white); font-size:13px;">${rep}</b> de ${total} días</span>`;
+
+            if (!_multFeatureSeen()) {
+                el.innerHTML = `
+                    <div class="novedad-glow" style="border-radius:10px;">
+                      <div class="cov-invite" id="cov-invite-card" role="button" tabindex="0"
+                           aria-label="Ver cómo funciona el multiplicador de totopos">
+                        <div class="cov-invite-head">
+                            <span class="cov-chip-nuevo"><i class="fa fa-bolt"></i> Nuevo</span>
+                            <span class="cov-invite-claim">Tus totopos pueden valer ${cuanto}</span>
+                        </div>
+                        <div style="font-size:11px; color:var(--slate); text-transform:uppercase; letter-spacing:1px;">
+                            Construyendo tu multiplicador de ${mesSig}
+                        </div>
+                        ${barra}<span style="font-variant-numeric:tabular-nums;">${pct}%</span></div>
+                        <button class="cov-invite-btn" id="cov-invite-btn" type="button">Ver cómo funciona</button>
+                      </div>
+                    </div>`;
+                const abrir = (ev) => {
+                    if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+                    openCoverageInfo();
+                    _markMultFeatureSeen();
+                };
+                const btn  = document.getElementById('cov-invite-btn');
+                const card = document.getElementById('cov-invite-card');
+                if (btn)  btn.onclick = abrir;
+                if (card) {
+                    card.onclick = abrir;
+                    card.onkeydown = (ev) => { if (ev.key === 'Enter' || ev.key === ' ') abrir(ev); };
+                }
+                return;
+            }
+
+            // Ya la conoce: barra sencilla, sin ruido.
             el.setAttribute('role', 'button');
             el.setAttribute('tabindex', '0');
             el.setAttribute('aria-label', 'Ver cómo se construye tu multiplicador');
@@ -4695,11 +4796,7 @@
                         ¿cómo funciona? <i class="fa fa-circle-info"></i>
                     </span>
                 </div>
-                <div class="cov-bar"><div class="cov-fill" style="width:${pct}%;"></div></div>
-                <div style="display:flex; justify-content:space-between; font-size:11.5px; color:var(--slate);">
-                    <span><b style="color:var(--white); font-size:13px;">${rep}</b> de ${total} días</span>
-                    <span>Cada día que reportes lo sube.</span>
-                </div>`;
+                ${barra}<span>Cada día que reportes lo sube.</span></div>`;
         }
 
         // Escalones tal como los dejó el director (pointsConfig es multi-tenant).
