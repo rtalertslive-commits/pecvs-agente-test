@@ -4562,11 +4562,15 @@
         // Escalones tal como los dejó el director (pointsConfig es multi-tenant).
         function _tiersFromConfig() {
             const c = pointsConfig || {};
-            return [
-                { min: Number(c.multTier1Min) || 2500, pct: Number(c.multTier1Pct) || 100 },
-                { min: Number(c.multTier2Min) || 5000, pct: Number(c.multTier2Pct) || 150 },
-                { min: Number(c.multTier3Min) || 8000, pct: Number(c.multTier3Pct) || 200 }
+            const t = [
+                { min: Number(c.multTier1Min) || 2500,  pct: Number(c.multTier1Pct) || 50 },
+                { min: Number(c.multTier2Min) || 6000,  pct: Number(c.multTier2Pct) || 100 },
+                { min: Number(c.multTier3Min) || 8000,  pct: Number(c.multTier3Pct) || 150 },
+                { min: Number(c.multTier4Min) || 10000, pct: Number(c.multTier4Pct) || 200 }
             ];
+            // Ascendente y sin escalones repetidos/apagados, por si el director
+            // deja uno en 0 para usar menos de cuatro.
+            return t.filter(x => x.min > 0 && x.pct > 0).sort((a, b) => a.min - b.min);
         }
 
         window.openCoverageInfo = function () {
