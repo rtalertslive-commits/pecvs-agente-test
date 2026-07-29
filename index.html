@@ -2072,15 +2072,19 @@
                 <button class="rules-modal-close" onclick="closeRulesModal()" aria-label="Cerrar">&times;</button>
             </div>
             <div class="rules-modal-body">
-                <p><strong>¿Qué son?</strong> Moneda virtual que ganás por reportar tu día. Premian la disciplina y la honestidad — no importa si el día estuvo bueno o flojo, lo que cuenta es que reportes.</p>
-                <p style="margin-top:14px;"><strong>¿Cómo ganártelos?</strong> Ganás <strong>10 totopos por cada día reportado</strong> en cualquiera de estos dos casos:</p>
+                <p><strong>¿Qué son?</strong> Moneda virtual que ganas por reportar tu día. Premian la disciplina y la honestidad — no importa si el día estuvo bueno o flojo, lo que cuenta es que reportes.</p>
+                <p style="margin-top:14px;"><strong>¿Cómo ganarlos?</strong> Ganas <strong id="rules-base-pts">10</strong> <strong>totopos por cada día reportado</strong>, en cualquiera de estos tres casos:</p>
                 <ul>
-                    <li>🟢 <strong>Semáforo en verde</strong> — el embudo cumple las reglas.</li>
+                    <li>💪 <strong>Actividad con cierre</strong> — el embudo cumple las reglas y cerraste venta.</li>
+                    <li>🌱 <strong>Actividad sin cierre</strong> — trabajaste el día aunque no hayas cerrado.</li>
                     <li>🌙 <strong>"Sin intento de venta hoy"</strong> — declaraste honestamente que no hubo actividad. Cuenta igual. La opción aparece cuando todos los valores están en 0.</li>
                 </ul>
                 <p style="color:var(--slate); font-size:12.5px;">Si el semáforo queda en 🔴 (datos rotos / embudo inválido) ese día <strong>no</strong> genera totopos. El corte se hace a las <strong>12:00 AM</strong> — durante el día puedes corregir las veces que quieras.</p>
-                <div class="nota">⚠️ <strong style="color:#f59e0b;">Auditoría:</strong> Se revisará al final del mes si lo reportado coincide con lo ingresado.</div>
-                <p style="margin-top:14px;"><strong>¿Para qué sirven?</strong> Los canjéas en la pestaña <strong>Tienda</strong> por premios que el director pone disponibles.</p>
+
+                <!-- Se arma desde la config del director (escalones y margen). -->
+                <div id="rules-mult-block"></div>
+
+                <p style="margin-top:14px;"><strong>¿Para qué sirven?</strong> Los canjeas en la pestaña <strong>Tienda</strong> por premios que el director pone disponibles.</p>
                 <p style="color:var(--slate); font-size:12.5px; margin-top:6px;"><em>Tu compromiso y consistencia con el reporte diario.</em></p>
             </div>
         </div>
@@ -2176,7 +2180,7 @@
                 <label class="notif-toggle-row" style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer;">
                     <div style="flex:1; min-width:0;">
                         <div style="font-size:14px; color:#fff; font-weight:600;">🏆 Reconocimientos</div>
-                        <div style="font-size:11px; color:var(--slate); margin-top:2px;">Cuando ganás totopos o desbloqueás logros.</div>
+                        <div style="font-size:11px; color:var(--slate); margin-top:2px;">Cuando ganas totopos o desbloqueas logros.</div>
                     </div>
                     <input type="checkbox" id="notif-pref-reconocimientos" onchange="saveNotifPrefs()" style="width:22px; height:22px; accent-color:var(--gold); cursor:pointer; flex-shrink:0;" checked>
                 </label>
@@ -6047,10 +6051,72 @@
         const LS_KARMA_TOOLTIP_KEY = 'pecvs.karmaTooltipSeen';
 
         window.openRulesModal = function () {
+            try { _renderRulesMultBlock(); } catch (e) { console.warn('[rules] mult:', e); }
             document.getElementById('rules-modal').classList.add('open');
             // Si el usuario tocó el badge, ya cumplió el propósito del tooltip — lo marcamos visto
             _markKarmaTooltipSeen();
         };
+
+        // Sección del multiplicador dentro de las reglas de totopos. Se arma desde
+        // pointsConfig, así que cuando el director mueve los escalones esto se
+        // mueve solo — no hay números escritos en el HTML.
+        function _renderRulesMultBlock() {
+            const el = document.getElementById('rules-mult-block');
+            if (!el) return;
+            const base   = (pointsConfig && pointsConfig.agentDailyPoints) || 10;
+            const margen = (pointsConfig && pointsConfig.multMargin) || 10;
+            const tiers  = _tiersFromConfig();
+            const piso   = tiers[0];
+
+            const bp = document.getElementById('rules-base-pts');
+            if (bp) bp.textContent = base;
+
+            const filas = tiers.map((t, i) => {
+                const rango = tiers[i + 1]
+                    ? `${_money(t.min)} — ${_money(tiers[i + 1].min - 1)}`
+                    : `${_money(t.min)} o más`;
+                return `<tr>
+                    <td style="padding:6px 0; font-size:12px; border-bottom:1px solid rgba(255,255,255,0.05);">${rango}</td>
+                    <td style="padding:6px 0; text-align:right; font-size:11.5px; color:var(--slate); border-bottom:1px solid rgba(255,255,255,0.05); font-variant-numeric:tabular-nums;">+${t.pct}%</td>
+                    <td style="padding:6px 0 6px 12px; text-align:right; font-size:15px; font-weight:800; color:var(--gold); border-bottom:1px solid rgba(255,255,255,0.05); font-variant-numeric:tabular-nums;">${Math.round(base * (1 + t.pct / 100))}</td>
+                </tr>`;
+            }).join('');
+
+            el.innerHTML = `
+                <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.32); border-radius:10px; padding:14px 16px; margin-top:16px;">
+                    <div style="font-size:12px; color:#6ee7b7; text-transform:uppercase; letter-spacing:1.2px; font-weight:800; margin-bottom:8px;">
+                        <i class="fa fa-bolt"></i> El multiplicador
+                    </div>
+                    <p style="margin:0 0 10px; font-size:12.5px; line-height:1.6;">
+                        Tus días pueden valer <strong>hasta el triple</strong>. Al cerrar el mes comparamos
+                        lo que reportaste aquí contra lo que se ingresó en Promessa. Si cuadran
+                        —se acepta hasta <strong>${margen}% de margen de error</strong>— y vendiste al menos
+                        <strong>${_money(piso.min)}</strong>, entonces <strong>el mes siguiente</strong> cada día
+                        que reportes vale más:
+                    </p>
+                    <div style="overflow-x:auto;">
+                    <table style="width:100%; border-collapse:collapse;">
+                        <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.14); color:var(--slate);">
+                            <th style="text-align:left; font-size:9.5px; text-transform:uppercase; letter-spacing:1px; font-weight:500; padding-bottom:6px;">Prima ingresada en el mes</th>
+                            <th style="text-align:right; font-size:9.5px; text-transform:uppercase; letter-spacing:1px; font-weight:500; padding-bottom:6px;">Bonus</th>
+                            <th style="text-align:right; font-size:9.5px; text-transform:uppercase; letter-spacing:1px; font-weight:500; padding-bottom:6px; padding-left:12px;">Vale el día</th>
+                        </tr></thead>
+                        <tbody>
+                            <tr style="opacity:0.55;">
+                                <td style="padding:6px 0; font-size:12px; border-bottom:1px solid rgba(255,255,255,0.05);">menos de ${_money(piso.min)}</td>
+                                <td style="padding:6px 0; text-align:right; font-size:11.5px; color:var(--slate); border-bottom:1px solid rgba(255,255,255,0.05);">—</td>
+                                <td style="padding:6px 0 6px 12px; text-align:right; font-size:15px; font-weight:800; color:var(--slate); border-bottom:1px solid rgba(255,255,255,0.05); font-variant-numeric:tabular-nums;">${base}</td>
+                            </tr>
+                            ${filas}
+                        </tbody>
+                    </table>
+                    </div>
+                    <p style="margin:10px 0 0; font-size:12px; color:var(--slate); line-height:1.6;">
+                        Y los días que reportes deciden cuánto de eso cobras: si reportas medio mes,
+                        te llevas la mitad.
+                    </p>
+                </div>`;
+        }
 
         window.closeRulesModal = function () {
             document.getElementById('rules-modal').classList.remove('open');
