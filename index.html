@@ -1103,6 +1103,50 @@
             border: 1.5px solid rgba(255,255,255,0.15);
             color: var(--slate);
         }
+        /* Réplica del badge para las explicaciones. Mismos valores visuales que
+           #mult-badge.mult-on — si se cambia uno hay que cambiar el otro. */
+        .mult-chip-demo {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border-radius: 24px;
+            padding: 5px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            background: linear-gradient(135deg, rgba(16,185,129,0.22), rgba(16,185,129,0.08));
+            border: 1.5px solid rgba(16,185,129,0.55);
+            color: #6ee7b7;
+        }
+        .mult-chip-demo b { font-size: 15px; font-weight: 900; }
+        /* Contador de totopos falso, solo para ubicar el badge en la pantalla */
+        .karma-chip-demo {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border-radius: 24px;
+            padding: 5px 13px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            background: linear-gradient(135deg, rgba(212,175,55,0.18), rgba(212,175,55,0.06));
+            border: 1.5px solid rgba(212,175,55,0.5);
+            color: var(--gold-l, #e5c76b);
+        }
+        .karma-chip-demo b { font-size: 14px; font-weight: 900; color: var(--white); }
+        .mult-demo-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding: 14px 10px;
+            margin: 10px 0 8px;
+            border-radius: 10px;
+            background: rgba(15,23,42,0.55);
+            border: 1px dashed rgba(255,255,255,0.14);
+        }
+
         /* Filas del recibo */
         .mrec-row {
             display: grid;
@@ -4392,6 +4436,32 @@
         }
         const _money = n => '$' + Math.round(Number(n) || 0).toLocaleString('es-MX');
 
+        // Muestra cómo se va a ver el badge cuando esté activo, para que el agente
+        // sepa qué buscar. Si ya lo tiene, usa su número real en vez de un ejemplo.
+        function _multChipDemo() {
+            const base  = (pointsConfig && pointsConfig.agentDailyPoints) || 10;
+            const tiers = _tiersFromConfig();
+            const mx    = state.multiplier;
+            const activo = mx && mx.earned === true;
+            // Sin multiplicador, el ejemplo usa el escalón alineado al primer bono
+            // de Promessa (el 2º) — es el caso más alcanzable, no el techo.
+            const ejemplo = tiers[1] || tiers[tiers.length - 1] || { pct: 100 };
+            const val = activo
+                ? Math.round(base * (1 + (Number(mx.bonusPct) || 0) / 100))
+                : Math.round(base * (1 + ejemplo.pct / 100));
+            const leyenda = activo
+                ? 'Así se ve el tuyo ahora. Tócalo para ver de dónde salió.'
+                : 'Cuando lo tengas activo, va a aparecer así arriba de tu pantalla.';
+            return `
+                <div class="mult-demo-wrap">
+                    <span class="karma-chip-demo"><svg class="totopo-icon"><use href="#totopo"/></svg> <b>1,240</b> totopos</span>
+                    <span class="mult-chip-demo"><i class="fa fa-bolt"></i> tu día vale <b>${val}</b></span>
+                </div>
+                <div style="font-size:11.5px; color:var(--slate); text-align:center; line-height:1.5; margin-bottom:4px;">
+                    ${leyenda}
+                </div>`;
+        }
+
         window.openMultReceipt = function () {
             if (!state.multiplier) return;
             _renderMultReceipt();
@@ -4725,6 +4795,8 @@
                 <div style="background:rgba(16,185,129,0.10); border:1px solid rgba(16,185,129,0.35); border-radius:8px; padding:13px 15px; margin-top:16px; font-size:12.5px; color:#6ee7b7; line-height:1.6; text-align:center;">
                     Llevas el mes completo. Tu multiplicador va a entrar al 100%.
                 </div>`}
+
+                ${_multChipDemo()}
 
                 <div style="margin-top:18px; border-top:1px solid rgba(255,255,255,0.10); padding-top:14px; display:flex; flex-direction:column; gap:10px;">
                     <div style="background:rgba(16,185,129,0.08); border-left:3px solid var(--green); border-radius:0 6px 6px 0; padding:10px 12px;">
@@ -6157,6 +6229,7 @@
                         Si reportas el mes completo lo cobras entero; si reportas medio mes,
                         te llevas la mitad. Míralo en tu calendario de reportes.
                     </p>
+                    ${_multChipDemo()}
                 </div>`;
         }
 
