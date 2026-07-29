@@ -2516,7 +2516,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.36.0';
+        window.APP_HTML_VERSION = 'v3.37.0';
 
         (async () => {
             const RUNNING = window.APP_HTML_VERSION;
@@ -3666,6 +3666,14 @@
                     if (status === 'active') {
                         document.getElementById('login-overlay').classList.add('hidden');
                         await loadFromCloud();
+                        // Pintar el balance EN CUANTO hay datos. Antes esperaba a
+                        // refreshUI() dentro de init(), que arranca con
+                        // `await getServerTime()` — dos APIs externas en serie, hasta
+                        // 6s. Justo despues de una actualizacion (SW nuevo, caches
+                        // recien borrados, red ocupada) el usuario veia su balance en 0
+                        // hasta que resolvieran, y tenia que cerrar y reabrir la app.
+                        // El balance solo depende de state.karma, no de la hora.
+                        updateKarmaDisplay();
                         startUserDocListener(); // real-time updates desde Firestore
                         init();
                         subscribeToPush().catch(err => console.error('[push] subscribeToPush:', err));
@@ -4476,24 +4484,19 @@
         function _multChipDemo() {
             const base  = (pointsConfig && pointsConfig.agentDailyPoints) || 10;
             const tiers = _tiersFromConfig();
-            const mx    = state.multiplier;
-            const activo = mx && mx.earned === true;
-            // Sin multiplicador, el ejemplo usa el escalón alineado al primer bono
-            // de Promessa (el 2º) — es el caso más alcanzable, no el techo.
+            // El ejemplo usa el escalón alineado al primer bono de Promessa (el 2º),
+            // no el techo: mostrar el máximo a quien va a sacar la mitad se lee
+            // como carnada la primera vez que cobra menos.
             const ejemplo = tiers[1] || tiers[tiers.length - 1] || { pct: 100 };
-            const val = activo
-                ? Math.round(base * (1 + (Number(mx.bonusPct) || 0) / 100))
-                : Math.round(base * (1 + ejemplo.pct / 100));
-            const leyenda = activo
-                ? 'Así se ve el tuyo ahora. Tócalo para ver de dónde salió.'
-                : 'Cuando lo tengas activo, va a aparecer así arriba de tu pantalla.';
+            const val = Math.round(base * (1 + ejemplo.pct / 100));
             return `
                 <div class="mult-demo-wrap">
                     <span class="karma-chip-demo"><svg class="totopo-icon"><use href="#totopo"/></svg> <b>1,240</b> totopos</span>
                     <span class="mult-chip-demo"><i class="fa fa-bolt"></i> tu día vale <b>${val}</b></span>
                 </div>
                 <div style="font-size:11.5px; color:var(--slate); text-align:center; line-height:1.5; margin-bottom:4px;">
-                    ${leyenda}
+                    Así se verá al lado de tu balance de totopos cuando tengas
+                    el multiplicador activado para el mes en curso.
                 </div>`;
         }
 
@@ -4804,6 +4807,8 @@
                     </div><div></div>
                 </div>
 
+                ${_multChipDemo()}
+
                 <div style="margin-top:18px; font-size:12.5px; color:var(--slate); line-height:1.6;">
                     Y los días que reportes deciden <b style="color:var(--white);">cuánto de eso cobras</b>.
                 </div>
@@ -4830,8 +4835,6 @@
                 <div style="background:rgba(16,185,129,0.10); border:1px solid rgba(16,185,129,0.35); border-radius:8px; padding:13px 15px; margin-top:16px; font-size:12.5px; color:#6ee7b7; line-height:1.6; text-align:center;">
                     Llevas el mes completo. Tu multiplicador va a entrar al 100%.
                 </div>`}
-
-                ${_multChipDemo()}
 
                 <div style="margin-top:18px; border-top:1px solid rgba(255,255,255,0.10); padding-top:14px; display:flex; flex-direction:column; gap:10px;">
                     <div style="background:rgba(16,185,129,0.08); border-left:3px solid var(--green); border-radius:0 6px 6px 0; padding:10px 12px;">
