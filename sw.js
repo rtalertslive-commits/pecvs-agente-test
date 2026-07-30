@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pecvs-agent-testnet-v3.41.0';
+const CACHE_NAME = 'pecvs-agent-testnet-v3.42.0';
 const assets = [
     './',
     './index.html',
@@ -87,6 +87,7 @@ self.addEventListener('activate', e => {
 // del PWA se queda en pantalla hasta que el browser aborta solo (30-120s).
 // Con 4s servimos cache y la app abre al instante; la próxima carga trae fresh.
 const NAV_TIMEOUT_MS = 4000;
+const LAST_RESORT_MS = 15000;
 
 self.addEventListener('fetch', e => {
     // Ignorar requests a dominios externos (Firebase, gstatic, etc.) — solo cacheamos same-origin
@@ -119,9 +120,16 @@ self.addEventListener('fetch', e => {
             } catch (err) {
                 // Timeout o fallo de red → cache si lo tenemos.
                 if (cached) return cached;
-                // Sin cache (primera instalación offline): reintento sin timeout.
-                // Deja que el browser muestre su error de red real en vez de colgarse.
-                return fetch(e.request);
+                // Sin cache (primera instalación offline, o cache recién purgado).
+                // Timeout generoso: suficiente para una conexión mala legítima, pero
+                // acotado — un fetch sin límite acá deja PANTALLA NEGRA indefinida y
+                // solo se recupera al cambiar de red (lo que aborta el fetch colgado).
+                // Al expirar, respondWith rechaza y el browser muestra su error real.
+                return await Promise.race([
+                    fetch(e.request),
+                    new Promise((_, reject) =>
+                        setTimeout(() => reject(new Error('sw-last-resort-timeout')), LAST_RESORT_MS))
+                ]);
             }
         })());
     } else {

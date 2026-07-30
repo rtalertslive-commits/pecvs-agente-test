@@ -2558,7 +2558,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.41.0';
+        window.APP_HTML_VERSION = 'v3.42.0';
 
         (async () => {
             const RUNNING = window.APP_HTML_VERSION;
@@ -2602,14 +2602,13 @@
                 if (alreadyTried !== PUBLISHED) {
                     try { sessionStorage.setItem(KEY, PUBLISHED); } catch (e) {}
                     console.warn('[version] recargando para tomar', PUBLISHED);
-                    // Limpiar el cache del SW primero: sin esto la recarga puede volver
-                    // a servir el mismo HTML viejo desde el Cache API.
-                    try {
-                        if (window.caches) {
-                            const keys = await caches.keys();
-                            await Promise.all(keys.map(k => caches.delete(k)));
-                        }
-                    } catch (e) {}
+                    // NO borrar los caches acá. Lo hice en v3.40.0 y causaba pantalla
+                    // negra: al recargar, si la red estaba lenta el SW expiraba su
+                    // timeout de 4s, buscaba el cache de respaldo y ya no existía, así
+                    // que caía al fetch sin timeout y se colgaba indefinidamente. Solo
+                    // se recuperaba al cambiar de red, porque eso abortaba el fetch.
+                    // El `cache: 'no-store'` del SW ya garantiza HTML fresco de la red;
+                    // borrar el cache era redundante y destruía la red de seguridad.
                     location.reload();
                     return;
                 }
