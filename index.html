@@ -1217,6 +1217,20 @@
             background: linear-gradient(90deg, var(--gold), #f0d67a);
             transition: width .4s ease;
         }
+        /* Barra de 3 tramos: lo ganado, lo perdido y lo que todavía se puede.
+           Mostrar "22 de 31" a secas hacía parecer alcanzables los 9 faltantes,
+           cuando los días pasados sin reportar ya no se recuperan. */
+        .cov-split { display: flex; height: 9px; border-radius: 5px; overflow: hidden;
+                     background: rgba(255,255,255,0.09); margin: 8px 0 7px; }
+        .cov-seg { height: 100%; transition: width .4s ease; }
+        .cov-seg-ok    { background: linear-gradient(90deg, var(--gold), #f0d67a); }
+        .cov-seg-lost  { background: repeating-linear-gradient(45deg,
+                            rgba(239,68,68,0.38) 0 4px, rgba(239,68,68,0.16) 4px 8px); }
+        .cov-seg-open  { background: rgba(255,255,255,0.07); }
+        .cov-legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11px; color: var(--slate); }
+        .cov-legend i { font-style: normal; }
+        .cov-dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px;
+                   margin-right: 5px; vertical-align: middle; }
 
         #karma-badge {
             display: inline-flex;
@@ -2558,7 +2572,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.43.0';
+        window.APP_HTML_VERSION = 'v3.44.0';
 
         (async () => {
             const RUNNING = window.APP_HTML_VERSION;
@@ -4502,7 +4516,11 @@
         // 🌙 cuenta (declaro honestamente que no intento), 🔴 y ⚪ no.
         // Set sobre el dia del mes para que un dia repetido en dos semanas no
         // se cuente dos veces.
-        function _reportedDaysInMonth(y, m) {
+        // Devuelve el Set de días del mes que ganaron totopos. Se necesita el Set
+        // y no solo el conteo para poder separar los días ya PERDIDOS (pasados sin
+        // reportar, irrecuperables porque la bitácora cierra el mismo día) de los
+        // que todavía están POR VENIR.
+        function _reportedDatesInMonth(y, m) {
             const mesStr = MONTHS_ES[m - 1] + ' ' + y;
             const cal = getMonthCalendar(y, m);
             const seen = new Set();
@@ -4518,10 +4536,34 @@
                     if (ok) seen.add(info.date);
                 });
             });
-            return seen.size;
+            return seen;
         }
 
+        function _reportedDaysInMonth(y, m) { return _reportedDatesInMonth(y, m).size; }
+
         function _daysInMonth(y, m) { return new Date(y, m, 0).getDate(); }
+
+        // Desglose de cobertura del mes en curso, separando lo irrecuperable de lo
+        // que todavía está en juego. La bitácora solo permite editar HOY, así que un
+        // día pasado sin reportar está perdido y no tiene sentido mostrarlo como si
+        // se pudiera alcanzar.
+        //   reportados : días con reporte válido
+        //   perdidos   : días ya cerrados (anteriores a hoy) sin reportar
+        //   porVenir   : hoy + los que faltan del mes — todavía se pueden ganar
+        //   alcanzable : reportados + porVenir  (el techo real, no `total`)
+        function _coverageBreakdown(y, m) {
+            const total = _daysInMonth(y, m);
+            const hoy   = (serverNow && serverNow.getFullYear() === y && (serverNow.getMonth() + 1) === m)
+                ? serverNow.getDate() : total;   // mes cerrado: todo cuenta como pasado
+            const set = _reportedDatesInMonth(y, m);
+            let reportados = 0, perdidos = 0, porVenir = 0;
+            for (let d = 1; d <= total; d++) {
+                if (set.has(d))      reportados++;   // ya lo tiene
+                else if (d < hoy)    perdidos++;     // cerrado sin reportar: irrecuperable
+                else                 porVenir++;     // hoy o después: todavía se puede
+            }
+            return { total, hoy, reportados, perdidos, porVenir, alcanzable: reportados + porVenir };
+        }
 
         // Badge junto al contador: muestra lo que vale el dia, no el porcentaje.
         // "+130%" obliga a hacer una cuenta; "tu dia vale 23" no.
@@ -4750,9 +4792,8 @@
             const el = document.getElementById('cov-block');
             if (!el || !serverNow) return;
             const y = serverNow.getFullYear(), m = serverNow.getMonth() + 1;
-            const total = _daysInMonth(y, m);
-            const rep   = _reportedDaysInMonth(y, m);
-            const pct   = Math.min(100, Math.round((rep / total) * 100));
+            const bd    = _coverageBreakdown(y, m);
+            const total = bd.total;
             const mesSig= MONTHS_ES[m % 12].toLowerCase();
             const cuanto = _cuantoMas();
 
@@ -4772,10 +4813,15 @@
                     <div style="font-size:11px; color:var(--slate); text-transform:uppercase; letter-spacing:1px;">
                         Construyendo tu multiplicador de ${mesSig}
                     </div>
-                    <div class="cov-bar"><div class="cov-fill" style="width:${pct}%;"></div></div>
-                    <div style="display:flex; justify-content:space-between; font-size:11.5px; color:var(--slate);">
-                        <span><b style="color:var(--white); font-size:13px;">${rep}</b> de ${total} días</span>
-                        <span style="font-variant-numeric:tabular-nums;">${pct}%</span>
+                    <div class="cov-split">
+                        <div class="cov-seg cov-seg-ok"   style="width:${(bd.reportados / total) * 100}%;"></div>
+                        <div class="cov-seg cov-seg-lost" style="width:${(bd.perdidos   / total) * 100}%;"></div>
+                        <div class="cov-seg cov-seg-open" style="width:${(bd.porVenir   / total) * 100}%;"></div>
+                    </div>
+                    <div class="cov-legend">
+                        <span><b style="color:var(--white); font-size:13px;">${bd.reportados}</b> reportados</span>
+                        ${bd.perdidos > 0 ? `<span style="color:#f87171;">${bd.perdidos} ${bd.perdidos === 1 ? 'perdido' : 'perdidos'}</span>` : ''}
+                        ${bd.porVenir > 0 ? `<span>${bd.porVenir} por reportar</span>` : ''}
                     </div>
                     <button class="cov-invite-btn" id="cov-invite-btn" type="button">Ver cómo funciona</button>
                   </div>
@@ -4848,12 +4894,16 @@
             if (!el || !serverNow) return;
             const base   = (pointsConfig && pointsConfig.agentDailyPoints) || 10;
             const y      = serverNow.getFullYear(), m = serverNow.getMonth() + 1;
-            const total  = _daysInMonth(y, m);
-            const rep    = _reportedDaysInMonth(y, m);
-            const cov     = total ? rep / total : 0;
+            const bd     = _coverageBreakdown(y, m);
+            const total  = bd.total;
+            const rep    = bd.reportados;
+            const cov    = total ? rep / total : 0;
+            // Techo REAL: los días ya perdidos no se recuperan, así que la columna
+            // de máximo se calcula sobre lo alcanzable, no sobre el mes completo.
+            const covMax = total ? bd.alcanzable / total : 0;
             const mesAct = MONTHS_ES[m - 1].toLowerCase();
             const mesSig = MONTHS_ES[m % 12].toLowerCase();
-            const faltan = Math.max(0, total - rep);
+            const faltan = bd.porVenir;
             const tiers  = _tiersFromConfig();
             const piso   = tiers[0];
             const margen = (pointsConfig && pointsConfig.multMargin) || 10;
@@ -4871,7 +4921,9 @@
             );
             const filas = escala.map(t => {
                 const ahora = Math.round(base * (1 + (t.pct * cov) / 100));
-                const pleno = Math.round(base * (1 + t.pct / 100));
+                // `pleno` usa covMax, no 1: prometer el valor del mes completo
+                // cuando ya hay días perdidos es mostrar un número inalcanzable.
+                const pleno = Math.round(base * (1 + (t.pct * covMax) / 100));
                 const rango = t.pct === 0
                     ? `menos de ${_money(tiers[0].min)}`
                     : (t.max === null ? `${_money(t.min)} o más` : `${_money(t.min)} — ${_money(t.max)}`);
@@ -4892,16 +4944,30 @@
             el.innerHTML = `
                 <h2 style="font-family:'Playfair Display',serif; color:var(--gold); margin:0 0 4px; font-size:20px;">Tu multiplicador de ${mesSig}</h2>
                 <div style="font-size:12.5px; color:var(--slate); margin-bottom:16px; line-height:1.55;">
-                    Hoy cada día que reportas vale <b style="color:var(--white);">${base}</b> totopos.
-                    Lo que hagas en <b style="color:var(--white); text-transform:capitalize;">${mesAct}</b>
-                    decide cuánto vale cada día que reportes en
+                    Los días que te faltaron de reportar en
+                    <b style="color:var(--white); text-transform:capitalize;">${mesAct}</b>
+                    influyen en cuánto van a valer tus totopos por cada día que reportes en
                     <b style="color:var(--gold); text-transform:capitalize;">${mesSig}</b>.
                 </div>
 
                 <div style="background:rgba(212,175,55,0.08); border:1px solid rgba(212,175,55,0.25); border-radius:8px; padding:14px; margin-bottom:16px;">
                     <div style="font-size:12px; color:var(--slate); margin-bottom:6px;">Llevas</div>
-                    <div style="font-size:26px; font-weight:900; color:var(--white); line-height:1;">${rep} <span style="font-size:15px; font-weight:600; color:var(--slate);">de ${total} días</span></div>
-                    <div class="cov-bar" style="margin-top:10px; margin-bottom:0;"><div class="cov-fill" style="width:${Math.round(cov*100)}%;"></div></div>
+                    <div style="font-size:26px; font-weight:900; color:var(--white); line-height:1;">${bd.reportados} <span style="font-size:15px; font-weight:600; color:var(--slate);">de ${total} días</span></div>
+                    <div class="cov-split">
+                        <div class="cov-seg cov-seg-ok"   style="width:${(bd.reportados / total) * 100}%;"></div>
+                        <div class="cov-seg cov-seg-lost" style="width:${(bd.perdidos   / total) * 100}%;"></div>
+                        <div class="cov-seg cov-seg-open" style="width:${(bd.porVenir   / total) * 100}%;"></div>
+                    </div>
+                    <div class="cov-legend">
+                        <span><i class="cov-dot" style="background:linear-gradient(90deg,var(--gold),#f0d67a);"></i><b style="color:var(--white);">${bd.reportados}</b> reportados</span>
+                        ${bd.perdidos > 0 ? `<span><i class="cov-dot" style="background:rgba(239,68,68,0.45);"></i><b style="color:#f87171;">${bd.perdidos}</b> ${bd.perdidos === 1 ? 'perdido' : 'perdidos'}</span>` : ''}
+                        ${bd.porVenir > 0 ? `<span><i class="cov-dot" style="background:rgba(255,255,255,0.18);"></i><b style="color:var(--white);">${bd.porVenir}</b> por reportar</span>` : ''}
+                    </div>
+                    ${bd.perdidos > 0 ? `
+                    <div style="font-size:11.5px; color:var(--slate); margin-top:9px; line-height:1.5;">
+                        Los ${bd.perdidos} perdidos ya no se recuperan — la bitácora se cierra el mismo día.
+                        ${bd.porVenir > 0 ? `Reportando los ${bd.porVenir} que faltan llegas a <b style="color:var(--white);">${bd.alcanzable} de ${total}</b>.` : ''}
+                    </div>` : ''}
                 </div>
 
                 <div style="font-size:12.5px; color:var(--slate); line-height:1.6; margin-bottom:14px;">
@@ -4936,7 +5002,7 @@
                     <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.14);">
                         <th style="text-align:left; font-size:10px; color:var(--slate); text-transform:uppercase; letter-spacing:1px; font-weight:500; padding-bottom:7px;">Si cierras ${mesAct} con…</th>
                         <th style="text-align:right; font-size:10px; color:var(--gold); text-transform:uppercase; letter-spacing:0.5px; font-weight:700; padding-bottom:7px;">Con tus<br>${rep} días</th>
-                        <th style="text-align:right; font-size:10px; color:var(--slate); text-transform:uppercase; letter-spacing:0.5px; font-weight:500; padding-bottom:7px; padding-left:14px;">Máximo<br>los ${total} días</th>
+                        <th style="text-align:right; font-size:10px; color:var(--slate); text-transform:uppercase; letter-spacing:0.5px; font-weight:500; padding-bottom:7px; padding-left:14px;">Máximo<br>${bd.alcanzable} días</th>
                     </tr></thead>
                     <tbody>${filas}</tbody>
                 </table>
@@ -4944,11 +5010,13 @@
 
                 ${faltan > 0 ? `
                 <div style="background:rgba(16,185,129,0.10); border:1px solid rgba(16,185,129,0.35); border-radius:8px; padding:13px 15px; margin-top:16px; font-size:12.5px; color:var(--slate); line-height:1.6;">
-                    Te faltan <b style="color:#6ee7b7;">${faltan} ${faltan === 1 ? 'día' : 'días'}</b> de ${mesAct}.
-                    Reporta hoy y la columna de la izquierda se acerca a la de la derecha.
+                    Te quedan <b style="color:#6ee7b7;">${faltan} ${faltan === 1 ? 'día' : 'días'}</b> por reportar en ${mesAct}.
+                    Cada uno que reportes acerca la columna de la izquierda a la de la derecha.
                 </div>` : `
                 <div style="background:rgba(16,185,129,0.10); border:1px solid rgba(16,185,129,0.35); border-radius:8px; padding:13px 15px; margin-top:16px; font-size:12.5px; color:#6ee7b7; line-height:1.6; text-align:center;">
-                    Llevas el mes completo. Tu multiplicador va a entrar al 100%.
+                    ${bd.perdidos > 0
+                        ? `Ya no quedan días por reportar en ${mesAct}. Cerraste con ${bd.reportados} de ${total}.`
+                        : 'Reportaste el mes completo. Tu multiplicador va a entrar al 100%.'}
                 </div>`}
 
                 <div style="margin-top:18px; border-top:1px solid rgba(255,255,255,0.10); padding-top:14px; display:flex; flex-direction:column; gap:10px;">
