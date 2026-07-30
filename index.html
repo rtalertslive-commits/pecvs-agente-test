@@ -2618,7 +2618,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.51.0';
+        window.APP_HTML_VERSION = 'v3.52.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -5097,8 +5097,11 @@
                 </div>
                 <div style="font-size:11.5px; color:var(--slate); margin-top:9px; line-height:1.55;">
                     ${bd.porVenir > 0
-                        ? `Asume que reportas los <b style="color:var(--white);">${bd.porVenir}</b> días que te quedan de ${mesAct}.`
-                        : `${mesAct.charAt(0).toUpperCase() + mesAct.slice(1)} ya cerró con ${bd.reportados} de ${total} días.`}
+                        ? `<b style="color:var(--gold);">Puedes llegar a</b> asume que reportas los
+                           <b style="color:var(--white);">${bd.porVenir}</b>
+                           ${bd.porVenir === 1 ? 'día' : 'días'} que te quedan de ${mesAct}.`
+                        : `<b style="color:var(--gold);">Cerraste con</b> es lo que quedó firme:
+                           <b style="color:var(--white);">${bd.reportados}</b> de ${total} días de ${mesAct}.`}
                     ${hayPerdidos
                         ? `<b style="color:var(--white);">Sin faltar</b> es lo que valdría si hubieras reportado los ${total} — la diferencia es lo que te costaron esos <b style="color:#f87171;">${bd.perdidos}</b> días.`
                         : ''}
