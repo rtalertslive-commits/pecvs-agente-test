@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pecvs-agent-testnet-v3.47.0';
+const CACHE_NAME = 'pecvs-agent-testnet-v3.48.0';
 const assets = [
     './',
     './index.html',
@@ -65,7 +65,12 @@ self.addEventListener('notificationclick', event => {
 // ─── INSTALL / ACTIVATE / FETCH ──────────────────────────────────────────────
 self.addEventListener('install', e => {
     self.skipWaiting();
-    e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(assets)));
+    // .catch: addAll es atómico — si UN asset falla, falla el install completo y el
+    // SW nuevo nunca activa. No vale la pena bloquear una actualización porque no
+    // se pudo precachear un ícono.
+    // Los CDN a propósito NO van acá: precachearlos ataría el install a que los
+    // tres CDN respondan, que es justo el problema que estamos resolviendo.
+    e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(assets)).catch(() => {}));
 });
 
 self.addEventListener('activate', e => {
@@ -89,10 +94,29 @@ self.addEventListener('activate', e => {
 const NAV_TIMEOUT_MS = 4000;
 const LAST_RESORT_MS = 15000;
 
+// CDNs de assets estáticos que el <head> carga BLOQUEANDO el render:
+// Chart.js, Font Awesome y Google Fonts. Antes se dejaban pasar sin cachear
+// ("solo cacheamos same-origin"), así que cada arranque de la app dependía de
+// que los tres CDNs respondieran. Si uno se colgaba —WiFi con captive portal,
+// DNS muerto— el browser no pintaba NADA: pantalla negra hasta que el sistema
+// abortara la petición, y por eso "se arreglaba" al cambiar de WiFi a LTE.
+// Cacheados, a partir del segundo arranque no vuelven a tocar la red.
+const STATIC_CDN = [
+    'cdn.jsdelivr.net',        // chart.js
+    'cdnjs.cloudflare.com',    // font awesome
+    'fonts.googleapis.com',    // css de fuentes
+    'fonts.gstatic.com'        // archivos de fuentes
+];
+
 self.addEventListener('fetch', e => {
-    // Ignorar requests a dominios externos (Firebase, gstatic, etc.) — solo cacheamos same-origin
     const url = new URL(e.request.url);
-    if (url.origin !== self.location.origin) return;
+    const sameOrigin  = url.origin === self.location.origin;
+    const isStaticCdn = STATIC_CDN.indexOf(url.hostname) !== -1;
+
+    // Todo el resto cross-origin (Firestore, FCM, APIs de hora) se deja pasar
+    // intacto: cachear respuestas de API sería un desastre de datos viejos.
+    if (!sameOrigin && !isStaticCdn) return;
+    if (e.request.method !== 'GET') return;
 
     // Network-First CON TIMEOUT para la navegación principal (index.html).
     // Si hay internet decente, descarga la última versión de GitHub.
@@ -133,9 +157,36 @@ self.addEventListener('fetch', e => {
             }
         })());
     } else {
-        // Cache-First para otros assets estáticos
-        e.respondWith(
-            caches.match(e.request).then(res => res || fetch(e.request))
-        );
+        // Cache-First para assets estáticos, propios y de CDN.
+        e.respondWith((async () => {
+            const cached = await caches.match(e.request);
+
+            if (cached) {
+                // Refresco en segundo plano solo para los CDN: sirve el cache al
+                // instante y va actualizando sin bloquear nada. Si la red está
+                // muerta, el .catch() lo absorbe y el usuario no se enteró.
+                if (isStaticCdn) {
+                    fetch(e.request).then(res => {
+                        if (!res) return;
+                        // Los CDN sin CORS devuelven respuestas 'opaque': status 0 y
+                        // ok=false. Son cacheables igual, así que hay que aceptarlas
+                        // explícitamente o nunca se guardaría ninguna fuente.
+                        if (res.ok || res.type === 'opaque') {
+                            const clone = res.clone();
+                            caches.open(CACHE_NAME).then(c => c.put(e.request, clone)).catch(() => {});
+                        }
+                    }).catch(() => {});
+                }
+                return cached;
+            }
+
+            // Primera vez: a la red, y guardamos para que no vuelva a depender de ella.
+            const res = await fetch(e.request);
+            if (isStaticCdn && res && (res.ok || res.type === 'opaque')) {
+                const clone = res.clone();
+                caches.open(CACHE_NAME).then(c => c.put(e.request, clone)).catch(() => {});
+            }
+            return res;
+        })());
     }
 });

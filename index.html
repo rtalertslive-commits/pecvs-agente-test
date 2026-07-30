@@ -10,7 +10,11 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- defer: sin esto bloquea el parseo del HTML y si el CDN se cuelga la app
+         abre en NEGRO hasta que el sistema aborte la peticion. Chart solo se usa
+         dentro de renderCharts(), nunca al evaluar el modulo, asi que diferirlo
+         no rompe nada. -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 
     <!-- PWA / Mobile Web App Meta -->
     <link rel="manifest" href="manifest.json">
@@ -2612,7 +2616,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.47.0';
+        window.APP_HTML_VERSION = 'v3.48.0';
 
         (async () => {
             const RUNNING = window.APP_HTML_VERSION;
