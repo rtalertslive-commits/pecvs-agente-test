@@ -2618,7 +2618,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.59.0';
+        window.APP_HTML_VERSION = 'v3.60.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -6169,10 +6169,19 @@
                 const any = Object.values(dvals).some(v => typeof v === 'number' && v > 0) || dvals.prima > 0;
                 const cell = document.getElementById('funnel-' + day);
                 if (cell) {
-                    cell.textContent = sinActividad ? '🌙' : (!any ? '—' : (ok ? '💪' : '🔴'));
+                    // 💪 vs 🌱 se distingue por V (cierres), igual que en el calendario
+                    // (_myCalGetDayStatus). Antes esta celda solo tenía 3 estados y
+                    // cualquier día válido con datos mostraba 💪 — así que un día de
+                    // prospección sin cierre se veía como si hubiera habido venta,
+                    // contradiciendo lo que el mismo día muestra en el calendario.
+                    const conCierre = (Number(dvals.V) || 0) > 0;
+                    cell.textContent = sinActividad ? '🌙'
+                        : (!any ? '—' : (ok ? (conCierre ? '💪' : '🌱') : '🔴'));
                     cell.title = sinActividad
                         ? 'Día declarado sin intento de venta — +totopos por honestidad'
-                        : (ok ? 'Todo correcto' : '⚠️ ERRORES:\n• ' + errors.join('\n• '));
+                        : (ok
+                            ? (conCierre ? 'Actividad con cierre' : 'Actividad sin cierre — cuenta igual para totopos')
+                            : '⚠️ ERRORES:\n• ' + errors.join('\n• '));
                 }
                 // Actualizar el mensaje al lado del embudo (solo existe en la card de HOY)
                 const statusMsg = document.getElementById('status-msg-' + day);
