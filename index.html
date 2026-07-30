@@ -2558,7 +2558,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.40.0';
+        window.APP_HTML_VERSION = 'v3.41.0';
 
         (async () => {
             const RUNNING = window.APP_HTML_VERSION;
@@ -3740,9 +3740,13 @@
                         // recien borrados, red ocupada) el usuario veia su balance en 0
                         // hasta que resolvieran, y tenia que cerrar y reabrir la app.
                         // El balance solo depende de state.karma, no de la hora.
-                        updateKarmaDisplay();
-                        startUserDocListener(); // real-time updates desde Firestore
-                        init();
+                        // Cada paso va aislado: si uno truena, los siguientes tienen que
+                        // correr igual. Sin esto, un error acá dejaba la app COMPLETAMENTE
+                        // vacia (ni bitacora, ni balance) porque init() nunca arrancaba, y
+                        // solo se recuperaba al cambiar de pestana y volver.
+                        try { updateKarmaDisplay(); } catch (e) { console.error('[boot] balance:', e); }
+                        try { startUserDocListener(); } catch (e) { console.error('[boot] listener:', e); }
+                        try { init(); } catch (e) { console.error('[boot] init:', e); }
                         subscribeToPush().catch(err => console.error('[push] subscribeToPush:', err));
                         // Iniciar listener de anuncios para mantener badge y modal actualizados
                         startAnunciosListener();
