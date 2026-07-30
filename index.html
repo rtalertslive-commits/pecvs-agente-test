@@ -2618,7 +2618,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.53.0';
+        window.APP_HTML_VERSION = 'v3.54.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -5056,30 +5056,10 @@
                     </div>` : ''}
                 </div>
 
-                <div style="font-size:12.5px; color:var(--slate); line-height:1.6; margin-bottom:14px;">
-                    Para obtener el multiplicador necesitas <b style="color:var(--white);">estas dos condiciones</b>:
-                </div>
-                <div class="mrec-row">
-                    <div class="mrec-ico">1</div>
-                    <div>
-                        <div class="mrec-k">Que tus números cuadren</div>
-                        <div class="mrec-v">Al cerrar el mes comparamos lo que reportaste aquí contra lo que se ingresó en Promessa. Se acepta una diferencia de hasta <b style="color:var(--white);">${margen}% de margen de error</b>.</div>
-                    </div><div></div>
-                </div>
-                <div class="mrec-row">
-                    <div class="mrec-ico">2</div>
-                    <div>
-                        <div class="mrec-k">Vender al menos ${_money(piso.min)} en el mes</div>
-                        <div class="mrec-v">Entre más vendas, más vale tu día.</div>
-                    </div><div></div>
-                </div>
-
-                ${_multChipDemo()}
-
-                <div style="margin-top:18px; font-size:12.5px; color:var(--slate); line-height:1.6;">
-                    Y los días que reportes en <b style="color:var(--white); text-transform:capitalize;">${mesAct}</b>
-                    deciden <b style="color:var(--white);">cuánto de eso cobras</b> en
-                    <b style="color:var(--gold); text-transform:capitalize;">${mesSig}</b>.
+                <div style="margin-top:16px; font-size:12.5px; color:var(--slate); line-height:1.6;">
+                    Los días que reportes en <b style="color:var(--white); text-transform:capitalize;">${mesAct}</b>
+                    deciden <b style="color:var(--white);">cuánto vale cada día</b> que reportes en
+                    <b style="color:var(--gold); text-transform:capitalize;">${mesSig}</b>:
                 </div>
 
                 <div style="font-size:11px; color:var(--gold); text-transform:uppercase; letter-spacing:1px; margin:16px 0 4px; font-weight:700;">
@@ -5117,6 +5097,27 @@
                         ? `Ya no quedan días por reportar en ${mesAct}. Cerraste con ${bd.reportados} de ${total}.`
                         : 'Reportaste el mes completo. Tu multiplicador va a entrar al 100%.'}
                 </div>`}
+
+                <div style="font-size:12.5px; color:var(--slate); line-height:1.6; margin-bottom:14px;">
+                    Para obtener el multiplicador necesitas <b style="color:var(--white);">estas dos condiciones</b>:
+                </div>
+                <div class="mrec-row">
+                    <div class="mrec-ico">1</div>
+                    <div>
+                        <div class="mrec-k">Que tus números cuadren</div>
+                        <div class="mrec-v">Al cerrar el mes comparamos lo que reportaste aquí contra lo que se ingresó en Promessa. Se acepta una diferencia de hasta <b style="color:var(--white);">${margen}% de margen de error</b>.</div>
+                    </div><div></div>
+                </div>
+                <div class="mrec-row">
+                    <div class="mrec-ico">2</div>
+                    <div>
+                        <div class="mrec-k">Vender al menos ${_money(piso.min)} en el mes</div>
+                        <div class="mrec-v">Entre más vendas, más vale tu día.</div>
+                    </div><div></div>
+                </div>
+
+                ${_multChipDemo()}
+
 
                 <div style="margin-top:18px; border-top:1px solid rgba(255,255,255,0.10); padding-top:14px; display:flex; flex-direction:column; gap:10px;">
                     <div style="background:rgba(16,185,129,0.08); border-left:3px solid var(--green); border-radius:0 6px 6px 0; padding:10px 12px;">
