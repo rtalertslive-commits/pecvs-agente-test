@@ -2618,7 +2618,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.56.0';
+        window.APP_HTML_VERSION = 'v3.57.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -5013,11 +5013,27 @@
             //
             // Sin días perdidos las tres serían iguales, así que en ese caso queda
             // una sola columna: "Puedes llegar hasta". Ahí sí es cierto.
-            const hayPerdidos = bd.perdidos > 0;
+            // `queda` (lo alcanzable) es la columna PRINCIPAL y lleva el rótulo
+            // "Puedes llegar hasta", porque es el único número que de verdad puede
+            // lograr. `techo` (el mes completo) va al lado solo cuando difiere.
+            //
+            // La resta va DENTRO de la celda del techo y solo donde existe. Tenerla
+            // en columna propia con encabezado "te resta por N días" se contradecía
+            // solo: con 1 día perdido de 31, el redondeo deja la resta en 0 para los
+            // escalones bajos, así que el encabezado afirmaba una pérdida que la
+            // fila mostraba como "—".
+            // La tabla es un EJEMPLO FIJO, no el estado del agente: mes completo vs
+            // medio mes. Su situación real ya está arriba en la barra, así que acá
+            // conviene enseñar la regla — "reportar la mitad te da la mitad".
+            //
+            // Antes esta tabla calculaba su cobertura real y mostraba la resta por
+            // escalón. Se contradecía sola: con 1 día perdido de 31 el redondeo deja
+            // la resta en 0 para los escalones bajos, así que el encabezado afirmaba
+            // una pérdida que la fila mostraba como "—". Un ejemplo fijo no tiene
+            // ese problema y además no cambia de significado cada día del mes.
             const filas = escala.map(t => {
-                const techo = Math.round(base * (1 + t.pct / 100));
-                const queda = Math.round(base * (1 + (t.pct * covMax) / 100));
-                const resta = techo - queda;
+                const completo = Math.round(base * (1 + t.pct / 100));
+                const mitad    = Math.round(base * (1 + (t.pct * 0.5) / 100));
                 const rango = t.pct === 0
                     ? `menos de ${_money(tiers[0].min)}`
                     : (t.max === null ? `${_money(t.min)} o más` : `${_money(t.min)} — ${_money(t.max)}`);
@@ -5031,10 +5047,8 @@
                     <td style="padding:8px 0; font-size:12.5px; ${bdr}">
                         ${rango}${off ? '' : `<br><span style="font-size:11px; color:var(--gold-l,#e5c76b); font-weight:700;">hasta +${t.pct}%</span>`}
                     </td>
-                    <td style="padding:8px 3px; text-align:right; ${bdr}">${num(techo, hayPerdidos ? 15 : 17, off ? 'var(--slate)' : 'var(--gold)', 800)}</td>
-                    ${hayPerdidos ? `
-                    <td style="padding:8px 3px; text-align:right; ${bdr}">${num(resta > 0 ? '−' + resta : '—', 13, resta > 0 ? '#f87171' : 'rgba(148,163,184,0.5)', 700)}</td>
-                    <td style="padding:8px 0 8px 6px; text-align:right; ${bdr}">${num(queda, 16, off ? 'var(--slate)' : 'var(--white)', 800)}</td>` : ''}
+                    <td style="padding:8px 4px; text-align:right; ${bdr}">${num(completo, 17, off ? 'var(--slate)' : 'var(--gold)', 800)}</td>
+                    <td style="padding:8px 0 8px 12px; text-align:right; ${bdr}">${num(mitad, 14, off ? 'var(--slate)' : 'rgba(248,113,113,0.85)', 700)}</td>
                 </tr>`;
             }).join('');
 
@@ -5098,26 +5112,16 @@
                 <table style="width:100%; border-collapse:collapse;">
                     <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.14);">
                         <th style="text-align:left; font-size:9.5px; color:var(--slate); text-transform:uppercase; letter-spacing:0.8px; font-weight:500; padding-bottom:7px;">Si cierras ${mesAct} con…</th>
-                        <th style="text-align:right; font-size:9px; color:var(--gold); text-transform:uppercase; letter-spacing:0.3px; font-weight:800; padding-bottom:7px; line-height:1.25;">Puedes<br>llegar hasta</th>
-                        ${hayPerdidos ? `
-                        <th style="text-align:right; font-size:9px; color:#f87171; text-transform:uppercase; letter-spacing:0.3px; font-weight:700; padding-bottom:7px; line-height:1.25;">Te resta<br>por ${bd.perdidos} días</th>
-                        <th style="text-align:right; font-size:9px; color:var(--white); text-transform:uppercase; letter-spacing:0.3px; font-weight:800; padding-bottom:7px; padding-left:6px; line-height:1.25;">Te<br>queda</th>` : ''}
+                        <th style="text-align:right; font-size:9px; color:var(--gold); text-transform:uppercase; letter-spacing:0.3px; font-weight:800; padding-bottom:7px; line-height:1.25;">Reportando<br>todo el mes</th>
+                        <th style="text-align:right; font-size:9px; color:rgba(248,113,113,0.85); text-transform:uppercase; letter-spacing:0.3px; font-weight:700; padding-bottom:7px; padding-left:12px; line-height:1.25;">Reportando<br>la mitad</th>
                     </tr></thead>
                     <tbody>${filas}</tbody>
                 </table>
                 </div>
                 <div style="font-size:11.5px; color:var(--slate); margin-top:9px; line-height:1.55;">
-                    ${hayPerdidos
-                        ? `<b style="color:var(--gold);">Puedes llegar hasta</b> es lo que valdría reportando
-                           los ${total} días de ${mesAct}.
-                           <b style="color:#f87171;">Te resta</b> es lo que te quitan los
-                           <b style="color:#f87171;">${bd.perdidos}</b> días que ya no reportaste.
-                           <b style="color:var(--white);">Te queda</b> es lo que puedes alcanzar
-                           ${bd.porVenir > 0
-                               ? `si reportas los <b style="color:var(--white);">${bd.porVenir}</b> ${bd.porVenir === 1 ? 'día' : 'días'} que faltan.`
-                               : `— ${mesAct} ya cerró.`}`
-                        : `Reportando los ${total} días de ${mesAct} llegas a esos números.
-                           Cada día que dejes sin reportar los baja.`}
+                    Reportar la mitad del mes te da la mitad del multiplicador, y así con cualquier
+                    proporción. <b style="color:var(--white);">Vas ${bd.reportados} de ${total} días
+                    en ${mesAct}.</b>
                 </div>
 
                 ${faltan > 0 ? `
