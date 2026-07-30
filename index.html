@@ -2618,7 +2618,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.60.0';
+        window.APP_HTML_VERSION = 'v3.61.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -6149,7 +6149,7 @@
             // Iterar por currentWeeks en lugar de DOM, así funciona en mobile (cards) o desktop (tabla)
             const semIdx = parseInt(document.getElementById('sel-semana').value) - 1;
             const weekDays = currentWeeks[semIdx] || [];
-            weekDays.forEach(({ dayName: day }) => {
+            weekDays.forEach(({ dayName: day, date: dayNum }) => {
                 const dvals = {};
                 // Clamp a [0, ∞): Math.max(0, ...) bloquea negativos; `|| 0` bloquea NaN/empty
                 COLS.forEach(c => {
@@ -6175,13 +6175,28 @@
                     // prospección sin cierre se veía como si hubiera habido venta,
                     // contradiciendo lo que el mismo día muestra en el calendario.
                     const conCierre = (Number(dvals.V) || 0) > 0;
+                    // Día vacío → ⚪, el mismo emoji del calendario para "no reportó".
+                    // Pero solo si ya pasó o es hoy: en un día futuro de la semana en
+                    // curso, ⚪ se leería como "ya lo perdiste" cuando todavía no le
+                    // tocaba. El calendario hace la misma distinción con .future.
+                    let esFuturo = false;
+                    if (serverNow && dayNum) {
+                        const m = parseInt(document.getElementById('sel-month').value);
+                        const y = parseInt(document.getElementById('inp-year').value);
+                        const dDate = new Date(y, m - 1, dayNum);
+                        const hoy = new Date(serverNow.getFullYear(), serverNow.getMonth(), serverNow.getDate());
+                        esFuturo = dDate.getTime() > hoy.getTime();
+                    }
+                    const vacio = esFuturo ? '—' : '⚪';
                     cell.textContent = sinActividad ? '🌙'
-                        : (!any ? '—' : (ok ? (conCierre ? '💪' : '🌱') : '🔴'));
+                        : (!any ? vacio : (ok ? (conCierre ? '💪' : '🌱') : '🔴'));
                     cell.title = sinActividad
                         ? 'Día declarado sin intento de venta — +totopos por honestidad'
-                        : (ok
-                            ? (conCierre ? 'Actividad con cierre' : 'Actividad sin cierre — cuenta igual para totopos')
-                            : '⚠️ ERRORES:\n• ' + errors.join('\n• '));
+                        : (!any
+                            ? (esFuturo ? 'Todavía no llega este día' : 'Sin reportar — este día no genera totopos')
+                            : (ok
+                                ? (conCierre ? 'Actividad con cierre' : 'Actividad sin cierre — cuenta igual para totopos')
+                                : '⚠️ ERRORES:\n• ' + errors.join('\n• ')));
                 }
                 // Actualizar el mensaje al lado del embudo (solo existe en la card de HOY)
                 const statusMsg = document.getElementById('status-msg-' + day);
