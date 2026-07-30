@@ -2558,7 +2558,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.39.0';
+        window.APP_HTML_VERSION = 'v3.40.0';
 
         (async () => {
             const RUNNING = window.APP_HTML_VERSION;
@@ -2588,8 +2588,33 @@
                 paint(RUNNING + ' → ' + PUBLISHED, true);
                 console.warn('[version] corriendo', RUNNING, 'pero publicado es', PUBLISHED, '— HTML servido desde cache');
 
-                // Reusa el modal de actualización que ya existe. Se define en el
-                // script type="module" de abajo, que puede no haber corrido todavía.
+                // RECARGA AUTOMÁTICA. Esto corre al inicio del load, antes del login
+                // y antes de que el usuario pueda escribir nada, así que recargar acá
+                // no interrumpe ningún trabajo a medio hacer.
+                //
+                // Guarda contra bucle: solo un auto-reload por versión publicada y por
+                // sesión. Si después de recargar seguimos viejos (proxy cacheando,
+                // CDN lento), no insistimos — mostramos el modal y que decida el user.
+                const KEY = 'pecvsAutoReloadFor';
+                let alreadyTried = null;
+                try { alreadyTried = sessionStorage.getItem(KEY); } catch (e) {}
+
+                if (alreadyTried !== PUBLISHED) {
+                    try { sessionStorage.setItem(KEY, PUBLISHED); } catch (e) {}
+                    console.warn('[version] recargando para tomar', PUBLISHED);
+                    // Limpiar el cache del SW primero: sin esto la recarga puede volver
+                    // a servir el mismo HTML viejo desde el Cache API.
+                    try {
+                        if (window.caches) {
+                            const keys = await caches.keys();
+                            await Promise.all(keys.map(k => caches.delete(k)));
+                        }
+                    } catch (e) {}
+                    location.reload();
+                    return;
+                }
+
+                // Ya recargamos una vez por esta versión y seguimos viejos: no insistir.
                 let tries = 0;
                 const t = setInterval(() => {
                     if (typeof window.showUpdateModal === 'function') {
