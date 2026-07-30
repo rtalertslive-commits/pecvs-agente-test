@@ -2558,7 +2558,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.42.0';
+        window.APP_HTML_VERSION = 'v3.43.0';
 
         (async () => {
             const RUNNING = window.APP_HTML_VERSION;
@@ -4599,8 +4599,8 @@
                 let titulo, detalle, accion;
                 if (mx.reason === 'escalon') {
                     titulo  = 'No alcanzaste el escalón';
-                    detalle = `Ingresaste <b>${_money(mx.ingresado)}</b> en ${mx.basedOn || 'el mes evaluado'}.<br>El primer escalón empieza en <b>${_money(mx.tierMin || 2500)}</b>.`;
-                    accion  = `Te faltaron <b>${_money(Math.max(0, (mx.tierMin || 2500) - (mx.ingresado || 0)))}</b>.`;
+                    detalle = `Ingresaste <b>${_money(mx.ingresado)}</b> en ${mx.basedOn || 'el mes evaluado'}.<br>El primer escalón empieza en <b>${_money(mx.tierMin || _pisoMin())}</b>.`;
+                    accion  = `Te faltaron <b>${_money(Math.max(0, (mx.tierMin || _pisoMin()) - (mx.ingresado || 0)))}</b>.`;
                 } else {
                     const margen = (pointsConfig && pointsConfig.multMargin) || 10;
                     titulo  = 'No coincidió tu reporte';
@@ -4715,7 +4715,7 @@
                 } else if (esElMesEvaluado) {
                     titulo  = `${MONTHS_ES[_myCalMonth - 1]} no te dio multiplicador`;
                     detalle = mx.reason === 'escalon'
-                        ? `No alcanzaste el escalón mínimo de ${_money(mx.tierMin || 2500)} de prima ingresada.`
+                        ? `No alcanzaste el escalón mínimo de ${_money(mx.tierMin || _pisoMin())} de prima ingresada.`
                         : `Lo que reportaste no coincidió con lo que se ingresó en Promessa.`;
                     colorBarra = 'var(--slate)';
                 } else {
@@ -4754,12 +4754,7 @@
             const rep   = _reportedDaysInMonth(y, m);
             const pct   = Math.min(100, Math.round((rep / total) * 100));
             const mesSig= MONTHS_ES[m % 12].toLowerCase();
-            const base  = (pointsConfig && pointsConfig.agentDailyPoints) || 10;
-            const tiers = _tiersFromConfig();
-            const techo = tiers.length ? tiers[tiers.length - 1].pct : 200;
-            // "el triple" solo si el escalón máximo de verdad lo triplica.
-            const veces = Math.round(base * (1 + techo / 100)) / base;
-            const cuanto = veces >= 3 ? 'el triple' : (veces >= 2 ? 'el doble' : 'mucho más');
+            const cuanto = _cuantoMas();
 
             // El contenedor no lleva handlers: el clic vive en la tarjeta de adentro.
             el.onclick = null; el.onkeydown = null;
@@ -4802,15 +4797,38 @@
         // Escalones tal como los dejó el director (pointsConfig es multi-tenant).
         function _tiersFromConfig() {
             const c = pointsConfig || {};
+            // Defaults = los 3 escalones vigentes. El 4º slot existe en la config
+            // pero viene apagado (0/0); el director puede prenderlo sin tocar código.
             const t = [
-                { min: Number(c.multTier1Min) || 2500,  pct: Number(c.multTier1Pct) || 50 },
-                { min: Number(c.multTier2Min) || 6000,  pct: Number(c.multTier2Pct) || 100 },
-                { min: Number(c.multTier3Min) || 8000,  pct: Number(c.multTier3Pct) || 150 },
-                { min: Number(c.multTier4Min) || 10000, pct: Number(c.multTier4Pct) || 200 }
-            ];
-            // Ascendente y sin escalones repetidos/apagados, por si el director
-            // deja uno en 0 para usar menos de cuatro.
-            return t.filter(x => x.min > 0 && x.pct > 0).sort((a, b) => a.min - b.min);
+                { min: Number(c.multTier1Min) || 0, pct: Number(c.multTier1Pct) || 0 },
+                { min: Number(c.multTier2Min) || 0, pct: Number(c.multTier2Pct) || 0 },
+                { min: Number(c.multTier3Min) || 0, pct: Number(c.multTier3Pct) || 0 },
+                { min: Number(c.multTier4Min) || 0, pct: Number(c.multTier4Pct) || 0 }
+            ].filter(x => x.min > 0 && x.pct > 0);
+            if (!t.length) {
+                // Sin config legible: los 3 vigentes, para no mostrar una tabla vacía.
+                return [{ min: 5000, pct: 50 }, { min: 8000, pct: 100 }, { min: 10000, pct: 200 }];
+            }
+            return t.sort((a, b) => a.min - b.min);
+        }
+
+        // Piso del primer escalón, leído de la config. Se usa como fallback cuando
+        // el multiplicador guardado no trae tierMin (multiplicadores viejos).
+        // Antes era un 2500 fijo, que quedaba mintiendo cada vez que el director
+        // movía el piso.
+        function _pisoMin() {
+            const t = _tiersFromConfig();
+            return t.length ? t[0].min : 5000;
+        }
+
+        // "el triple" / "el doble" / "mucho más" según el escalón máximo real.
+        // Se calcula para que nunca prometa algo que la config ya no da.
+        function _cuantoMas() {
+            const base = (pointsConfig && pointsConfig.agentDailyPoints) || 10;
+            const tiers = _tiersFromConfig();
+            const techo = tiers.length ? tiers[tiers.length - 1].pct : 200;
+            const veces = Math.round(base * (1 + techo / 100)) / base;
+            return veces >= 3 ? 'el triple' : (veces >= 2 ? 'el doble' : 'mucho más');
         }
 
         window.openCoverageInfo = function () {
@@ -6336,7 +6354,7 @@
                         <i class="fa fa-bolt"></i> El multiplicador
                     </div>
                     <p style="margin:0 0 10px; font-size:12.5px; line-height:1.6;">
-                        Tus días pueden valer <strong>hasta el triple</strong>. Al cerrar el mes comparamos
+                        Tus días pueden valer <strong>hasta ${_cuantoMas()}</strong>. Al cerrar el mes comparamos
                         lo que reportaste aquí contra lo que se ingresó en Promessa. Si cuadran
                         —se acepta hasta <strong>${margen}% de margen de error</strong>— y vendiste al menos
                         <strong>${_money(piso.min)}</strong>, entonces <strong>el mes siguiente</strong> cada día
