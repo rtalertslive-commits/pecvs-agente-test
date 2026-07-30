@@ -2616,7 +2616,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.49.0';
+        window.APP_HTML_VERSION = 'v3.50.0';
 
         (async () => {
             const RUNNING = window.APP_HTML_VERSION;
@@ -4963,15 +4963,22 @@
                     pct: t.pct
                 }))
             );
+            // Se eliminó la columna "Con tus X días" (base × cobertura actual).
+            // Contestaba una pregunta que nadie hace —"¿y si el mes se congelara
+            // ahora mismo?"— y el día 1 daba 10 en TODOS los escalones, haciendo
+            // parecer que el multiplicador no sirve. Lo que el agente necesita
+            // saber es a dónde puede llegar, no dónde estaría si el tiempo paró.
+            //
+            // Queda `alcanzable` (base × covMax): lo que todavía puede lograr
+            // reportando los días que le faltan. Al arrancar el mes, sin nada
+            // perdido, muestra el valor pleno — que es la verdad.
+            //
+            // `ideal` (el mes completo) solo se muestra cuando ya hay días
+            // perdidos. Sin pérdidas es idéntico a `alcanzable` y sobraría.
+            const hayPerdidos = bd.perdidos > 0;
             const filas = escala.map(t => {
-                const ahora = Math.round(base * (1 + (t.pct * cov) / 100));
-                // `pleno` usa covMax: prometer el valor del mes completo cuando ya
-                // hay días perdidos es mostrar un número inalcanzable.
-                const pleno = Math.round(base * (1 + (t.pct * covMax) / 100));
-                // `ideal` es el contrafáctico — lo que valdría sin haber faltado
-                // ningún día. Va atenuado a propósito: es lo que ya se perdió, no
-                // una meta, y no debe competir con las dos columnas accionables.
-                const ideal = Math.round(base * (1 + t.pct / 100));
+                const alcanzable = Math.round(base * (1 + (t.pct * covMax) / 100));
+                const ideal      = Math.round(base * (1 + t.pct / 100));
                 const rango = t.pct === 0
                     ? `menos de ${_money(tiers[0].min)}`
                     : (t.max === null ? `${_money(t.min)} o más` : `${_money(t.min)} — ${_money(t.max)}`);
@@ -4982,12 +4989,11 @@
                 const num = (v, size, color, weight) =>
                     `<span style="font-size:${size}px; font-weight:${weight}; color:${color}; font-variant-numeric:tabular-nums;">${v}</span>`;
                 return `<tr style="${off ? 'opacity:0.55;' : ''}">
-                    <td style="padding:7px 0; font-size:12px; ${bdr}">
+                    <td style="padding:8px 0; font-size:12.5px; ${bdr}">
                         ${rango}${off ? '' : `<br><span style="font-size:11px; color:var(--gold-l,#e5c76b); font-weight:700;">hasta +${t.pct}%</span>`}
                     </td>
-                    <td style="padding:7px 2px; text-align:right; ${bdr}">${num(ahora, 16, off ? 'var(--slate)' : 'var(--gold)', 800)}</td>
-                    <td style="padding:7px 2px 7px 9px; text-align:right; ${bdr}">${num(pleno, 14, off ? 'var(--slate)' : 'var(--white)', 700)}</td>
-                    <td style="padding:7px 0 7px 9px; text-align:right; ${bdr}">${num(ideal, 12, 'rgba(148,163,184,0.6)', 600)}</td>
+                    <td style="padding:8px 4px; text-align:right; ${bdr}">${num(alcanzable, 17, off ? 'var(--slate)' : 'var(--gold)', 800)}</td>
+                    ${hayPerdidos ? `<td style="padding:8px 0 8px 12px; text-align:right; ${bdr}">${num(ideal, 12, 'rgba(148,163,184,0.6)', 600)}</td>` : ''}
                 </tr>`;
             }).join('');
 
@@ -4996,7 +5002,7 @@
                 <div style="font-size:12.5px; color:var(--slate); margin-bottom:16px; line-height:1.55;">
                     Los días que te faltaron de reportar en
                     <b style="color:var(--white); text-transform:capitalize;">${mesAct}</b>
-                    influyen en cuánto van a valer tus totopos por cada día que reportes en
+                    influyen cuánto van a valer tus totopos por cada día que reportes en
                     <b style="color:var(--gold); text-transform:capitalize;">${mesSig}</b>.
                 </div>
 
@@ -5021,7 +5027,7 @@
                 </div>
 
                 <div style="font-size:12.5px; color:var(--slate); line-height:1.6; margin-bottom:14px;">
-                    Para que se active necesitas <b style="color:var(--white);">dos cosas</b>:
+                    Para obtener el multiplicador necesitas <b style="color:var(--white);">estas dos condiciones</b>:
                 </div>
                 <div class="mrec-row">
                     <div class="mrec-ico">1</div>
@@ -5041,7 +5047,9 @@
                 ${_multChipDemo()}
 
                 <div style="margin-top:18px; font-size:12.5px; color:var(--slate); line-height:1.6;">
-                    Y los días que reportes deciden <b style="color:var(--white);">cuánto de eso cobras</b>.
+                    Y los días que reportes en <b style="color:var(--white); text-transform:capitalize;">${mesAct}</b>
+                    deciden <b style="color:var(--white);">cuánto de eso cobras</b> en
+                    <b style="color:var(--gold); text-transform:capitalize;">${mesSig}</b>.
                 </div>
 
                 <div style="font-size:11px; color:var(--gold); text-transform:uppercase; letter-spacing:1px; margin:16px 0 4px; font-weight:700;">
@@ -5051,24 +5059,25 @@
                 <table style="width:100%; border-collapse:collapse;">
                     <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.14);">
                         <th style="text-align:left; font-size:9.5px; color:var(--slate); text-transform:uppercase; letter-spacing:0.8px; font-weight:500; padding-bottom:7px;">Si cierras ${mesAct} con…</th>
-                        <th style="text-align:right; font-size:9px; color:var(--gold); text-transform:uppercase; letter-spacing:0.3px; font-weight:800; padding-bottom:7px; line-height:1.25;">Tus<br>${rep} días</th>
-                        <th style="text-align:right; font-size:9px; color:var(--white); text-transform:uppercase; letter-spacing:0.3px; font-weight:600; padding-bottom:7px; padding-left:9px; line-height:1.25;">Máx<br>${bd.alcanzable} días</th>
-                        <th style="text-align:right; font-size:9px; color:rgba(148,163,184,0.6); text-transform:uppercase; letter-spacing:0.3px; font-weight:500; padding-bottom:7px; padding-left:9px; line-height:1.25;">Sin<br>faltar</th>
+                        <th style="text-align:right; font-size:9px; color:var(--gold); text-transform:uppercase; letter-spacing:0.3px; font-weight:800; padding-bottom:7px; line-height:1.25;">${bd.porVenir > 0 ? `Puedes<br>llegar a` : `Cerraste<br>con`}</th>
+                        ${hayPerdidos ? `<th style="text-align:right; font-size:9px; color:rgba(148,163,184,0.6); text-transform:uppercase; letter-spacing:0.3px; font-weight:500; padding-bottom:7px; padding-left:12px; line-height:1.25;">Sin<br>faltar</th>` : ''}
                     </tr></thead>
                     <tbody>${filas}</tbody>
                 </table>
-                ${bd.perdidos > 0 ? `
+                </div>
                 <div style="font-size:11.5px; color:var(--slate); margin-top:9px; line-height:1.55;">
-                    <b style="color:var(--white);">Sin faltar</b> es lo que valdría cada día si hubieras
-                    reportado los ${total}. La diferencia con la columna de al lado es lo que te
-                    costaron esos <b style="color:#f87171;">${bd.perdidos}</b> días.
-                </div>` : ''}
+                    ${bd.porVenir > 0
+                        ? `Asume que reportas los <b style="color:var(--white);">${bd.porVenir}</b> días que te quedan de ${mesAct}.`
+                        : `${mesAct.charAt(0).toUpperCase() + mesAct.slice(1)} ya cerró con ${bd.reportados} de ${total} días.`}
+                    ${hayPerdidos
+                        ? `<b style="color:var(--white);">Sin faltar</b> es lo que valdría si hubieras reportado los ${total} — la diferencia es lo que te costaron esos <b style="color:#f87171;">${bd.perdidos}</b> días.`
+                        : ''}
                 </div>
 
                 ${faltan > 0 ? `
                 <div style="background:rgba(16,185,129,0.10); border:1px solid rgba(16,185,129,0.35); border-radius:8px; padding:13px 15px; margin-top:16px; font-size:12.5px; color:var(--slate); line-height:1.6;">
                     Te quedan <b style="color:#6ee7b7;">${faltan} ${faltan === 1 ? 'día' : 'días'}</b> por reportar en ${mesAct}.
-                    Cada uno que reportes acerca la columna de la izquierda a la de la derecha.
+                    Si reportas todos, llegas a esos números. Cada uno que falte los baja.
                 </div>` : `
                 <div style="background:rgba(16,185,129,0.10); border:1px solid rgba(16,185,129,0.35); border-radius:8px; padding:13px 15px; margin-top:16px; font-size:12.5px; color:#6ee7b7; line-height:1.6; text-align:center;">
                     ${bd.perdidos > 0
