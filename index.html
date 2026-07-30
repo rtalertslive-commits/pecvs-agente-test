@@ -2572,7 +2572,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.45.0';
+        window.APP_HTML_VERSION = 'v3.46.0';
 
         (async () => {
             const RUNNING = window.APP_HTML_VERSION;
@@ -5014,11 +5014,11 @@
                     <tbody>${filas}</tbody>
                 </table>
                 ${bd.perdidos > 0 ? `
-                <div style="font-size:11.5px; color:var(--slate); margin-top:9px; line-height:1.5;">
-                    La última columna es lo que valdría cada día si no te hubiera faltado ninguno.
-                    Esos <b style="color:#f87171;">${bd.perdidos}</b> días te cuestan
-                    hasta <b style="color:var(--white);">${Math.round(base * (1 + tiers[tiers.length-1].pct / 100)) - Math.round(base * (1 + (tiers[tiers.length-1].pct * covMax) / 100))}</b>
-                    totopos por cada día de ${mesSig}.
+                <div style="font-size:11.5px; color:var(--slate); margin-top:9px; line-height:1.55;">
+                    <b style="color:var(--white);">Sin faltar</b> es lo que valdría cada día si hubieras
+                    reportado los ${total}. La diferencia con la columna de al lado es lo que te
+                    costaron esos <b style="color:#f87171;">${bd.perdidos}</b> días —
+                    y cambia según cuánto vendas.
                 </div>` : ''}
                 </div>
 
