@@ -2618,7 +2618,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.57.0';
+        window.APP_HTML_VERSION = 'v3.58.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -5105,23 +5105,27 @@
                     </div>` : ''}
                 </div>
 
-                <div style="font-size:11px; color:var(--gold); text-transform:uppercase; letter-spacing:1px; margin:16px 0 4px; font-weight:700;">
-                    Lo que valdría cada día de ${mesSig}
+                <div style="display:flex; align-items:center; gap:8px; margin:16px 0 6px; flex-wrap:wrap;">
+                    <span style="background:rgba(255,255,255,0.10); color:var(--slate); font-size:9px; font-weight:800; letter-spacing:1px; text-transform:uppercase; padding:3px 8px; border-radius:4px;">Ejemplos</span>
+                    <span style="font-size:11px; color:var(--gold); text-transform:uppercase; letter-spacing:1px; font-weight:700;">
+                        Lo que valdría cada día de ${mesSig}
+                    </span>
                 </div>
                 <div style="overflow-x:auto;">
                 <table style="width:100%; border-collapse:collapse;">
                     <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.14);">
                         <th style="text-align:left; font-size:9.5px; color:var(--slate); text-transform:uppercase; letter-spacing:0.8px; font-weight:500; padding-bottom:7px;">Si cierras ${mesAct} con…</th>
-                        <th style="text-align:right; font-size:9px; color:var(--gold); text-transform:uppercase; letter-spacing:0.3px; font-weight:800; padding-bottom:7px; line-height:1.25;">Reportando<br>todo el mes</th>
-                        <th style="text-align:right; font-size:9px; color:rgba(248,113,113,0.85); text-transform:uppercase; letter-spacing:0.3px; font-weight:700; padding-bottom:7px; padding-left:12px; line-height:1.25;">Reportando<br>la mitad</th>
+                        <th style="text-align:right; font-size:8.5px; color:var(--gold); text-transform:uppercase; letter-spacing:0.2px; font-weight:800; padding-bottom:7px; padding-left:8px; line-height:1.3;">Reportando<br>todos los días<br>del mes</th>
+                        <th style="text-align:right; font-size:8.5px; color:rgba(248,113,113,0.85); text-transform:uppercase; letter-spacing:0.2px; font-weight:700; padding-bottom:7px; padding-left:10px; line-height:1.3;">Habiendo<br>reportado la mitad<br>de los días</th>
                     </tr></thead>
                     <tbody>${filas}</tbody>
                 </table>
                 </div>
                 <div style="font-size:11.5px; color:var(--slate); margin-top:9px; line-height:1.55;">
-                    Reportar la mitad del mes te da la mitad del multiplicador, y así con cualquier
-                    proporción. <b style="color:var(--white);">Vas ${bd.reportados} de ${total} días
-                    en ${mesAct}.</b>
+                    <b style="color:var(--white);">Los dos casos son ejemplos</b> para que veas cómo
+                    funciona: reportar la mitad del mes te da la mitad del multiplicador, y así con
+                    cualquier proporción.
+                    <b style="color:var(--white);">Vas ${bd.reportados} de ${total} días en ${mesAct}.</b>
                 </div>
 
                 ${faltan > 0 ? `
