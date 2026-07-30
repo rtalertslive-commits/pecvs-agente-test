@@ -1041,6 +1041,48 @@
             font-size: 12.5px;
         }
 
+        /* ── SCROLL DENTRO DE MODALES ──────────────────────────────────────────
+           Sin overscroll-behavior, al llegar al final del scroll el gesto se
+           propaga al body y en iOS el modal queda trabado: no baja más y
+           tampoco vuelve a subir. `contain` corta esa propagación. */
+        .modal-box, .rules-modal-box, .cal-modal-box {
+            overscroll-behavior: contain;
+        }
+        /* Barra pegajosa para la X. Antes la X era position:absolute DENTRO del
+           contenedor que scrollea, así que al bajar se iba de la pantalla y no
+           quedaba forma de cerrar salvo tocar fuera del modal. Los márgenes
+           negativos la sangran contra el borde del modal (padding 24px). */
+        .modal-x-bar {
+            position: sticky;
+            top: -24px;
+            z-index: 20;
+            display: flex;
+            justify-content: flex-end;
+            margin: -24px -24px 2px -24px;
+            padding: 10px 14px 4px;
+            background: var(--panel);
+            border-radius: 12px 12px 0 0;
+        }
+        .modal-x-bar > button {
+            background: none;
+            border: none;
+            color: var(--slate);
+            font-size: 26px;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0 4px;
+        }
+        .modal-x-bar > button:hover { color: var(--white); }
+        .modal-x-bar > button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+        /* El encabezado del calendario y el de reglas también scrolleaban hacia
+           arriba llevándose su botón de cerrar. */
+        .rules-modal-header, .cal-header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: var(--panel);
+        }
+
         .modal-box {
             background: var(--panel);
             border: 1px solid var(--gold);
@@ -2315,10 +2357,10 @@
 
     <!-- ANUNCIOS MODAL — feed de anuncios del director -->
     <div class="modal-overlay" id="anuncios-modal">
-        <div class="modal-box" style="padding-top:48px;">
+        <div class="modal-box">
             <!-- × sticky en esquina superior derecha (siempre alcanzable aún con muchas notifs) -->
-            <button onclick="closeAnunciosModal()" aria-label="Cerrar"
-                style="position:absolute; top:12px; right:12px; width:32px; height:32px; padding:0; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.12); border-radius:50%; font-size:18px; line-height:1; cursor:pointer; z-index:10; display:flex; align-items:center; justify-content:center;">&times;</button>
+            <div class="modal-x-bar"><button onclick="closeAnunciosModal()" aria-label="Cerrar"
+                style="width:32px; height:32px; padding:0; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.12); border-radius:50%; font-size:18px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; flex:0 0 auto;">&times;</button></div>
 
             <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:6px;">
                 <h2 style="font-family:'Playfair Display',serif; color:var(--gold); margin:0;"><i class="fa fa-bullhorn" style="margin-right:8px;"></i>Anuncios</h2>
@@ -2355,9 +2397,9 @@
 
     <!-- BUZÓN DE QUEJAS Y SUGERENCIAS (unidireccional agente → director) -->
     <div class="modal-overlay" id="buzon-modal" onclick="if(event.target===this)closeBuzonModal()">
-        <div class="modal-box" style="padding-top:48px; max-width:520px;">
-            <button onclick="closeBuzonModal()" aria-label="Cerrar"
-                style="position:absolute; top:12px; right:12px; width:32px; height:32px; padding:0; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.12); border-radius:50%; font-size:18px; line-height:1; cursor:pointer; z-index:10; display:flex; align-items:center; justify-content:center;">&times;</button>
+        <div class="modal-box" style="max-width:520px;">
+            <div class="modal-x-bar"><button onclick="closeBuzonModal()" aria-label="Cerrar"
+                style="width:32px; height:32px; padding:0; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.12); border-radius:50%; font-size:18px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; flex:0 0 auto;">&times;</button></div>
 
             <h2 style="font-family:'Playfair Display',serif; color:var(--gold); margin:0 0 6px;"><i class="fa fa-envelope" style="margin-right:8px;"></i>Buzón</h2>
             <p style="font-size:12px; color:var(--slate); margin:0 0 16px;">Tu voz cuenta. Mandale a tu director tus ideas, sugerencias o errores que veas — él las lee todas.</p>
@@ -2432,8 +2474,7 @@
     <!-- RECIBO DEL MULTIPLICADOR — de dónde salió el número -->
     <div class="modal-overlay" id="mult-receipt-modal" onclick="if(event.target===this)closeMultReceipt()">
         <div class="modal-box" style="max-width:420px;">
-            <button onclick="closeMultReceipt()" aria-label="Cerrar"
-                style="position:absolute; top:12px; right:14px; background:none; border:none; color:var(--slate); font-size:26px; line-height:1; cursor:pointer;">&times;</button>
+            <div class="modal-x-bar"><button onclick="closeMultReceipt()" aria-label="Cerrar">&times;</button></div>
             <div id="mult-receipt-body"></div>
         </div>
     </div>
@@ -2441,8 +2482,7 @@
     <!-- CÓMO SE CONSTRUYE EL MULTIPLICADOR DEL MES SIGUIENTE -->
     <div class="modal-overlay" id="cov-info-modal" onclick="if(event.target===this)closeCoverageInfo()">
         <div class="modal-box" style="max-width:430px;">
-            <button onclick="closeCoverageInfo()" aria-label="Cerrar"
-                style="position:absolute; top:12px; right:14px; background:none; border:none; color:var(--slate); font-size:26px; line-height:1; cursor:pointer;">&times;</button>
+            <div class="modal-x-bar"><button onclick="closeCoverageInfo()" aria-label="Cerrar">&times;</button></div>
             <div id="cov-info-body"></div>
         </div>
     </div>
@@ -2572,7 +2612,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.46.0';
+        window.APP_HTML_VERSION = 'v3.47.0';
 
         (async () => {
             const RUNNING = window.APP_HTML_VERSION;
@@ -5017,8 +5057,7 @@
                 <div style="font-size:11.5px; color:var(--slate); margin-top:9px; line-height:1.55;">
                     <b style="color:var(--white);">Sin faltar</b> es lo que valdría cada día si hubieras
                     reportado los ${total}. La diferencia con la columna de al lado es lo que te
-                    costaron esos <b style="color:#f87171;">${bd.perdidos}</b> días —
-                    y cambia según cuánto vendas.
+                    costaron esos <b style="color:#f87171;">${bd.perdidos}</b> días.
                 </div>` : ''}
                 </div>
 
