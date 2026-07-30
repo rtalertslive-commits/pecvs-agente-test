@@ -2618,7 +2618,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.55.0';
+        window.APP_HTML_VERSION = 'v3.56.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -4681,8 +4681,8 @@
                     <span class="mult-chip-demo"><i class="fa fa-bolt"></i> tu día vale <b>${val}</b></span>
                 </div>
                 <div style="font-size:11.5px; color:var(--slate); text-align:center; line-height:1.5; margin-bottom:4px;">
-                    Así se verá al lado de tu balance de totopos cuando tengas
-                    el multiplicador activado para el mes en curso.
+                    Así se verá justo al lado de tu balance de totopos cuando tengas
+                    el multiplicador ya pagándote los días del mes en curso.
                 </div>`;
         }
 
@@ -5005,10 +5005,19 @@
             //
             // `ideal` (el mes completo) solo se muestra cuando ya hay días
             // perdidos. Sin pérdidas es idéntico a `alcanzable` y sobraría.
+            // Tres números por fila, para que la aritmética se vea en vez de
+            // pedirle al agente que compare dos columnas y deduzca:
+            //   HASTA    = valor si reportara los `total` días (el techo teórico)
+            //   TE RESTA = lo que le quitan los días ya perdidos
+            //   TE QUEDA = lo que de verdad puede alcanzar (el número real)
+            //
+            // Sin días perdidos las tres serían iguales, así que en ese caso queda
+            // una sola columna: "Puedes llegar hasta". Ahí sí es cierto.
             const hayPerdidos = bd.perdidos > 0;
             const filas = escala.map(t => {
-                const alcanzable = Math.round(base * (1 + (t.pct * covMax) / 100));
-                const ideal      = Math.round(base * (1 + t.pct / 100));
+                const techo = Math.round(base * (1 + t.pct / 100));
+                const queda = Math.round(base * (1 + (t.pct * covMax) / 100));
+                const resta = techo - queda;
                 const rango = t.pct === 0
                     ? `menos de ${_money(tiers[0].min)}`
                     : (t.max === null ? `${_money(t.min)} o más` : `${_money(t.min)} — ${_money(t.max)}`);
@@ -5022,13 +5031,15 @@
                     <td style="padding:8px 0; font-size:12.5px; ${bdr}">
                         ${rango}${off ? '' : `<br><span style="font-size:11px; color:var(--gold-l,#e5c76b); font-weight:700;">hasta +${t.pct}%</span>`}
                     </td>
-                    <td style="padding:8px 4px; text-align:right; ${bdr}">${num(alcanzable, 17, off ? 'var(--slate)' : 'var(--gold)', 800)}</td>
-                    ${hayPerdidos ? `<td style="padding:8px 0 8px 12px; text-align:right; ${bdr}">${num(ideal, 12, 'rgba(148,163,184,0.6)', 600)}</td>` : ''}
+                    <td style="padding:8px 3px; text-align:right; ${bdr}">${num(techo, hayPerdidos ? 15 : 17, off ? 'var(--slate)' : 'var(--gold)', 800)}</td>
+                    ${hayPerdidos ? `
+                    <td style="padding:8px 3px; text-align:right; ${bdr}">${num(resta > 0 ? '−' + resta : '—', 13, resta > 0 ? '#f87171' : 'rgba(148,163,184,0.5)', 700)}</td>
+                    <td style="padding:8px 0 8px 6px; text-align:right; ${bdr}">${num(queda, 16, off ? 'var(--slate)' : 'var(--white)', 800)}</td>` : ''}
                 </tr>`;
             }).join('');
 
             el.innerHTML = `
-                <h2 style="font-family:'Playfair Display',serif; color:var(--gold); margin:0 0 4px; font-size:20px;">Tu multiplicador de ${mesSig}</h2>
+                <h2 style="font-family:'Playfair Display',serif; color:var(--gold); margin:0 0 4px; font-size:20px;">Tu Multiplicador</h2>
                 <div style="font-size:12.5px; color:var(--slate); margin-bottom:6px; line-height:1.55;">
                     Tus días pueden valer hasta <b style="color:var(--white);">${_cuantoMas()}</b> en
                     <b style="color:var(--gold); text-transform:capitalize;">${mesSig}</b>.
@@ -5087,22 +5098,26 @@
                 <table style="width:100%; border-collapse:collapse;">
                     <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.14);">
                         <th style="text-align:left; font-size:9.5px; color:var(--slate); text-transform:uppercase; letter-spacing:0.8px; font-weight:500; padding-bottom:7px;">Si cierras ${mesAct} con…</th>
-                        <th style="text-align:right; font-size:9px; color:var(--gold); text-transform:uppercase; letter-spacing:0.3px; font-weight:800; padding-bottom:7px; line-height:1.25;">${bd.porVenir > 0 ? `Puedes<br>llegar a` : `Cerraste<br>con`}</th>
-                        ${hayPerdidos ? `<th style="text-align:right; font-size:9px; color:rgba(148,163,184,0.6); text-transform:uppercase; letter-spacing:0.3px; font-weight:500; padding-bottom:7px; padding-left:12px; line-height:1.25;">Sin<br>faltar</th>` : ''}
+                        <th style="text-align:right; font-size:9px; color:var(--gold); text-transform:uppercase; letter-spacing:0.3px; font-weight:800; padding-bottom:7px; line-height:1.25;">Puedes<br>llegar hasta</th>
+                        ${hayPerdidos ? `
+                        <th style="text-align:right; font-size:9px; color:#f87171; text-transform:uppercase; letter-spacing:0.3px; font-weight:700; padding-bottom:7px; line-height:1.25;">Te resta<br>por ${bd.perdidos} días</th>
+                        <th style="text-align:right; font-size:9px; color:var(--white); text-transform:uppercase; letter-spacing:0.3px; font-weight:800; padding-bottom:7px; padding-left:6px; line-height:1.25;">Te<br>queda</th>` : ''}
                     </tr></thead>
                     <tbody>${filas}</tbody>
                 </table>
                 </div>
                 <div style="font-size:11.5px; color:var(--slate); margin-top:9px; line-height:1.55;">
-                    ${bd.porVenir > 0
-                        ? `<b style="color:var(--gold);">Puedes llegar a</b> asume que reportas los
-                           <b style="color:var(--white);">${bd.porVenir}</b>
-                           ${bd.porVenir === 1 ? 'día' : 'días'} que te quedan de ${mesAct}.`
-                        : `<b style="color:var(--gold);">Cerraste con</b> es lo que quedó firme:
-                           <b style="color:var(--white);">${bd.reportados}</b> de ${total} días de ${mesAct}.`}
                     ${hayPerdidos
-                        ? `<b style="color:var(--white);">Sin faltar</b> es lo que valdría si hubieras reportado los ${total} — la diferencia es lo que te costaron esos <b style="color:#f87171;">${bd.perdidos}</b> días.`
-                        : ''}
+                        ? `<b style="color:var(--gold);">Puedes llegar hasta</b> es lo que valdría reportando
+                           los ${total} días de ${mesAct}.
+                           <b style="color:#f87171;">Te resta</b> es lo que te quitan los
+                           <b style="color:#f87171;">${bd.perdidos}</b> días que ya no reportaste.
+                           <b style="color:var(--white);">Te queda</b> es lo que puedes alcanzar
+                           ${bd.porVenir > 0
+                               ? `si reportas los <b style="color:var(--white);">${bd.porVenir}</b> ${bd.porVenir === 1 ? 'día' : 'días'} que faltan.`
+                               : `— ${mesAct} ya cerró.`}`
+                        : `Reportando los ${total} días de ${mesAct} llegas a esos números.
+                           Cada día que dejes sin reportar los baja.`}
                 </div>
 
                 ${faltan > 0 ? `
