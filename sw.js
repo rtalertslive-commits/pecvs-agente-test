@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pecvs-agent-testnet-v3.48.0';
+const CACHE_NAME = 'pecvs-agent-testnet-v3.49.0';
 const assets = [
     './',
     './index.html',
@@ -12,38 +12,58 @@ const assets = [
 // ─── FIREBASE CLOUD MESSAGING ─────────────────────────────────────────────────
 // Importamos los SDKs compat de Firebase para Service Worker. La versión 10.x
 // modular no funciona en SW (solo en módulos ES); por eso usamos -compat.
-importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
+//
+// OJO — esto va envuelto en try/catch a propósito. importScripts es SÍNCRONO y
+// bloqueante: si gstatic falla, la excepción sube y el Service Worker entero no
+// instala. Sin SW no hay handler de fetch, y el arranque de la app se queda sin
+// respuesta → pantalla negra.
+//
+// Envuelto, un gstatic caído degrada a "sin notificaciones push" en vez de
+// tumbar la app. El resto del SW (cache, navegación) se registra igual, más
+// abajo, así que sobrevive a este fallo.
+//
+// Lo que esto NO cubre: si gstatic no falla sino que se CUELGA, importScripts se
+// queda esperando sin timeout y el SW tampoco arranca. Eso solo se elimina
+// hospedando los SDK en el mismo origen (quedan en el cache del SW y dejan de
+// depender de la red). Pendiente.
+let messaging = null;
+try {
+    importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
+    importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
 
-firebase.initializeApp({
-    apiKey: "AIzaSyCnhYA0Jq-1_b6nqQVx3BN47WXgg2YEDxs",
-    authDomain: "pecvs-testnet.firebaseapp.com",
-    projectId: "pecvs-testnet",
-    storageBucket: "pecvs-testnet.firebasestorage.app",
-    messagingSenderId: "76206458151",
-    appId: "1:76206458151:web:464559030e00d060c11502"
-});
-
-const messaging = firebase.messaging();
-
-// Handler de mensajes en background (app cerrada o no enfocada).
-// Cuando la PWA está abierta, FCM dispara onMessage en el cliente directamente
-// y este handler NO se ejecuta. Solo aplica cuando el SW recibe el push solo.
-messaging.onBackgroundMessage(payload => {
-    const title = (payload.notification && payload.notification.title) || 'PECVS$';
-    const body  = (payload.notification && payload.notification.body)  || '';
-    const data  = payload.data || {};
-    return self.registration.showNotification(title, {
-        body,
-        icon: './icon-192.png',
-        badge: './favicon-32.png',
-        data,
-        // En Android, tag agrupa notificaciones; en iOS lo ignora
-        tag: data.tag || 'pecvs-notif',
-        // requireInteraction: true mantiene la notif hasta que el user la toque
-        requireInteraction: false
+    firebase.initializeApp({
+        apiKey: "AIzaSyCnhYA0Jq-1_b6nqQVx3BN47WXgg2YEDxs",
+        authDomain: "pecvs-testnet.firebaseapp.com",
+        projectId: "pecvs-testnet",
+        storageBucket: "pecvs-testnet.firebasestorage.app",
+        messagingSenderId: "76206458151",
+        appId: "1:76206458151:web:464559030e00d060c11502"
     });
-});
+
+    messaging = firebase.messaging();
+
+    // Handler de mensajes en background (app cerrada o no enfocada).
+    // Cuando la PWA está abierta, FCM dispara onMessage en el cliente directamente
+    // y este handler NO se ejecuta. Solo aplica cuando el SW recibe el push solo.
+    messaging.onBackgroundMessage(payload => {
+        const title = (payload.notification && payload.notification.title) || 'PECVS$';
+        const body  = (payload.notification && payload.notification.body)  || '';
+        const data  = payload.data || {};
+        return self.registration.showNotification(title, {
+            body,
+            icon: './icon-192.png',
+            badge: './favicon-32.png',
+            data,
+            // En Android, tag agrupa notificaciones; en iOS lo ignora
+            tag: data.tag || 'pecvs-notif',
+            // requireInteraction: true mantiene la notif hasta que el user la toque
+            requireInteraction: false
+        });
+    });
+} catch (err) {
+    // La app funciona sin push. No funciona sin fetch handler.
+    console.warn('[sw] FCM no disponible, sigo sin push:', err);
+}
 
 // Click en la notificación → abrir/enfocar la app
 self.addEventListener('notificationclick', event => {
