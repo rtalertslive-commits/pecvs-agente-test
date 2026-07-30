@@ -1749,7 +1749,9 @@
                     <div class="brand-mono">A</div>
                     <div class="brand-title">
                         <h1>Actividad</h1>
-                        <span class="version-tag" data-app-version>—</span>
+                        <span class="version-tag" data-app-version onclick="forzarActualizacion()"
+                              role="button" tabindex="0" title="Toca para buscar actualización"
+                              style="cursor:pointer;">—</span>
                     </div>
                 </div>
                 <div class="icon-btns">
@@ -2616,7 +2618,35 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.50.0';
+        window.APP_HTML_VERSION = 'v3.51.0';
+
+        // Escape hatch manual. La detección automática de abajo depende de varias
+        // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
+        // queda atrapado en una versión vieja sin forma de salir. Esto va directo:
+        // borra SOLO las entradas de navegación del cache y recarga.
+        //
+        // Se borra solo './' y './index.html', NO todo el cache: purgar el cache
+        // completo fue lo que causó las pantallas negras en v3.40.0 — al recargar
+        // sin red de seguridad, un fetch lento dejaba la app colgada.
+        window.forzarActualizacion = async function () {
+            const tags = document.querySelectorAll('[data-app-version]');
+            tags.forEach(el => { el.textContent = 'buscando…'; });
+            try {
+                if (window.caches) {
+                    const names = await caches.keys();
+                    for (const n of names) {
+                        const c = await caches.open(n);
+                        await c.delete('./');
+                        await c.delete('./index.html');
+                        // La URL absoluta también, por si quedó cacheada así.
+                        await c.delete(location.href.split('#')[0].split('?')[0]);
+                    }
+                }
+            } catch (e) { console.warn('[version] no pude limpiar cache:', e); }
+            try { sessionStorage.removeItem('pecvsAutoReloadFor'); } catch (e) {}
+            // reload(true) está deprecado; el query rompe cualquier cache intermedio.
+            location.replace(location.pathname + '?v=' + Date.now());
+        };
 
         (async () => {
             const RUNNING = window.APP_HTML_VERSION;
