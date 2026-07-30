@@ -2618,7 +2618,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.54.0';
+        window.APP_HTML_VERSION = 'v3.55.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -5029,14 +5029,38 @@
 
             el.innerHTML = `
                 <h2 style="font-family:'Playfair Display',serif; color:var(--gold); margin:0 0 4px; font-size:20px;">Tu multiplicador de ${mesSig}</h2>
-                <div style="font-size:12.5px; color:var(--slate); margin-bottom:16px; line-height:1.55;">
-                    Los días que te faltaron de reportar en
-                    <b style="color:var(--white); text-transform:capitalize;">${mesAct}</b>
-                    influyen cuánto van a valer tus totopos por cada día que reportes en
+                <div style="font-size:12.5px; color:var(--slate); margin-bottom:6px; line-height:1.55;">
+                    Tus días pueden valer hasta <b style="color:var(--white);">${_cuantoMas()}</b> en
                     <b style="color:var(--gold); text-transform:capitalize;">${mesSig}</b>.
                 </div>
 
-                <div style="background:rgba(212,175,55,0.08); border:1px solid rgba(212,175,55,0.25); border-radius:8px; padding:14px; margin-bottom:16px;">
+                ${_multChipDemo()}
+
+                <div style="font-size:12.5px; color:var(--slate); line-height:1.6; margin:18px 0 14px;">
+                    Para obtener el multiplicador necesitas <b style="color:var(--white);">estas dos condiciones</b>:
+                </div>
+                <div class="mrec-row">
+                    <div class="mrec-ico">1</div>
+                    <div>
+                        <div class="mrec-k">Que tus números cuadren</div>
+                        <div class="mrec-v">Al cerrar el mes comparamos lo que reportaste aquí contra lo que se ingresó en Promessa. Se acepta una diferencia de hasta <b style="color:var(--white);">${margen}% de margen de error</b>.</div>
+                    </div><div></div>
+                </div>
+                <div class="mrec-row">
+                    <div class="mrec-ico">2</div>
+                    <div>
+                        <div class="mrec-k">Vender al menos ${_money(piso.min)} en el mes</div>
+                        <div class="mrec-v">Entre más vendas, más vale tu día.</div>
+                    </div><div></div>
+                </div>
+
+                <div style="margin-top:20px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.10); font-size:12.5px; color:var(--slate); line-height:1.6;">
+                    Y los días que reportes en <b style="color:var(--white); text-transform:capitalize;">${mesAct}</b>
+                    deciden <b style="color:var(--white);">cuánto de ese multiplicador cobras</b> en
+                    <b style="color:var(--gold); text-transform:capitalize;">${mesSig}</b>.
+                </div>
+
+                <div style="background:rgba(212,175,55,0.08); border:1px solid rgba(212,175,55,0.25); border-radius:8px; padding:14px; margin:12px 0 16px;">
                     <div style="font-size:12px; color:var(--slate); margin-bottom:6px;">Llevas</div>
                     <div style="font-size:26px; font-weight:900; color:var(--white); line-height:1;">${bd.reportados} <span style="font-size:15px; font-weight:600; color:var(--slate);">de ${total} días</span></div>
                     <div class="cov-split">
@@ -5054,12 +5078,6 @@
                         Los ${bd.perdidos} perdidos ya no se recuperan — la bitácora se cierra el mismo día.
                         ${bd.porVenir > 0 ? `Reportando los ${bd.porVenir} que faltan llegas a <b style="color:var(--white);">${bd.alcanzable} de ${total}</b>.` : ''}
                     </div>` : ''}
-                </div>
-
-                <div style="margin-top:16px; font-size:12.5px; color:var(--slate); line-height:1.6;">
-                    Los días que reportes en <b style="color:var(--white); text-transform:capitalize;">${mesAct}</b>
-                    deciden <b style="color:var(--white);">cuánto vale cada día</b> que reportes en
-                    <b style="color:var(--gold); text-transform:capitalize;">${mesSig}</b>:
                 </div>
 
                 <div style="font-size:11px; color:var(--gold); text-transform:uppercase; letter-spacing:1px; margin:16px 0 4px; font-weight:700;">
@@ -5097,27 +5115,6 @@
                         ? `Ya no quedan días por reportar en ${mesAct}. Cerraste con ${bd.reportados} de ${total}.`
                         : 'Reportaste el mes completo. Tu multiplicador va a entrar al 100%.'}
                 </div>`}
-
-                <div style="font-size:12.5px; color:var(--slate); line-height:1.6; margin-bottom:14px;">
-                    Para obtener el multiplicador necesitas <b style="color:var(--white);">estas dos condiciones</b>:
-                </div>
-                <div class="mrec-row">
-                    <div class="mrec-ico">1</div>
-                    <div>
-                        <div class="mrec-k">Que tus números cuadren</div>
-                        <div class="mrec-v">Al cerrar el mes comparamos lo que reportaste aquí contra lo que se ingresó en Promessa. Se acepta una diferencia de hasta <b style="color:var(--white);">${margen}% de margen de error</b>.</div>
-                    </div><div></div>
-                </div>
-                <div class="mrec-row">
-                    <div class="mrec-ico">2</div>
-                    <div>
-                        <div class="mrec-k">Vender al menos ${_money(piso.min)} en el mes</div>
-                        <div class="mrec-v">Entre más vendas, más vale tu día.</div>
-                    </div><div></div>
-                </div>
-
-                ${_multChipDemo()}
-
 
                 <div style="margin-top:18px; border-top:1px solid rgba(255,255,255,0.10); padding-top:14px; display:flex; flex-direction:column; gap:10px;">
                     <div style="background:rgba(16,185,129,0.08); border-left:3px solid var(--green); border-radius:0 6px 6px 0; padding:10px 12px;">
