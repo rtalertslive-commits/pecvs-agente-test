@@ -1131,6 +1131,41 @@
             #foro-btn { display: none; }
         }
 
+        /* ── Buscador ── */
+        .foro-busq-caja {
+            display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 10px; padding: 4px 4px 4px 12px;
+        }
+        .foro-busq-caja > .fa-magnifying-glass { color: var(--slate); font-size: 13px; }
+        .foro-busq-input {
+            flex: 1; min-width: 0; background: none; border: none; outline: none;
+            color: var(--white); font-family: inherit; font-size: 13px; padding: 8px 0;
+        }
+        .foro-busq-input::placeholder { color: var(--slate); }
+        /* La X nativa de type=search es invisible en fondo oscuro. */
+        .foro-busq-input::-webkit-search-cancel-button { display: none; }
+        .foro-busq-x {
+            background: none; border: none; color: var(--slate);
+            font-size: 20px; line-height: 1; cursor: pointer; padding: 0 4px;
+        }
+        .foro-busq-btn {
+            background: rgba(212,175,55,0.15); border: 1px solid rgba(212,175,55,0.35);
+            color: var(--gold); border-radius: 8px; padding: 7px 13px;
+            font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer;
+            white-space: nowrap;
+        }
+
+        /* ── Secciones de Mis hilos ── */
+        .foro-subs { display: flex; gap: 8px; margin-bottom: 12px; }
+        .foro-sub {
+            flex: 1; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.10);
+            color: var(--slate); border-radius: 9px; padding: 9px 6px;
+            font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .foro-sub.on { background: rgba(212,175,55,0.15); border-color: var(--gold); color: var(--gold); }
+
         /* ── Paginador ── */
         .foro-pag {
             display: flex; align-items: center; justify-content: space-between;
@@ -2813,7 +2848,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.68.0';
+        window.APP_HTML_VERSION = 'v3.69.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -3424,6 +3459,8 @@
         let _foroCat = 'general';
         let _foroVista = 'lista';       // 'lista' | 'hilo' | 'componer'
         let _foroPag = 0;               // pagina actual, base 0
+        let _foroSub = 'publico';       // dentro de Mis hilos: 'publico' | 'privado'
+        let _foroBusq = '';             // termino activo del buscador ('' = sin buscar)
         let _foroCursores = [];         // _foroCursores[i] = ultimo snapshot de la pagina i
         let _foroHayMas = false;
         let _foroHilos = [];
@@ -3432,6 +3469,33 @@
         let _foroUnsub = null;          // listener de respuestas del hilo abierto
         let _foroImgs = [];             // [{ blob, previewUrl, nombre }]
         let _foroCargando = false;
+
+        // Palabras que salen en casi todos los hilos: como filtro no sirven y solo
+        // engordan el arreglo.
+        const FORO_VACIAS = new Set(('a al algo ago ahi ahora alguien algun alguna algunas alguno algunos ante antes aqui asi aun aunque ' +
+            'bien cada casi como con contra cual cuales cuando cuanto de del desde donde dos el ella ellas ello ellos en entre era ' +
+            'eran eres es esa esas ese eso esos esta estan estas este esto estos fue fueron ha habia han hasta hay hace hacer igual ' +
+            'la las le les lo los mas me mi mis mucho muy nada ni no nos nosotros o os otra otras otro otros para pero poco por ' +
+            'porque pues que quien quienes se sea ser si sin sobre solo son su sus tal tambien tan tanto te tener tiene tienen todo ' +
+            'todos tu tus un una uno unos usted ustedes va van ver vez y ya yo').split(' '));
+
+        // OJO: este tokenizador tiene que ser IDENTICO al de
+        // _backfill-foro-palabras.js. Si divergen, lo que se publique desde la app
+        // no se encuentra con lo que se busque, y al reves.
+        function _foroTokens(titulo, texto) {
+            const crudo = ((titulo || '') + ' ' + (texto || ''))
+                .toLowerCase()
+                .normalize('NFD').replace(/[̀-ͯ]/g, '')
+                .replace(/[^a-z0-9ñ]+/g, ' ')
+                .split(' ');
+            const set = new Set();
+            for (const t of crudo) {
+                if (t.length < 3 || FORO_VACIAS.has(t)) continue;
+                set.add(t);
+                if (set.size >= 300) break;
+            }
+            return Array.from(set);
+        }
 
         function _foroYo() { return (user && (user.email || user.uid)) || ''; }
         function _foroDC() { return state.directorCode || ''; }
@@ -3493,7 +3557,8 @@
         function _foroRenderTabs() {
             const el = document.getElementById('foro-tabs');
             if (!el) return;
-            const tabs = FORO_CATS.concat([{ id: FORO_MIOS, label: '★ Mis hilos' }]);
+            // Mis hilos va primero: es lo que mas se busca al abrir el foro.
+            const tabs = [{ id: FORO_MIOS, label: '★ Mis hilos' }].concat(FORO_CATS);
             el.innerHTML = tabs.map(c =>
                 `<button class="foro-tab${c.id === _foroCat ? ' on' : ''}" data-cat="${c.id}">${c.label}</button>`
             ).join('');
@@ -3501,6 +3566,8 @@
                 b.onclick = () => {
                     _foroCat = b.dataset.cat;
                     _foroCursores = [];   // los cursores son de la lista anterior
+                    _foroBusq = '';       // la busqueda no se arrastra entre secciones
+                    _foroSub = 'publico';
                     _foroRenderTabs();
                     _foroCargarLista(0);   // cambiar de pestaña siempre arranca en la 1
                 };
@@ -3527,31 +3594,8 @@
             if (!body) return;
             body.innerHTML = '<div class="foro-empty"><i class="fa fa-spinner fa-spin"></i> Cargando…</div>';
             try {
-                const dc = _foroDC(), yo = _foroYo();
-                const col = collection(db, 'forum');
-
-                // Mis hilos cruza todas las categorias: los que abri y en los que
-                // respondi. `participantes` lo mantiene el propio acto de
-                // publicar/responder, y las reglas solo dejan que te agregues a ti.
-                const base = _foroCat === FORO_MIOS
-                    ? [where('directorCode', '==', dc), where('participantes', 'array-contains', yo),
-                       where('oculto', '==', false), orderBy('ultimaRespuestaEn', 'desc')]
-                    // El filtro de visibilidad NO es opcional: las reglas validan
-                    // en vez de filtrar, y sin el la consulta podria alcanzar un
-                    // privado ajeno y fallar entera.
-                    : [where('directorCode', '==', dc), where('categoria', '==', _foroCat),
-                       where('visibilidad', '==', 'publico'), where('oculto', '==', false),
-                       orderBy('ultimaRespuestaEn', 'desc')];
-
-                const cursor = _foroPag > 0 ? _foroCursores[_foroPag - 1] : null;
-                const partes = cursor ? base.concat([startAfter(cursor)]) : base;
-                const snap = await getDocs(query(col, ...partes, limit(FORO_POR_PAGINA + 1)));
-
-                const docs = snap.docs;
-                _foroHayMas = docs.length > FORO_POR_PAGINA;
-                const visibles = docs.slice(0, FORO_POR_PAGINA);
-                if (visibles.length) _foroCursores[_foroPag] = visibles[visibles.length - 1];
-                _foroHilos = visibles.map(d => ({ id: d.id, ...d.data() }));
+                if (_foroBusq) await _foroCargarBusqueda();
+                else           await _foroCargarPagina();
                 _foroPintarLista();
             } catch (e) {
                 console.error('[foro] lista:', e);
@@ -3559,6 +3603,105 @@
                     No se pudo cargar el foro.<br><span style="font-size:11px;">${escapeHtml(e.message || '')}</span></div>`;
             }
         }
+
+        // Navegacion normal: una pagina por consulta, con cursor.
+        async function _foroCargarPagina() {
+            const dc = _foroDC(), yo = _foroYo();
+            const col = collection(db, 'forum');
+
+            // Mis hilos cruza todas las categorias y se parte en dos secciones por
+            // visibilidad. `participantes` lo mantienen publicar y responder, y las
+            // reglas solo dejan que te agregues a ti.
+            const base = _foroCat === FORO_MIOS
+                ? [where('directorCode', '==', dc), where('participantes', 'array-contains', yo),
+                   where('visibilidad', '==', _foroSub), where('oculto', '==', false),
+                   orderBy('ultimaRespuestaEn', 'desc')]
+                // El filtro de visibilidad NO es opcional: las reglas validan en vez
+                // de filtrar, y sin el la consulta podria alcanzar un privado ajeno
+                // y fallar entera.
+                : [where('directorCode', '==', dc), where('categoria', '==', _foroCat),
+                   where('visibilidad', '==', 'publico'), where('oculto', '==', false),
+                   orderBy('ultimaRespuestaEn', 'desc')];
+
+            const cursor = _foroPag > 0 ? _foroCursores[_foroPag - 1] : null;
+            const partes = cursor ? base.concat([startAfter(cursor)]) : base;
+            const snap = await getDocs(query(col, ...partes, limit(FORO_POR_PAGINA + 1)));
+
+            const docs = snap.docs;
+            _foroHayMas = docs.length > FORO_POR_PAGINA;
+            const visibles = docs.slice(0, FORO_POR_PAGINA);
+            if (visibles.length) _foroCursores[_foroPag] = visibles[visibles.length - 1];
+            _foroHilos = visibles.map(d => ({ id: d.id, ...d.data() }));
+        }
+
+        // ── BUSCADOR ──
+        // Firestore no tiene busqueda de texto. Lo que hay es `palabras`, el arreglo
+        // de tokens del titulo y el mensaje inicial que se escribe al publicar.
+        // Por eso solo empata PALABRAS COMPLETAS y no busca dentro de las respuestas.
+        //
+        // La busqueda no pagina por cursor como el resto: trae hasta FORO_BUSQ_TOPE
+        // coincidencias de una vez y las parte en el cliente. Es por una limitacion
+        // real — con varias palabras hay que filtrar en memoria (Firestore no cruza
+        // dos array-contains), y filtrar despues de paginar deja paginas de 3 y de 9.
+        let _foroResultados = [];
+        const FORO_BUSQ_TOPE = 60;
+
+        async function _foroCargarBusqueda() {
+            const dc = _foroDC(), yo = _foroYo();
+            const col = collection(db, 'forum');
+            const toks = _foroTokens(_foroBusq, '');
+
+            if (!toks.length) { _foroResultados = []; _foroHilos = []; _foroHayMas = false; return; }
+
+            let crudos;
+            if (_foroCat === FORO_MIOS) {
+                // Aca no se puede usar `palabras`: Firestore admite UN solo
+                // array-contains por consulta y ya lo ocupa `participantes`. Se
+                // traen mis hilos y se filtran en memoria; son pocos.
+                const snap = await getDocs(query(col,
+                    where('directorCode', '==', dc), where('participantes', 'array-contains', yo),
+                    where('visibilidad', '==', _foroSub), where('oculto', '==', false),
+                    orderBy('ultimaRespuestaEn', 'desc'), limit(FORO_BUSQ_TOPE)));
+                crudos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            } else {
+                // Busca en TODAS las categorias, no solo en la que estas parado:
+                // si supieras en cual esta, no necesitarias buscarlo.
+                const snap = await getDocs(query(col,
+                    where('directorCode', '==', dc), where('visibilidad', '==', 'publico'),
+                    where('oculto', '==', false), where('palabras', 'array-contains', toks[0]),
+                    orderBy('ultimaRespuestaEn', 'desc'), limit(FORO_BUSQ_TOPE)));
+                crudos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            }
+
+            // Con varias palabras se exigen TODAS (Y, no O). El primer token ya lo
+            // aplico el indice; los demas se cruzan aca.
+            _foroResultados = crudos.filter(h => {
+                const pal = Array.isArray(h.palabras) ? h.palabras : _foroTokens(h.titulo, h.texto);
+                return toks.every(t => pal.indexOf(t) !== -1);
+            });
+
+            const desde = _foroPag * FORO_POR_PAGINA;
+            _foroHilos = _foroResultados.slice(desde, desde + FORO_POR_PAGINA);
+            _foroHayMas = _foroResultados.length > desde + FORO_POR_PAGINA;
+        }
+
+        window.foroBuscar = function () {
+            const el = document.getElementById('foro-busq');
+            const v = (el && el.value || '').trim();
+            _foroBusq = v;
+            _foroCursores = [];
+            _foroCargarLista(0);
+        };
+        window.foroLimpiarBusq = function () {
+            _foroBusq = '';
+            _foroCursores = [];
+            _foroCargarLista(0);
+        };
+        window.foroSubSeccion = function (cual) {
+            _foroSub = cual;
+            _foroCursores = [];
+            _foroCargarLista(0);
+        };
 
         window.foroPagina = function (n) {
             // Solo se puede saltar a una pagina cuyo cursor ya tenemos (la
@@ -3619,20 +3762,60 @@
                     </button>
                 </div>` : '';
 
+            const buscador = `
+                <div class="foro-busq-caja">
+                    <i class="fa fa-magnifying-glass"></i>
+                    <input id="foro-busq" class="foro-busq-input" type="search"
+                           placeholder="${esMios ? 'Buscar en mis temas…' : 'Buscar en todo el foro…'}"
+                           value="${escapeHtml(_foroBusq)}">
+                    ${_foroBusq
+                        ? `<button class="foro-busq-x" onclick="foroLimpiarBusq()" aria-label="Limpiar">&times;</button>`
+                        : ''}
+                    <button class="foro-busq-btn" onclick="foroBuscar()">Buscar</button>
+                </div>`;
+
+            // Dos secciones dentro de Mis hilos. Van separadas y no mezcladas en una
+            // sola lista porque son cosas distintas: lo publico lo ve el equipo, lo
+            // privado solo la direccion.
+            const subs = esMios ? `
+                <div class="foro-subs">
+                    <button class="foro-sub${_foroSub === 'publico' ? ' on' : ''}"
+                            onclick="foroSubSeccion('publico')">
+                        <i class="fa fa-users"></i> Públicos
+                    </button>
+                    <button class="foro-sub${_foroSub === 'privado' ? ' on' : ''}"
+                            onclick="foroSubSeccion('privado')">
+                        <i class="fa fa-lock"></i> Privados
+                    </button>
+                </div>` : '';
+
             const encabezado = esMios
-                ? `<div class="foro-nota">Los temas que abriste y en los que respondiste,
-                       de todas las secciones, con la actividad más reciente arriba.</div>`
-                : `<button class="foro-btn-primary" style="margin-bottom:14px;" onclick="foroComponer()">
+                ? subs + buscador + `<div class="foro-nota">${_foroSub === 'publico'
+                       ? 'Los temas públicos que abriste y en los que respondiste, de todas las secciones.'
+                       : 'Los temas que marcaste como privados. Solo los ve la dirección.'}</div>`
+                : buscador + `<button class="foro-btn-primary" style="margin-bottom:14px;" onclick="foroComponer()">
                        <i class="fa fa-plus"></i> Nuevo tema en ${cat ? cat.label : ''}
                    </button>`;
 
-            const vacio = esMios
-                ? `<div class="foro-empty"><i class="fa fa-star"></i>
-                       Todavía no participas en ningún tema.<br>
-                       <span style="font-size:12px;">Cuando abras uno o respondas, aparece aquí.</span></div>`
+            const sinResultados = `<div class="foro-empty"><i class="fa fa-magnifying-glass"></i>
+                       Nada con “${escapeHtml(_foroBusq)}”.<br>
+                       <span style="font-size:12px;">
+                       Se buscan palabras completas, y solo en el título y el primer mensaje.<br>
+                       <a href="#" onclick="foroLimpiarBusq();return false;" style="color:var(--gold);">
+                       Ver todo de nuevo</a></span></div>`;
+
+            const vacio = _foroBusq ? sinResultados : (esMios
+                ? (_foroSub === 'privado'
+                    ? `<div class="foro-empty"><i class="fa fa-lock"></i>
+                           No tienes temas privados.<br>
+                           <span style="font-size:12px;">Al abrir un tema puedes marcarlo para que
+                           solo lo vea la dirección.</span></div>`
+                    : `<div class="foro-empty"><i class="fa fa-star"></i>
+                           Todavía no participas en ningún tema.<br>
+                           <span style="font-size:12px;">Cuando abras uno o respondas, aparece aquí.</span></div>`)
                 : `<div class="foro-empty"><i class="fa fa-comments"></i>
                        Todavía no hay temas en ${cat ? cat.label : 'esta sección'}.<br>
-                       <span style="font-size:12px;">Sé el primero.</span></div>`;
+                       <span style="font-size:12px;">Sé el primero.</span></div>`);
 
             // Una pagina vacia que no es la primera solo pasa si borraron o
             // escondieron algo mientras navegabas. Mejor ofrecer la salida que
@@ -3649,6 +3832,13 @@
             body.querySelectorAll('.foro-hilo-item').forEach(b => {
                 b.onclick = () => foroAbrirHilo(b.dataset.id);
             });
+            const bq = document.getElementById('foro-busq');
+            if (bq) {
+                bq.onkeydown = ev => { if (ev.key === 'Enter') { ev.preventDefault(); foroBuscar(); } };
+                // El teclado del telefono ofrece "buscar" en vez de Enter, y en
+                // algunos casos dispara search en vez de keydown.
+                bq.onsearch = () => foroBuscar();
+            }
         }
 
         // ── HILO ──
@@ -3856,6 +4046,10 @@
                     // a ti al crear, para que nadie fabrique un hilo privado con
                     // el correo de otro adentro y le de acceso de lectura.
                     participantes: [_foroYo()],
+                    // Tokens para el buscador. Se calculan UNA vez, al publicar:
+                    // las reglas prohiben editar titulo y texto despues, asi que
+                    // nunca hay que recalcularlos.
+                    palabras: _foroTokens(tit, txt),
                     creadoEn: serverTimestamp(),
                     ultimaRespuestaEn: serverTimestamp()
                 });
