@@ -1093,22 +1093,36 @@
 
         /* Mobile: pantalla completa, como la pestaña del director. Se quita el
            padding del overlay, el borde y las esquinas redondeadas — con el
-           recuadro pegado a los bordes, el marco dorado solo roba ancho. */
+           recuadro pegado a los bordes, el marco dorado solo roba ancho.
+
+           Pero NO tapa el bottom nav: el foro deja libres los 76px de abajo y la
+           barra queda encima y usable, para poder salir a Bitácora o Tienda sin
+           cerrar el foro primero. */
         @media (max-width: 767px) {
-            #foro-modal { padding: 0; }
+            #foro-modal { padding: 0; align-items: flex-start; }
             .foro-box {
                 max-width: none;
                 width: 100%;
                 max-height: none;
-                height: 100vh;
-                height: 100dvh;   /* dvh evita el salto al aparecer/ocultarse la barra del browser */
+                /* dvh evita el salto al aparecer/ocultarse la barra del browser.
+                   El 76px + safe-area es exactamente el alto del bottom nav, el
+                   mismo valor que body usa en su padding-bottom. */
+                height: calc(100vh - 76px - env(safe-area-inset-bottom, 0px));
+                height: calc(100dvh - 76px - env(safe-area-inset-bottom, 0px));
                 border: none;
                 border-radius: 0;
             }
-            /* La caja ahora llega hasta el borde físico, así que hay que respetar
-               el notch arriba y el indicador de home abajo a mano. */
+            /* La caja ahora llega hasta el borde físico de arriba, así que el
+               notch se respeta a mano. Abajo no hace falta: ahí va el nav, que
+               ya trae su propio safe-area-inset. */
             .foro-head { padding-top: calc(14px + env(safe-area-inset-top, 0px)); }
-            .foro-body { padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px)); }
+
+            /* El overlay del foro es z-index 9999 y el nav 100, así que sin esto
+               el nav queda sepultado. Se sube SOLO mientras el foro está abierto
+               (body.foro-open, que ponen openForo/closeForo): subirlo siempre lo
+               dejaría flotando encima de los otros 14 modales, tapándoles
+               contenido y botones. */
+            body.foro-open .bottom-nav { z-index: 10000; }
         }
 
         /* ── Badges de rol ── */
@@ -2766,7 +2780,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.65.0';
+        window.APP_HTML_VERSION = 'v3.66.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -3402,6 +3416,9 @@
         window.openForo = function () {
             _foroVista = 'lista';
             document.getElementById('foro-modal').classList.add('open');
+            // Deja el bottom nav por encima del overlay mientras el foro está
+            // abierto. Ver la regla body.foro-open .bottom-nav en el CSS.
+            document.body.classList.add('foro-open');
             _foroRenderTabs();
             _foroCargarLista();
         };
@@ -3409,6 +3426,7 @@
             if (_foroUnsub) { try { _foroUnsub(); } catch (e) {} _foroUnsub = null; }
             _foroLimpiarImgs();
             document.getElementById('foro-modal').classList.remove('open');
+            document.body.classList.remove('foro-open');
         };
         window.foroVolver = function () {
             if (_foroUnsub) { try { _foroUnsub(); } catch (e) {} _foroUnsub = null; }
@@ -6447,6 +6465,11 @@
         }
 
         window.switchTab = function (name, btn) {
+            // Con el foro abierto el bottom nav queda encima del overlay, así que
+            // se puede tocar otra sección sin cerrarlo. Sin esto, la pestaña
+            // cambiaría DETRÁS del modal y al cerrar el foro aparecerías en un
+            // lugar distinto sin haber visto el cambio.
+            if (document.body.classList.contains('foro-open') && window.closeForo) closeForo();
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
             // Limpiar active en AMBOS navs (top tabs desktop + bottom nav mobile)
             document.querySelectorAll('.tab-btn, .bn-btn').forEach(b => b.classList.remove('active'));
