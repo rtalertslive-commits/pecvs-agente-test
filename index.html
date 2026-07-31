@@ -2256,6 +2256,14 @@
             <i class="fa fa-store"></i>
             <span>Tienda</span>
         </button>
+        <!-- El Foro es un MODAL, no una pestaña: por eso llama a openForo() y no
+             a switchTab(), y va sin data-tab. Al no tener data-tab nunca recibe
+             .active, que es lo correcto — abrir el foro no cambia en qué pestaña
+             estás parado, y al cerrarlo sigues donde estabas. -->
+        <button class="bn-btn" onclick="openForo()" aria-label="Foro">
+            <i class="fa fa-comments"></i>
+            <span>Foro</span>
+        </button>
     </nav>
 
     <!-- UPDATE AVAILABLE MODAL -->
@@ -2725,7 +2733,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.63.0';
+        window.APP_HTML_VERSION = 'v3.64.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
