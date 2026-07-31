@@ -1123,6 +1123,12 @@
                dejaría flotando encima de los otros 14 modales, tapándoles
                contenido y botones. */
             body.foro-open .bottom-nav { z-index: 10000; }
+
+            /* En mobile el foro ya vive en el bottom nav, así que el botón del
+               encabezado sobra. NO se borra del HTML: en escritorio el bottom nav
+               está en display:none y el agente no tiene pestaña de foro, así que
+               #foro-btn es el único acceso que queda ahí. */
+            #foro-btn { display: none; }
         }
 
         /* ── Badges de rol ── */
@@ -2780,7 +2786,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.66.0';
+        window.APP_HTML_VERSION = 'v3.67.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
