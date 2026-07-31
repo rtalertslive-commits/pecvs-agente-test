@@ -1045,6 +1045,100 @@
             font-size: 12.5px;
         }
 
+        /* ═══ FORO ═══════════════════════════════════════════════════════════ */
+        .foro-box {
+            background: var(--panel);
+            border: 1.5px solid var(--gold);
+            border-radius: 14px;
+            width: 100%;
+            max-width: 560px;
+            max-height: 88vh;
+            display: flex;
+            flex-direction: column;
+            overscroll-behavior: contain;
+            position: relative;
+        }
+        /* Cabecera y pestañas fijas; solo scrollea el cuerpo. Así el botón de
+           cerrar y las categorías siguen alcanzables por largo que sea el hilo. */
+        .foro-head {
+            display: flex; align-items: center; gap: 10px;
+            padding: 14px 16px 10px; border-bottom: 1px solid rgba(255,255,255,0.08);
+            flex: 0 0 auto;
+        }
+        .foro-title { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 19px; font-weight: 700; flex: 1; }
+        .foro-x { background: none; border: none; color: var(--slate); font-size: 26px; line-height: 1; cursor: pointer; padding: 0 4px; }
+        .foro-x:hover { color: var(--white); }
+        .foro-tabs { display: flex; gap: 6px; padding: 10px 12px; overflow-x: auto; flex: 0 0 auto;
+                     border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .foro-tab {
+            flex: 0 0 auto; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10);
+            color: var(--slate); border-radius: 20px; padding: 6px 13px; font-size: 12px;
+            font-weight: 700; cursor: pointer; white-space: nowrap; font-family: inherit;
+        }
+        .foro-tab.on { background: var(--gold); border-color: var(--gold); color: #000; }
+        .foro-body { flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; padding: 14px 16px 18px; }
+
+        /* ── Badges de rol ── */
+        .rol-badge {
+            display: inline-block; font-size: 9px; font-weight: 900; letter-spacing: 0.6px;
+            text-transform: uppercase; padding: 2px 7px; border-radius: 4px;
+            vertical-align: middle; white-space: nowrap;
+        }
+
+        /* ── Lista de hilos ── */
+        .foro-hilo-item {
+            width: 100%; text-align: left; background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;
+            padding: 12px 13px; margin-bottom: 9px; cursor: pointer; font-family: inherit;
+            display: block;
+        }
+        .foro-hilo-item:hover { background: rgba(255,255,255,0.06); border-color: rgba(212,175,55,0.35); }
+        .foro-hilo-titulo { font-size: 13.5px; font-weight: 700; color: var(--white); line-height: 1.35; margin-bottom: 5px; }
+        .foro-meta { font-size: 11px; color: var(--slate); display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+
+        /* ── Post y respuestas ── */
+        .foro-post { border-bottom: 1px solid rgba(255,255,255,0.07); padding-bottom: 14px; margin-bottom: 14px; }
+        .foro-post:last-child { border-bottom: none; }
+        .foro-texto { font-size: 13px; color: var(--white); line-height: 1.6; white-space: pre-wrap; word-break: break-word; margin: 7px 0; }
+        .foro-imgs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+        .foro-imgs img { width: 76px; height: 76px; object-fit: cover; border-radius: 7px;
+                         border: 1px solid rgba(255,255,255,0.12); cursor: pointer; }
+        .foro-oculto { opacity: 0.5; font-style: italic; }
+
+        /* ── Compositor ── */
+        .foro-input, .foro-area {
+            width: 100%; background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 8px; color: var(--white); font-size: 13px; font-family: inherit;
+            padding: 10px; margin-bottom: 10px;
+        }
+        .foro-area { resize: vertical; min-height: 110px; }
+        .foro-priv {
+            display: flex; align-items: flex-start; gap: 9px; background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.10); border-radius: 8px; padding: 11px 12px; margin-bottom: 12px;
+            cursor: pointer;
+        }
+        .foro-priv input { margin-top: 2px; flex: 0 0 auto; }
+        .foro-thumbs { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 10px; }
+        .foro-thumb { position: relative; width: 64px; height: 64px; }
+        .foro-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 7px; border: 1px solid rgba(255,255,255,0.12); }
+        .foro-thumb button {
+            position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%;
+            background: var(--red); color: #fff; border: none; font-size: 12px; line-height: 1; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; padding: 0;
+        }
+        .foro-btn-primary {
+            width: 100%; background: var(--gold); color: #000; border: none; border-radius: 8px;
+            padding: 12px; font-size: 13px; font-weight: 800; cursor: pointer; font-family: inherit;
+        }
+        .foro-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .foro-empty {
+            text-align: center; color: var(--slate); font-size: 13px;
+            padding: 26px 12px; line-height: 1.6;
+        }
+        .foro-empty i { display: block; font-size: 26px; opacity: 0.35; margin-bottom: 8px; }
+        .foro-link { background: none; border: none; color: var(--gold); font-size: 12px; font-weight: 700;
+                     cursor: pointer; padding: 0; font-family: inherit; }
+
         /* ── SCROLL DENTRO DE MODALES ──────────────────────────────────────────
            Sin overscroll-behavior, al llegar al final del scroll el gesto se
            propaga al body y en iOS el modal queda trabado: no baja más y
@@ -1755,8 +1849,8 @@
                     </div>
                 </div>
                 <div class="icon-btns">
-                    <button id="buzon-btn" class="btn" onclick="openBuzonModal()" title="Enviar sugerencias, errores o comentarios al director">
-                        <i class="fa fa-envelope"></i>
+                    <button id="foro-btn" class="btn" onclick="openForo()" title="Foro — habla con tu equipo y con la dirección">
+                        <i class="fa fa-comments"></i>
                     </button>
                     <button id="notif-bell-btn" class="btn" onclick="openNotifModal()" title="Notificaciones">
                         <i class="fa fa-bell"></i>
@@ -2477,6 +2571,19 @@
         </div>
     </div>
 
+    <!-- FORO — reemplaza al buzón. El buzón sigue existiendo por ahora. -->
+    <div class="modal-overlay" id="foro-modal" onclick="if(event.target===this)closeForo()">
+        <div class="foro-box">
+            <div class="foro-head">
+                <button id="foro-back" class="foro-x" onclick="foroVolver()" style="display:none;" aria-label="Volver">&larr;</button>
+                <span class="foro-title" id="foro-title">Foro</span>
+                <button class="foro-x" onclick="closeForo()" aria-label="Cerrar">&times;</button>
+            </div>
+            <div class="foro-tabs" id="foro-tabs"></div>
+            <div class="foro-body" id="foro-body"></div>
+        </div>
+    </div>
+
     <!-- RECIBO DEL MULTIPLICADOR — de dónde salió el número -->
     <div class="modal-overlay" id="mult-receipt-modal" onclick="if(event.target===this)closeMultReceipt()">
         <div class="modal-box" style="max-width:420px;">
@@ -2618,7 +2725,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.62.0';
+        window.APP_HTML_VERSION = 'v3.63.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -2729,13 +2836,16 @@
         // --- IMPORT FIREBASE ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, addDoc, getDocs, collection, query, where, orderBy, onSnapshot, runTransaction, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, addDoc, getDocs, collection, query, where, orderBy, onSnapshot, runTransaction, deleteDoc, serverTimestamp, updateDoc, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // Storage: solo lo usa el foro (imágenes adjuntas). El resto de la app no sube archivos.
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
         import { getMessaging, getToken, onMessage, isSupported as isMessagingSupported } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
         // Initialize
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const storage = getStorage(app);
         const provider = new GoogleAuthProvider();
 
         // Messaging — puede no estar soportado en ciertos browsers/contextos.
@@ -3187,6 +3297,446 @@
 
         window.closeAnunciosModal = function () {
             document.getElementById('anuncios-modal').classList.remove('open');
+        };
+
+        // ═══ FORO ═════════════════════════════════════════════════════════════
+        // Hilos publicos donde participan los cinco roles, mas hilos privados que
+        // solo ve el director. Reemplaza al buzon (que sigue vivo hasta que se
+        // retire a proposito).
+        //
+        // BORRADO SUAVE: nada se borra de Firestore, se marca `oculto`. Las reglas
+        // tienen delete en false. Un toque accidental no destruye nada.
+        const FORO_CATS = [
+            { id: 'general',     label: 'General' },
+            { id: 'ayuda',       label: 'Ayuda' },
+            { id: 'totopos',     label: 'Totopos' },
+            { id: 'sugerencias', label: 'Sugerencias' }
+        ];
+        const FORO_ROLES = {
+            agente:        { label: 'Agente',        bg: 'rgba(59,130,246,0.20)',  fg: '#93c5fd' },
+            coach:         { label: 'Coach',         bg: 'rgba(6,182,212,0.20)',   fg: '#67e8f9' },
+            promotor:      { label: 'Promotor',      bg: 'rgba(245,158,11,0.20)',  fg: '#fcd34d' },
+            director:      { label: 'Director',      bg: 'rgba(212,175,55,0.22)',  fg: '#f0d67a' },
+            superdirector: { label: 'Superdirector', bg: 'rgba(239,68,68,0.20)',   fg: '#fca5a5' }
+        };
+        // Este archivo es la app del AGENTE, asi que el rol propio es fijo.
+        const FORO_MI_ROL = 'agente';
+        // Si pasa de esto, se comprime. Debajo sube tal cual — una captura de
+        // pantalla recomprimida pierde legibilidad justo en el texto chico, que es
+        // lo que se quiere mostrar al reportar un error.
+        const FORO_COMPRIMIR_DESDE = 1.5 * 1024 * 1024;
+        const FORO_MAX_DIM = 2000;
+        const FORO_MAX_IMGS = 5;
+
+        let _foroCat = 'general';
+        let _foroVista = 'lista';       // 'lista' | 'hilo' | 'componer'
+        let _foroHilos = [];
+        let _foroHilo = null;           // { id, ...data }
+        let _foroResps = [];
+        let _foroUnsub = null;          // listener de respuestas del hilo abierto
+        let _foroImgs = [];             // [{ blob, previewUrl, nombre }]
+        let _foroCargando = false;
+
+        function _foroYo() { return (user && (user.email || user.uid)) || ''; }
+        function _foroDC() { return state.directorCode || ''; }
+
+        function _foroBadge(rol) {
+            const r = FORO_ROLES[rol] || FORO_ROLES.agente;
+            return `<span class="rol-badge" style="background:${r.bg}; color:${r.fg};">${r.label}</span>`;
+        }
+        function _foroFecha(ts) {
+            if (!ts) return '';
+            const d = ts.toDate ? ts.toDate() : new Date(ts);
+            if (isNaN(d.getTime())) return '';
+            const ahora = new Date();
+            const min = Math.floor((ahora - d) / 60000);
+            if (min < 1) return 'ahora';
+            if (min < 60) return 'hace ' + min + ' min';
+            if (min < 1440) return 'hace ' + Math.floor(min / 60) + ' h';
+            if (min < 10080) return 'hace ' + Math.floor(min / 1440) + ' d';
+            return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
+        }
+        function _foroEsMio(d) { const y = _foroYo(); return d && d.autor === y; }
+
+        window.openForo = function () {
+            _foroVista = 'lista';
+            document.getElementById('foro-modal').classList.add('open');
+            _foroRenderTabs();
+            _foroCargarLista();
+        };
+        window.closeForo = function () {
+            if (_foroUnsub) { try { _foroUnsub(); } catch (e) {} _foroUnsub = null; }
+            _foroLimpiarImgs();
+            document.getElementById('foro-modal').classList.remove('open');
+        };
+        window.foroVolver = function () {
+            if (_foroUnsub) { try { _foroUnsub(); } catch (e) {} _foroUnsub = null; }
+            _foroLimpiarImgs();
+            _foroVista = 'lista';
+            _foroHilo = null;
+            _foroResps = [];
+            _foroCargarLista();
+        };
+
+        function _foroChrome() {
+            const back = document.getElementById('foro-back');
+            const tabs = document.getElementById('foro-tabs');
+            const tit = document.getElementById('foro-title');
+            const enLista = _foroVista === 'lista';
+            if (back) back.style.display = enLista ? 'none' : 'block';
+            if (tabs) tabs.style.display = enLista ? 'flex' : 'none';
+            if (tit) tit.textContent = enLista ? 'Foro'
+                : (_foroVista === 'componer' ? 'Nuevo tema' : 'Tema');
+        }
+
+        function _foroRenderTabs() {
+            const el = document.getElementById('foro-tabs');
+            if (!el) return;
+            el.innerHTML = FORO_CATS.map(c =>
+                `<button class="foro-tab${c.id === _foroCat ? ' on' : ''}" data-cat="${c.id}">${c.label}</button>`
+            ).join('');
+            el.querySelectorAll('.foro-tab').forEach(b => {
+                b.onclick = () => { _foroCat = b.dataset.cat; _foroRenderTabs(); _foroCargarLista(); };
+            });
+        }
+
+        // ── LISTA ──
+        // Dos consultas separadas y unidas en el cliente. No es capricho: las
+        // reglas VALIDAN, no filtran — una sola consulta sin el filtro de
+        // visibilidad fallaria entera al poder alcanzar un privado ajeno.
+        async function _foroCargarLista() {
+            _foroVista = 'lista';
+            _foroChrome();
+            const body = document.getElementById('foro-body');
+            if (!body) return;
+            body.innerHTML = '<div class="foro-empty"><i class="fa fa-spinner fa-spin"></i> Cargando…</div>';
+            try {
+                const dc = _foroDC(), yo = _foroYo();
+                const col = collection(db, 'forum');
+                const [pub, mios] = await Promise.all([
+                    getDocs(query(col, where('directorCode', '==', dc), where('visibilidad', '==', 'publico'),
+                                  where('categoria', '==', _foroCat), orderBy('ultimaRespuestaEn', 'desc'), limit(60))),
+                    getDocs(query(col, where('autor', '==', yo), where('categoria', '==', _foroCat),
+                                  orderBy('ultimaRespuestaEn', 'desc'), limit(60)))
+                ]);
+                const porId = {};
+                pub.forEach(d => { porId[d.id] = { id: d.id, ...d.data() }; });
+                mios.forEach(d => { porId[d.id] = { id: d.id, ...d.data() }; });
+                _foroHilos = Object.values(porId)
+                    .filter(h => !h.oculto)
+                    .sort((a, b) => {
+                        const ta = a.ultimaRespuestaEn?.toMillis?.() || 0;
+                        const tb = b.ultimaRespuestaEn?.toMillis?.() || 0;
+                        return tb - ta;
+                    });
+                _foroPintarLista();
+            } catch (e) {
+                console.error('[foro] lista:', e);
+                body.innerHTML = `<div class="foro-empty" style="color:var(--red);">
+                    No se pudo cargar el foro.<br><span style="font-size:11px;">${escapeHtml(e.message || '')}</span></div>`;
+            }
+        }
+
+        function _foroPintarLista() {
+            const body = document.getElementById('foro-body');
+            if (!body) return;
+            const cat = FORO_CATS.find(c => c.id === _foroCat);
+            const items = _foroHilos.map(h => {
+                const r = FORO_ROLES[h.autorRol] || FORO_ROLES.agente;
+                const priv = h.visibilidad === 'privado'
+                    ? '<i class="fa fa-lock" style="color:var(--orange);" title="Solo lo ve la dirección"></i>' : '';
+                const n = h.numRespuestas || 0;
+                return `<button class="foro-hilo-item" data-id="${escapeHtml(h.id)}">
+                    <div class="foro-hilo-titulo">${priv} ${escapeHtml(h.titulo || '')}</div>
+                    <div class="foro-meta">
+                        ${_foroBadge(h.autorRol)}
+                        <span>${escapeHtml(h.autorNombre || '')}</span>
+                        <span>·</span><span>${_foroFecha(h.ultimaRespuestaEn || h.creadoEn)}</span>
+                        <span>·</span><span>${n} ${n === 1 ? 'respuesta' : 'respuestas'}</span>
+                    </div>
+                </button>`;
+            }).join('');
+            body.innerHTML = `
+                <button class="foro-btn-primary" style="margin-bottom:14px;" onclick="foroComponer()">
+                    <i class="fa fa-plus"></i> Nuevo tema en ${cat ? cat.label : ''}
+                </button>
+                ${items || `<div class="foro-empty"><i class="fa fa-comments"></i>
+                    Todavía no hay temas en ${cat ? cat.label : 'esta sección'}.<br>
+                    <span style="font-size:12px;">Sé el primero.</span></div>`}`;
+            body.querySelectorAll('.foro-hilo-item').forEach(b => {
+                b.onclick = () => foroAbrirHilo(b.dataset.id);
+            });
+        }
+
+        // ── HILO ──
+        window.foroAbrirHilo = async function (id) {
+            const body = document.getElementById('foro-body');
+            _foroVista = 'hilo';
+            _foroChrome();
+            body.innerHTML = '<div class="foro-empty"><i class="fa fa-spinner fa-spin"></i> Cargando…</div>';
+            try {
+                const snap = await getDoc(doc(db, 'forum', id));
+                if (!snap.exists()) { body.innerHTML = '<div class="foro-empty">Ese tema ya no está.</div>'; return; }
+                _foroHilo = { id: snap.id, ...snap.data() };
+                if (_foroUnsub) { try { _foroUnsub(); } catch (e) {} }
+                _foroUnsub = onSnapshot(
+                    query(collection(db, 'forum', id, 'respuestas'), orderBy('creadoEn', 'asc')),
+                    s => { _foroResps = s.docs.map(d => ({ id: d.id, ...d.data() })); _foroPintarHilo(); },
+                    err => { console.error('[foro] respuestas:', err); _foroPintarHilo(); }
+                );
+                _foroPintarHilo();
+            } catch (e) {
+                console.error('[foro] hilo:', e);
+                body.innerHTML = `<div class="foro-empty" style="color:var(--red);">No se pudo abrir el tema.</div>`;
+            }
+        };
+
+        function _foroPost(d, esHilo) {
+            const puedeOcultar = _foroEsMio(d) && !d.oculto;
+            if (d.oculto) {
+                return `<div class="foro-post foro-oculto">
+                    <div class="foro-meta">${_foroBadge(d.autorRol)} <span>${escapeHtml(d.autorNombre || '')}</span></div>
+                    <div class="foro-texto">— contenido eliminado —</div>
+                </div>`;
+            }
+            const imgs = (d.imagenes || []).map(im =>
+                `<img src="${escapeHtml(im.url)}" alt="adjunto" onclick="window.open('${escapeHtml(im.url)}','_blank')">`).join('');
+            return `<div class="foro-post">
+                <div class="foro-meta">
+                    ${_foroBadge(d.autorRol)}
+                    <span style="color:var(--white); font-weight:700;">${escapeHtml(d.autorNombre || '')}</span>
+                    <span>·</span><span>${_foroFecha(d.creadoEn)}</span>
+                    ${puedeOcultar ? `<button class="foro-link" style="margin-left:auto; color:var(--red);"
+                        onclick="foroOcultar('${esHilo ? 'hilo' : 'resp'}','${escapeHtml(d.id || '')}')">Eliminar</button>` : ''}
+                </div>
+                ${esHilo ? `<div style="font-size:15px; font-weight:800; color:var(--white); margin-top:7px;">${escapeHtml(d.titulo || '')}</div>` : ''}
+                <div class="foro-texto">${escapeHtml(d.texto || '')}</div>
+                ${imgs ? `<div class="foro-imgs">${imgs}</div>` : ''}
+            </div>`;
+        }
+
+        function _foroPintarHilo() {
+            const body = document.getElementById('foro-body');
+            if (!body || !_foroHilo) return;
+            const priv = _foroHilo.visibilidad === 'privado'
+                ? `<div style="background:rgba(245,158,11,0.10); border:1px solid rgba(245,158,11,0.35); border-radius:8px;
+                        padding:9px 11px; font-size:11.5px; color:var(--orange); margin-bottom:12px;">
+                     <i class="fa fa-lock"></i> Tema privado — solo lo ven la dirección y vos.</div>` : '';
+            body.innerHTML = priv
+                + _foroPost({ ..._foroHilo, id: _foroHilo.id }, true)
+                + (_foroResps.length
+                    ? _foroResps.map(r => _foroPost(r, false)).join('')
+                    : '<div style="font-size:12px; color:var(--slate); text-align:center; padding:10px 0;">Sin respuestas todavía.</div>')
+                + `<div style="border-top:1px solid rgba(255,255,255,0.10); padding-top:14px; margin-top:6px;">
+                     <textarea id="foro-resp-txt" class="foro-area" style="min-height:80px;"
+                       placeholder="Escribe tu respuesta…" maxlength="4000"></textarea>
+                     <div class="foro-thumbs" id="foro-resp-thumbs"></div>
+                     <div style="display:flex; gap:8px; align-items:center; margin-bottom:10px;">
+                       <label class="foro-link" style="cursor:pointer;">
+                         <i class="fa fa-image"></i> Adjuntar
+                         <input type="file" accept="image/*" multiple style="display:none;" onchange="foroElegirImgs(this,'foro-resp-thumbs')">
+                       </label>
+                       <span style="font-size:11px; color:var(--slate);">hasta ${FORO_MAX_IMGS} imágenes</span>
+                     </div>
+                     <button class="foro-btn-primary" id="foro-resp-btn" onclick="foroResponder()">Responder</button>
+                   </div>`;
+        }
+
+        // ── COMPONER ──
+        window.foroComponer = function () {
+            _foroVista = 'componer';
+            _foroChrome();
+            _foroLimpiarImgs();
+            const cat = FORO_CATS.find(c => c.id === _foroCat);
+            document.getElementById('foro-body').innerHTML = `
+                <div style="font-size:11px; color:var(--slate); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">
+                    En ${cat ? cat.label : ''}
+                </div>
+                <input id="foro-new-tit" class="foro-input" maxlength="120" placeholder="Título del tema">
+                <textarea id="foro-new-txt" class="foro-area" maxlength="4000" placeholder="Cuenta de qué se trata…"></textarea>
+                <div class="foro-thumbs" id="foro-new-thumbs"></div>
+                <div style="display:flex; gap:8px; align-items:center; margin-bottom:12px;">
+                    <label class="foro-link" style="cursor:pointer;">
+                        <i class="fa fa-image"></i> Adjuntar imágenes
+                        <input type="file" accept="image/*" multiple style="display:none;" onchange="foroElegirImgs(this,'foro-new-thumbs')">
+                    </label>
+                    <span style="font-size:11px; color:var(--slate);">hasta ${FORO_MAX_IMGS}</span>
+                </div>
+                <label class="foro-priv">
+                    <input type="checkbox" id="foro-new-priv">
+                    <span style="font-size:12px; color:var(--slate); line-height:1.5;">
+                        <b style="color:var(--white);">Solo para la dirección</b><br>
+                        Nadie más del equipo lo va a ver. Úsalo si es algo que prefieres tratar en privado.
+                    </span>
+                </label>
+                <button class="foro-btn-primary" id="foro-new-btn" onclick="foroPublicar()">Publicar</button>`;
+        };
+
+        // ── IMAGENES ──
+        function _foroLimpiarImgs() {
+            _foroImgs.forEach(i => { try { URL.revokeObjectURL(i.previewUrl); } catch (e) {} });
+            _foroImgs = [];
+        }
+        // Solo comprime lo que hace falta. Una captura de iPhone (~400 KB) sube
+        // intacta, con su resolucion y su PNG; recomprimirla arruinaria el texto
+        // chico, que es lo que se esta tratando de mostrar.
+        async function _foroPrepararImagen(file) {
+            if (file.size <= FORO_COMPRIMIR_DESDE) return { blob: file, tipo: file.type };
+            const img = await new Promise((res, rej) => {
+                const i = new Image();
+                i.onload = () => res(i);
+                i.onerror = () => rej(new Error('No se pudo leer la imagen'));
+                i.src = URL.createObjectURL(file);
+            });
+            let w = img.naturalWidth, h = img.naturalHeight;
+            if (w > FORO_MAX_DIM || h > FORO_MAX_DIM) {
+                const r = Math.min(FORO_MAX_DIM / w, FORO_MAX_DIM / h);
+                w = Math.round(w * r); h = Math.round(h * r);
+            }
+            const c = document.createElement('canvas');
+            c.width = w; c.height = h;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h);
+            ctx.drawImage(img, 0, 0, w, h);
+            URL.revokeObjectURL(img.src);
+            const blob = await new Promise(res => c.toBlob(res, 'image/jpeg', 0.85));
+            return { blob, tipo: 'image/jpeg' };
+        }
+
+        window.foroElegirImgs = async function (input, contenedorId) {
+            const files = Array.from(input.files || []);
+            input.value = '';
+            for (const f of files) {
+                if (_foroImgs.length >= FORO_MAX_IMGS) { alert('Máximo ' + FORO_MAX_IMGS + ' imágenes.'); break; }
+                if (!f.type.startsWith('image/')) { alert('Solo imágenes.'); continue; }
+                try {
+                    const { blob, tipo } = await _foroPrepararImagen(f);
+                    if (blob.size > 2 * 1024 * 1024) { alert('Esa imagen sigue pesando más de 2 MB después de comprimirla.'); continue; }
+                    _foroImgs.push({ blob, tipo, previewUrl: URL.createObjectURL(blob), nombre: f.name });
+                } catch (e) { console.error('[foro] imagen:', e); alert('No se pudo procesar esa imagen.'); }
+            }
+            _foroPintarThumbs(contenedorId);
+        };
+        function _foroPintarThumbs(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.innerHTML = _foroImgs.map((im, i) =>
+                `<div class="foro-thumb"><img src="${im.previewUrl}" alt="">
+                 <button onclick="foroQuitarImg(${i},'${id}')" aria-label="Quitar">&times;</button></div>`).join('');
+        }
+        window.foroQuitarImg = function (i, contenedorId) {
+            const im = _foroImgs[i];
+            if (im) { try { URL.revokeObjectURL(im.previewUrl); } catch (e) {} }
+            _foroImgs.splice(i, 1);
+            _foroPintarThumbs(contenedorId);
+        };
+        // Se sube ANTES de crear el documento, con el id generado a mano. Las
+        // reglas no permiten editar `imagenes` despues de crear, asi que no hay
+        // opcion de crear primero y actualizar despues.
+        async function _foroSubirImgs(threadId) {
+            const dc = _foroDC() || 'sin-dc';
+            const out = [];
+            for (let i = 0; i < _foroImgs.length; i++) {
+                const im = _foroImgs[i];
+                const ext = im.tipo === 'image/png' ? 'png' : 'jpg';
+                const path = `forum/${dc}/${threadId}/${Date.now()}_${i}.${ext}`;
+                const r = storageRef(storage, path);
+                await uploadBytes(r, im.blob, { contentType: im.tipo, cacheControl: 'public, max-age=2592000' });
+                out.push({ url: await getDownloadURL(r), path });
+            }
+            return out;
+        }
+
+        // ── PUBLICAR ──
+        window.foroPublicar = async function () {
+            if (_foroCargando) return;
+            const tit = (document.getElementById('foro-new-tit').value || '').trim();
+            const txt = (document.getElementById('foro-new-txt').value || '').trim();
+            const priv = document.getElementById('foro-new-priv').checked;
+            if (!tit) { alert('Ponle un título al tema.'); return; }
+            if (!txt) { alert('Escribe de qué se trata.'); return; }
+            const btn = document.getElementById('foro-new-btn');
+            _foroCargando = true; btn.disabled = true; btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Publicando…';
+            try {
+                const refHilo = doc(collection(db, 'forum'));
+                const imagenes = await _foroSubirImgs(refHilo.id);
+                await setDoc(refHilo, {
+                    categoria: _foroCat,
+                    visibilidad: priv ? 'privado' : 'publico',
+                    autor: _foroYo(),
+                    autorNombre: state.agentName || _foroYo(),
+                    autorRol: FORO_MI_ROL,
+                    directorCode: _foroDC(),
+                    titulo: tit, texto: txt, imagenes,
+                    numRespuestas: 0, oculto: false,
+                    creadoEn: serverTimestamp(),
+                    ultimaRespuestaEn: serverTimestamp()
+                });
+                _foroLimpiarImgs();
+                await _foroCargarLista();
+            } catch (e) {
+                console.error('[foro] publicar:', e);
+                alert('No se pudo publicar: ' + (e.message || e));
+                btn.disabled = false; btn.innerHTML = 'Publicar';
+            } finally { _foroCargando = false; }
+        };
+
+        window.foroResponder = async function () {
+            if (_foroCargando || !_foroHilo) return;
+            const txt = (document.getElementById('foro-resp-txt').value || '').trim();
+            if (!txt) { alert('Escribe tu respuesta.'); return; }
+            const btn = document.getElementById('foro-resp-btn');
+            _foroCargando = true; btn.disabled = true; btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Enviando…';
+            try {
+                const refResp = doc(collection(db, 'forum', _foroHilo.id, 'respuestas'));
+                const imagenes = await _foroSubirImgs(_foroHilo.id);
+                await setDoc(refResp, {
+                    autor: _foroYo(),
+                    autorNombre: state.agentName || _foroYo(),
+                    autorRol: FORO_MI_ROL,
+                    texto: txt, imagenes, oculto: false,
+                    // Denormalizados a proposito: sin esto las reglas tendrian que
+                    // hacer get() del hilo padre en CADA respuesta que se lee.
+                    visibilidad: _foroHilo.visibilidad,
+                    hiloAutor: _foroHilo.autor,
+                    directorCode: _foroHilo.directorCode || _foroDC(),
+                    creadoEn: serverTimestamp()
+                });
+                // Contador y actividad. Si falla no es grave: la respuesta ya quedo.
+                try {
+                    await updateDoc(doc(db, 'forum', _foroHilo.id), {
+                        numRespuestas: (_foroHilo.numRespuestas || 0) + 1,
+                        ultimaRespuestaEn: serverTimestamp()
+                    });
+                    _foroHilo.numRespuestas = (_foroHilo.numRespuestas || 0) + 1;
+                } catch (e) { console.warn('[foro] contador:', e); }
+                _foroLimpiarImgs();
+                document.getElementById('foro-resp-txt').value = '';
+                _foroPintarThumbs('foro-resp-thumbs');
+            } catch (e) {
+                console.error('[foro] responder:', e);
+                alert('No se pudo enviar: ' + (e.message || e));
+            } finally {
+                _foroCargando = false;
+                const b = document.getElementById('foro-resp-btn');
+                if (b) { b.disabled = false; b.innerHTML = 'Responder'; }
+            }
+        };
+
+        // ── OCULTAR (borrado suave) ──
+        window.foroOcultar = async function (tipo, id) {
+            if (!confirm('¿Eliminar esto? Deja de verse para todos.')) return;
+            try {
+                const ref = tipo === 'hilo'
+                    ? doc(db, 'forum', id)
+                    : doc(db, 'forum', _foroHilo.id, 'respuestas', id);
+                await updateDoc(ref, { oculto: true, ocultoPor: _foroYo(), ocultoEn: new Date().toISOString() });
+                if (tipo === 'hilo') { foroVolver(); }
+                else { _foroHilo && _foroPintarHilo(); }
+            } catch (e) {
+                console.error('[foro] ocultar:', e);
+                alert('No se pudo eliminar: ' + (e.message || e));
+            }
         };
 
         // ═══ BUZÓN DE QUEJAS Y SUGERENCIAS ═══════════════════════════════════
