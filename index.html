@@ -1078,6 +1078,39 @@
         .foro-tab.on { background: var(--gold); border-color: var(--gold); color: #000; }
         .foro-body { flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; padding: 14px 16px 18px; }
 
+        /* El foro no es un diálogo corto como los demás modales: son hilos largos
+           con imágenes y respuestas. Encajonado en la caja estándar (560px / 88vh
+           con el padding de 20px del overlay) se sentía chiquito al lado de la
+           versión del director, que es pestaña de página completa.
+
+           Todo va scopeado a #foro-modal a propósito — .modal-overlay la comparten
+           15 modales y ensancharla los movería todos. */
+
+        /* Escritorio: más ancho y más alto, pero sigue siendo una ventana. */
+        @media (min-width: 768px) {
+            .foro-box { max-width: 760px; max-height: 92vh; }
+        }
+
+        /* Mobile: pantalla completa, como la pestaña del director. Se quita el
+           padding del overlay, el borde y las esquinas redondeadas — con el
+           recuadro pegado a los bordes, el marco dorado solo roba ancho. */
+        @media (max-width: 767px) {
+            #foro-modal { padding: 0; }
+            .foro-box {
+                max-width: none;
+                width: 100%;
+                max-height: none;
+                height: 100vh;
+                height: 100dvh;   /* dvh evita el salto al aparecer/ocultarse la barra del browser */
+                border: none;
+                border-radius: 0;
+            }
+            /* La caja ahora llega hasta el borde físico, así que hay que respetar
+               el notch arriba y el indicador de home abajo a mano. */
+            .foro-head { padding-top: calc(14px + env(safe-area-inset-top, 0px)); }
+            .foro-body { padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px)); }
+        }
+
         /* ── Badges de rol ── */
         .rol-badge {
             display: inline-block; font-size: 9px; font-weight: 900; letter-spacing: 0.6px;
@@ -2733,7 +2766,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.64.0';
+        window.APP_HTML_VERSION = 'v3.65.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
