@@ -1131,6 +1131,33 @@
             #foro-btn { display: none; }
         }
 
+        /* ── Paginador ── */
+        .foro-pag {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 10px; margin-top: 16px; padding-top: 14px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        .foro-pag-btn {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+            color: var(--white); border-radius: 8px; padding: 8px 14px;
+            font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .foro-pag-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        .foro-pag-num { font-size: 12px; font-weight: 700; color: var(--slate); }
+
+        /* ── Chips de "Mis hilos" ── */
+        .foro-chip-cat, .foro-chip-mio {
+            border-radius: 20px; padding: 2px 8px; font-size: 10px; font-weight: 700;
+        }
+        .foro-chip-cat { background: rgba(255,255,255,0.07); color: var(--slate); }
+        .foro-chip-mio { background: rgba(212,175,55,0.15); color: var(--gold); }
+        .foro-nota {
+            font-size: 12px; color: var(--slate); line-height: 1.5;
+            margin-bottom: 14px; padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
         /* ── Badges de rol ── */
         .rol-badge {
             display: inline-block; font-size: 9px; font-weight: 900; letter-spacing: 0.6px;
@@ -2786,7 +2813,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.67.0';
+        window.APP_HTML_VERSION = 'v3.68.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -2897,7 +2924,7 @@
         // --- IMPORT FIREBASE ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, addDoc, getDocs, collection, query, where, orderBy, onSnapshot, runTransaction, deleteDoc, serverTimestamp, updateDoc, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, addDoc, getDocs, collection, query, where, orderBy, onSnapshot, runTransaction, deleteDoc, serverTimestamp, updateDoc, limit, startAfter, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         // Storage: solo lo usa el foro (imágenes adjuntas). El resto de la app no sube archivos.
         import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
         import { getMessaging, getToken, onMessage, isSupported as isMessagingSupported } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
@@ -3389,8 +3416,16 @@
         const FORO_MAX_DIM = 2000;
         const FORO_MAX_IMGS = 5;
 
+        // Pseudo-categoria: no es una categoria real en Firestore, es una vista
+        // distinta (otra consulta) que se pinta en la misma barra de pestañas.
+        const FORO_MIOS = '__mios';
+        const FORO_POR_PAGINA = 10;
+
         let _foroCat = 'general';
         let _foroVista = 'lista';       // 'lista' | 'hilo' | 'componer'
+        let _foroPag = 0;               // pagina actual, base 0
+        let _foroCursores = [];         // _foroCursores[i] = ultimo snapshot de la pagina i
+        let _foroHayMas = false;
         let _foroHilos = [];
         let _foroHilo = null;           // { id, ...data }
         let _foroResps = [];
@@ -3421,12 +3456,13 @@
 
         window.openForo = function () {
             _foroVista = 'lista';
+            _foroCursores = [];
             document.getElementById('foro-modal').classList.add('open');
             // Deja el bottom nav por encima del overlay mientras el foro está
             // abierto. Ver la regla body.foro-open .bottom-nav en el CSS.
             document.body.classList.add('foro-open');
             _foroRenderTabs();
-            _foroCargarLista();
+            _foroCargarLista(0);
         };
         window.closeForo = function () {
             if (_foroUnsub) { try { _foroUnsub(); } catch (e) {} _foroUnsub = null; }
@@ -3440,7 +3476,7 @@
             _foroVista = 'lista';
             _foroHilo = null;
             _foroResps = [];
-            _foroCargarLista();
+            _foroCargarLista(_foroPag);   // regresa a la pagina donde estabas
         };
 
         function _foroChrome() {
@@ -3457,20 +3493,35 @@
         function _foroRenderTabs() {
             const el = document.getElementById('foro-tabs');
             if (!el) return;
-            el.innerHTML = FORO_CATS.map(c =>
+            const tabs = FORO_CATS.concat([{ id: FORO_MIOS, label: '★ Mis hilos' }]);
+            el.innerHTML = tabs.map(c =>
                 `<button class="foro-tab${c.id === _foroCat ? ' on' : ''}" data-cat="${c.id}">${c.label}</button>`
             ).join('');
             el.querySelectorAll('.foro-tab').forEach(b => {
-                b.onclick = () => { _foroCat = b.dataset.cat; _foroRenderTabs(); _foroCargarLista(); };
+                b.onclick = () => {
+                    _foroCat = b.dataset.cat;
+                    _foroCursores = [];   // los cursores son de la lista anterior
+                    _foroRenderTabs();
+                    _foroCargarLista(0);   // cambiar de pestaña siempre arranca en la 1
+                };
             });
         }
 
         // ── LISTA ──
-        // Dos consultas separadas y unidas en el cliente. No es capricho: las
-        // reglas VALIDAN, no filtran — una sola consulta sin el filtro de
-        // visibilidad fallaria entera al poder alcanzar un privado ajeno.
-        async function _foroCargarLista() {
+        // Paginacion por cursor, no por corte en el cliente: se piden 11 y se
+        // muestran 10. El doc 11 nunca se pinta, solo dice si hay pagina
+        // siguiente sin tener que contar la coleccion entera.
+        //
+        // Antes esto traia 60 hilos de dos consultas y los unia en memoria. Se
+        // cambio por costo: 60 lecturas cada vez que alguien abre el foro, por
+        // 76 agentes y varias veces al dia, se come el limite diario. Ahora son
+        // 11 por pagina.
+        //
+        // El filtro de `oculto` va en la consulta y no despues: filtrando en el
+        // cliente, una pagina de 10 con 2 ocultos se mostraria con 8.
+        async function _foroCargarLista(pagina) {
             _foroVista = 'lista';
+            _foroPag = Math.max(0, pagina || 0);
             _foroChrome();
             const body = document.getElementById('foro-body');
             if (!body) return;
@@ -3478,22 +3529,29 @@
             try {
                 const dc = _foroDC(), yo = _foroYo();
                 const col = collection(db, 'forum');
-                const [pub, mios] = await Promise.all([
-                    getDocs(query(col, where('directorCode', '==', dc), where('visibilidad', '==', 'publico'),
-                                  where('categoria', '==', _foroCat), orderBy('ultimaRespuestaEn', 'desc'), limit(60))),
-                    getDocs(query(col, where('autor', '==', yo), where('categoria', '==', _foroCat),
-                                  orderBy('ultimaRespuestaEn', 'desc'), limit(60)))
-                ]);
-                const porId = {};
-                pub.forEach(d => { porId[d.id] = { id: d.id, ...d.data() }; });
-                mios.forEach(d => { porId[d.id] = { id: d.id, ...d.data() }; });
-                _foroHilos = Object.values(porId)
-                    .filter(h => !h.oculto)
-                    .sort((a, b) => {
-                        const ta = a.ultimaRespuestaEn?.toMillis?.() || 0;
-                        const tb = b.ultimaRespuestaEn?.toMillis?.() || 0;
-                        return tb - ta;
-                    });
+
+                // Mis hilos cruza todas las categorias: los que abri y en los que
+                // respondi. `participantes` lo mantiene el propio acto de
+                // publicar/responder, y las reglas solo dejan que te agregues a ti.
+                const base = _foroCat === FORO_MIOS
+                    ? [where('directorCode', '==', dc), where('participantes', 'array-contains', yo),
+                       where('oculto', '==', false), orderBy('ultimaRespuestaEn', 'desc')]
+                    // El filtro de visibilidad NO es opcional: las reglas validan
+                    // en vez de filtrar, y sin el la consulta podria alcanzar un
+                    // privado ajeno y fallar entera.
+                    : [where('directorCode', '==', dc), where('categoria', '==', _foroCat),
+                       where('visibilidad', '==', 'publico'), where('oculto', '==', false),
+                       orderBy('ultimaRespuestaEn', 'desc')];
+
+                const cursor = _foroPag > 0 ? _foroCursores[_foroPag - 1] : null;
+                const partes = cursor ? base.concat([startAfter(cursor)]) : base;
+                const snap = await getDocs(query(col, ...partes, limit(FORO_POR_PAGINA + 1)));
+
+                const docs = snap.docs;
+                _foroHayMas = docs.length > FORO_POR_PAGINA;
+                const visibles = docs.slice(0, FORO_POR_PAGINA);
+                if (visibles.length) _foroCursores[_foroPag] = visibles[visibles.length - 1];
+                _foroHilos = visibles.map(d => ({ id: d.id, ...d.data() }));
                 _foroPintarLista();
             } catch (e) {
                 console.error('[foro] lista:', e);
@@ -3502,18 +3560,40 @@
             }
         }
 
+        window.foroPagina = function (n) {
+            // Solo se puede saltar a una pagina cuyo cursor ya tenemos (la
+            // anterior o la siguiente). Firestore pagina por cursor, no por
+            // numero: no hay forma de brincar a la 7 sin haber pasado por la 6.
+            if (n < 0) return;
+            if (n > _foroPag && !_foroHayMas) return;
+            _foroCargarLista(n);
+            const b = document.getElementById('foro-body');
+            if (b) b.scrollTop = 0;
+        };
+
         function _foroPintarLista() {
             const body = document.getElementById('foro-body');
             if (!body) return;
+            const esMios = _foroCat === FORO_MIOS;
             const cat = FORO_CATS.find(c => c.id === _foroCat);
+            const yo = _foroYo();
+
             const items = _foroHilos.map(h => {
-                const r = FORO_ROLES[h.autorRol] || FORO_ROLES.agente;
                 const priv = h.visibilidad === 'privado'
                     ? '<i class="fa fa-lock" style="color:var(--orange);" title="Solo lo ve la dirección"></i>' : '';
                 const n = h.numRespuestas || 0;
+                // En "Mis hilos" los temas vienen de las cuatro categorias, asi que
+                // hay que decir de cual es cada uno; dentro de una categoria seria
+                // repetir lo mismo en cada renglon.
+                const dondeCat = esMios ? (FORO_CATS.find(c => c.id === h.categoria) || {}).label : null;
+                const donde = dondeCat
+                    ? `<span class="foro-chip-cat">${escapeHtml(dondeCat)}</span>` : '';
+                const mio = esMios && h.autor === yo
+                    ? '<span class="foro-chip-mio">lo abriste tú</span>' : '';
                 return `<button class="foro-hilo-item" data-id="${escapeHtml(h.id)}">
                     <div class="foro-hilo-titulo">${priv} ${escapeHtml(h.titulo || '')}</div>
                     <div class="foro-meta">
+                        ${donde}${mio}
                         ${_foroBadge(h.autorRol)}
                         <span>${escapeHtml(h.autorNombre || '')}</span>
                         <span>·</span><span>${_foroFecha(h.ultimaRespuestaEn || h.creadoEn)}</span>
@@ -3521,13 +3601,51 @@
                     </div>
                 </button>`;
             }).join('');
-            body.innerHTML = `
-                <button class="foro-btn-primary" style="margin-bottom:14px;" onclick="foroComponer()">
-                    <i class="fa fa-plus"></i> Nuevo tema en ${cat ? cat.label : ''}
-                </button>
-                ${items || `<div class="foro-empty"><i class="fa fa-comments"></i>
-                    Todavía no hay temas en ${cat ? cat.label : 'esta sección'}.<br>
-                    <span style="font-size:12px;">Sé el primero.</span></div>`}`;
+
+            // Sin numeros de pagina salteables a proposito: Firestore pagina por
+            // cursor, no por indice, asi que no se puede brincar a la 7 sin haber
+            // pasado por la 6. Se muestra en cual vas y se avanza de una en una.
+            const hayPag = _foroPag > 0 || _foroHayMas;
+            const paginador = hayPag ? `
+                <div class="foro-pag">
+                    <button class="foro-pag-btn" ${_foroPag === 0 ? 'disabled' : ''}
+                            onclick="foroPagina(${_foroPag - 1})">
+                        <i class="fa fa-chevron-left"></i> Anterior
+                    </button>
+                    <span class="foro-pag-num">Página ${_foroPag + 1}</span>
+                    <button class="foro-pag-btn" ${_foroHayMas ? '' : 'disabled'}
+                            onclick="foroPagina(${_foroPag + 1})">
+                        Siguiente <i class="fa fa-chevron-right"></i>
+                    </button>
+                </div>` : '';
+
+            const encabezado = esMios
+                ? `<div class="foro-nota">Los temas que abriste y en los que respondiste,
+                       de todas las secciones, con la actividad más reciente arriba.</div>`
+                : `<button class="foro-btn-primary" style="margin-bottom:14px;" onclick="foroComponer()">
+                       <i class="fa fa-plus"></i> Nuevo tema en ${cat ? cat.label : ''}
+                   </button>`;
+
+            const vacio = esMios
+                ? `<div class="foro-empty"><i class="fa fa-star"></i>
+                       Todavía no participas en ningún tema.<br>
+                       <span style="font-size:12px;">Cuando abras uno o respondas, aparece aquí.</span></div>`
+                : `<div class="foro-empty"><i class="fa fa-comments"></i>
+                       Todavía no hay temas en ${cat ? cat.label : 'esta sección'}.<br>
+                       <span style="font-size:12px;">Sé el primero.</span></div>`;
+
+            // Una pagina vacia que no es la primera solo pasa si borraron o
+            // escondieron algo mientras navegabas. Mejor ofrecer la salida que
+            // dejarlo mirando un vacio con un "Anterior" chiquito.
+            const nada = _foroPag > 0
+                ? `<div class="foro-empty"><i class="fa fa-inbox"></i>
+                       Aquí ya no hay más temas.<br>
+                       <span style="font-size:12px;">
+                       <a href="#" onclick="foroPagina(0);return false;" style="color:var(--gold);">
+                       Volver al inicio</a></span></div>`
+                : vacio;
+
+            body.innerHTML = encabezado + (items || nada) + paginador;
             body.querySelectorAll('.foro-hilo-item').forEach(b => {
                 b.onclick = () => foroAbrirHilo(b.dataset.id);
             });
@@ -3734,11 +3852,15 @@
                     directorCode: _foroDC(),
                     titulo: tit, texto: txt, imagenes,
                     numRespuestas: 0, oculto: false,
+                    // Alimenta "Mis hilos". Las reglas solo dejan que te pongas
+                    // a ti al crear, para que nadie fabrique un hilo privado con
+                    // el correo de otro adentro y le de acceso de lectura.
+                    participantes: [_foroYo()],
                     creadoEn: serverTimestamp(),
                     ultimaRespuestaEn: serverTimestamp()
                 });
                 _foroLimpiarImgs();
-                await _foroCargarLista();
+                await _foroCargarLista(0);   // el tema nuevo queda hasta arriba
             } catch (e) {
                 console.error('[foro] publicar:', e);
                 alert('No se pudo publicar: ' + (e.message || e));
@@ -3771,7 +3893,11 @@
                 try {
                     await updateDoc(doc(db, 'forum', _foroHilo.id), {
                         numRespuestas: (_foroHilo.numRespuestas || 0) + 1,
-                        ultimaRespuestaEn: serverTimestamp()
+                        // Sube el hilo al primer lugar (la lista ordena por este
+                        // campo) y me suma a "Mis hilos". arrayUnion no duplica
+                        // si ya estoy, asi que responder dos veces no crece nada.
+                        ultimaRespuestaEn: serverTimestamp(),
+                        participantes: arrayUnion(_foroYo())
                     });
                     _foroHilo.numRespuestas = (_foroHilo.numRespuestas || 0) + 1;
                 } catch (e) { console.warn('[foro] contador:', e); }
