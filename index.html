@@ -18,7 +18,7 @@
 
     <!-- PWA / Mobile Web App Meta -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#071D49">
+    <meta name="theme-color" content="#04122F">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Actividad">
@@ -58,9 +58,10 @@
                como color de texto aca. El cobalto se queda para rellenos de
                boton (con texto blanco da 7.5:1) y el papel de acento de texto
                lo toma el azul medio, que sobre Oxford da 5.4:1. */
-            --bg: #071D49;          /* pagina: azul Oxford */
-            --panel: #0E2A5C;       /* tarjeta: Oxford elevado */
+            --bg: #04122F;          /* pagina: el nivel mas hundido */
+            --panel: #0E2A5C;       /* tarjeta */
             --panel2: #143566;      /* superficie mas elevada */
+            --chip: #072F5F;        /* insignias y pildoras sobre la tarjeta */
             --gold: #7999C2;        /* acento de TEXTO y bordes (azul medio) */
             --gold-l: #FFC72C;      /* enfasis: el amarillo, como micro-acento */
             --white: #FFFFFF;       /* texto principal */
@@ -172,6 +173,10 @@
             margin: 0;
         }
         .version-tag {
+            background: var(--chip);
+            color: var(--amarillo);
+            padding: 2px 7px;
+            border-radius: 20px;
             font-size: 10px;
             font-weight: 700;
             color: var(--gold);
@@ -193,14 +198,14 @@
 
         /* Row de info (solo karma badge ahora — el nombre del agente vive en Mi Perfil) */
         /* Karma badge inline (más compacto que el original) */
-        .header #karma-badge {
+        .header #karma-badge { background: var(--chip); color: #FFFFFF;
             padding: 4px 10px 4px 8px;
             margin-top: 0;
             border-radius: 8px;
         }
         .header #karma-badge .star { font-size: 14px; }
         .header #karma-badge .karma-num { font-size: 14px; letter-spacing: 0.5px; }
-        .header #karma-badge .karma-lbl { font-size: 9px; letter-spacing: 1.2px; }
+        .header #karma-badge .karma-lbl { color: var(--amarillo); font-size: 9px; letter-spacing: 1.2px; }
         .header #karma-badge .karma-info-i {
             width: 14px; height: 14px; font-size: 8px; margin-left: 2px;
         }
@@ -363,9 +368,11 @@
             /* Secundario: fondo blanco solido, borde y texto en cobalto. El
                blanco translucido de antes lo dejaba flotando sobre el fondo
                tintado sin llegar a ser una superficie. */
-            border: 1px solid var(--gold);
-            background: var(--panel);
-            color: var(--gold);
+            /* Relleno cobalto con texto blanco: sobre fondo oscuro un boton
+               delineado no tiene suficiente presencia. */
+            border: 1px solid var(--azul-cobalto);
+            background: var(--azul-cobalto);
+            color: #FFFFFF;
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
@@ -601,7 +608,7 @@
         }
 
         /* Día compacto (read-only, pasado o futuro) */
-        .m-day-compact {
+        .m-day-compact { background: var(--panel); border-color: var(--border);
             display: grid;
             grid-template-columns: auto 1fr auto;
             gap: 8px;
@@ -899,7 +906,8 @@
             .m-totals { display: grid; }
         }
         .m-total-card {
-            background: rgba(32, 85, 154, 0.06);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border);
             padding: 10px 8px;
             border-radius: 8px;
             text-align: center;
@@ -1300,7 +1308,9 @@
             border-radius: 8px; color: var(--white); font-size: 13px; font-family: inherit;
             padding: 10px; margin-bottom: 10px;
         }
-        .foro-area { resize: vertical; min-height: 110px; }
+        .foro-area {
+            background: var(--azul-oxford);
+            color: #FFFFFF; resize: vertical; min-height: 110px; }
         .foro-priv {
             display: flex; align-items: flex-start; gap: 9px; background: rgba(255, 255, 255, 0.04);
             border: 1px solid var(--border); border-radius: 8px; padding: 11px 12px; margin-bottom: 12px;
@@ -1370,7 +1380,7 @@
             background: var(--panel);
         }
 
-        .modal-box {
+        .modal-box { background: var(--panel);
             background: var(--panel);
             border: 1px solid var(--gold);
             border-radius: 8px;
@@ -1414,7 +1424,7 @@
             50%      { box-shadow: 0 0 20px rgba(32, 85, 154, 0.8), 0 0 40px rgba(32, 85, 154, 0.3); }
         }
         /* ── MULTIPLICADOR: badge junto al contador ────────────────────────── */
-        #mult-badge {
+        #mult-badge { background: var(--chip); color: #FFFFFF;
             display: inline-flex;
             align-items: center;
             gap: 5px;
@@ -1633,7 +1643,7 @@
         }
 
         /* Rules modal — reglas de totopos cuando el agente toca el balance. */
-        .rules-modal-box {
+        .rules-modal-box { background: var(--panel);
             background: var(--panel);
             border: 1.5px solid var(--gold);
             border-radius: 8px;
@@ -1755,7 +1765,7 @@
         }
 
         /* --- LOGIN OVERLAY --- */
-        #login-overlay {
+        #login-overlay { background: var(--bg);
             position: fixed;
             top: 0;
             left: 0;
@@ -2330,10 +2340,10 @@
                             REGLA: P ≥ E ≥ C ≥ V
                         </div>
                         <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; max-width: 250px; margin: 0 auto; width:100%;">
-                            <div style="width: 100%; height: 45px; background: #20559A; clip-path: polygon(0% 0%, 100% 0%, 95% 100%, 5% 100%); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; color:white;">P - Contactos</div>
+                            <div style="width: 100%; height: 45px; background: #5B82B8; clip-path: polygon(0% 0%, 100% 0%, 95% 100%, 5% 100%); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; color:white;">P - Contactos</div>
                             <div style="width: 100%; height: 45px; background: #7999C2; clip-path: polygon(5% 0%, 95% 0%, 90% 100%, 10% 100%); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; color:white;">E - Entrevistas</div>
-                            <div style="width: 100%; height: 45px; background: #C8C8C8; clip-path: polygon(10% 0%, 90% 0%, 85% 100%, 15% 100%); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; color:white;">C - Cotizaciones</div>
-                            <div style="width: 100%; height: 50px; background: #001D4B; clip-path: polygon(15% 0%, 85% 0%, 80% 100%, 20% 100%); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; color:white;">V - Cierres</div>
+                            <div style="width: 100%; height: 45px; background: #A9BFD9; clip-path: polygon(10% 0%, 90% 0%, 85% 100%, 15% 100%); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; color:white;">C - Cotizaciones</div>
+                            <div style="width: 100%; height: 50px; background: #FFC72C; color:#071D49 !important; clip-path: polygon(15% 0%, 85% 0%, 80% 100%, 20% 100%); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; color:white;">V - Cierres</div>
                         </div>
                         <p style="font-size:13px; color:var(--slate); margin-top:35px; line-height:1.6; text-align:justify; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top:20px;">
                             En sentido estricto el número debe ir de mayor a menor (o como máximo igual) en cada etapa del proceso. Es decir: <strong>nunca puede haber más entrevistas que prospectos contactados</strong>, ni más cotizaciones que entrevistas realizadas, ni más ventas concretadas que cotizaciones.
@@ -2925,7 +2935,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.7.0';
+        window.APP_HTML_VERSION = 'v4.8.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -3072,7 +3082,7 @@
         // Paleta de datos del sistema Promessa: cobalto, azul medio, gris, marino,
         // amarillo. El verde y el ambar de antes eran colores de ESTADO usados como
         // color de dato, cosa que la paleta corporativa no contempla.
-        const CHART_COLORS = { P: '#20559A', E: '#7999C2', C: '#C8C8C8', V: '#001D4B', S: '#FFC72C' };
+        const CHART_COLORS = { P: '#5B82B8', E: '#7999C2', C: '#A9BFD9', V: '#FFC72C', S: '#D2DDEB' };
 
         // notifPrefs por defecto: anuncios+reconocimientos ON, recordatorio OFF a las 19:00.
         // subscribed=true por defecto (first-time = enabled si acepta el banner).
@@ -7824,7 +7834,7 @@
                         r: {
                             grid: { color: 'rgba(255, 255, 255, 0.1)' },
                             angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
-                            pointLabels: { color: '#65738E', font: { size: 11, weight: 'bold' } },
+                            pointLabels: { color: '#A9BFD9', font: { size: 11, weight: 'bold' } },
                             ticks: { display: false },
                             suggestedMin: 0,
                             suggestedMax: 1
@@ -7919,14 +7929,14 @@
             charts['lineV'] = new Chart(document.getElementById('chartVolume'), {
                 type: 'line',
                 data: { labels, datasets: COLS.map(c => ({ label: c, data: entries.map(e => e.totales[c]), borderColor: CHART_COLORS[c], tension: 0.3, pointRadius: 4 })) },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#071D49' } } }, scales: { x: { ticks: { color: '#65738E' } }, y: { ticks: { color: '#65738E' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#071D49' } } }, scales: { x: { ticks: { color: '#A9BFD9' } }, y: { ticks: { color: '#A9BFD9' } } } }
             });
 
             destroyChart('lineP');
             charts['lineP'] = new Chart(document.getElementById('chartPrima'), {
                 type: 'line',
                 data: { labels, datasets: [{ label: 'Prima Bruta', data: entries.map(e => e.totales.prima), borderColor: 'rgba(32, 85, 154, .8)', backgroundColor: 'rgba(32, 85, 154, .2)', fill: true, tension: 0.3 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#071D49' } } }, scales: { x: { ticks: { color: '#65738E' } }, y: { ticks: { color: '#65738E' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#071D49' } } }, scales: { x: { ticks: { color: '#A9BFD9' } }, y: { ticks: { color: '#A9BFD9' } } } }
             });
 
             // TENDENCIA EFICIENCIA
@@ -7941,7 +7951,7 @@
                         { label: 'C ➔ V', data: entries.map(e => e.totales.C > 0 ? (e.totales.V / e.totales.C * 100).toFixed(1) : 0), borderColor: CHART_COLORS.V, tension: 0.3 }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#071D49' } } }, scales: { y: { ticks: { color: '#65738E', callback: v => v + '%' } }, x: { ticks: { color: '#65738E' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#071D49' } } }, scales: { y: { ticks: { color: '#A9BFD9', callback: v => v + '%' } }, x: { ticks: { color: '#A9BFD9' } } } }
             });
 
             // TENDENCIA PRIMA PROMEDIO
@@ -7954,7 +7964,7 @@
                         { label: '$/Vta', data: entries.map(e => e.totales.V > 0 ? (e.totales.prima / e.totales.V).toFixed(0) : 0), borderColor: CHART_COLORS.V, tension: 0.3 }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#071D49' } } }, scales: { y: { ticks: { color: '#65738E' } }, x: { ticks: { color: '#65738E' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#071D49' } } }, scales: { y: { ticks: { color: '#A9BFD9' } }, x: { ticks: { color: '#A9BFD9' } } } }
             });
 
             // TENDENCIA EFICIENCIA TOTAL
@@ -7967,7 +7977,7 @@
                         { label: '% P ➔ V (Cierre)', data: entries.map(e => e.totales.P > 0 ? (e.totales.V / e.totales.P * 100).toFixed(1) : 0), borderColor: CHART_COLORS.V, tension: 0.3 }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#071D49' } } }, scales: { y: { beginAtZero: true, ticks: { color: '#65738E', callback: v => v + '%' } }, x: { ticks: { color: '#65738E' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#071D49' } } }, scales: { y: { beginAtZero: true, ticks: { color: '#A9BFD9', callback: v => v + '%' } }, x: { ticks: { color: '#A9BFD9' } } } }
             });
         }
 
