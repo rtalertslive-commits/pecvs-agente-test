@@ -2925,7 +2925,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.4.0';
+        window.APP_HTML_VERSION = 'v4.5.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -8203,6 +8203,199 @@
             try { localStorage.removeItem(LLAVE); } catch (e) {}
             location.reload();
         };
+    })();
+    </script>
+
+    <!-- ═══ MODO PINCEL ═══════════════════════════════════════════════════════
+         Editor por elemento: se toca cualquier cosa de la pantalla y se le
+         cambia el color a ESA, no al tema entero. Se activa solo con ?editar=1.
+
+         Como funciona por dentro: se genera un selector CSS para el elemento
+         tocado y se escribe una regla en una hoja de estilos propia. Lo que se
+         ve es exactamente el CSS que sale al copiar — no hay traduccion de por
+         medio, asi que lo que apruebas es lo que queda.
+
+         Dos cosas que conviene saber al usarlo:
+
+         - Las reglas llevan !important. No es descuido: la app tiene 491
+           estilos escritos dentro del HTML (style="...") y un estilo inline le
+           gana a cualquier hoja. Sin !important, tocar esos elementos no haria
+           nada. Al pasarlo al codigo definitivo se acomoda en su lugar y el
+           !important se quita.
+
+         - Si el elemento tiene clase, el selector usa la clase y por lo tanto
+           afecta a TODOS los que la comparten. El panel avisa a cuantos, para
+           que no sea sorpresa. -->
+    <script>
+    (function () {
+        if (new URLSearchParams(location.search).get('editar') !== '1') return;
+
+        var LLAVE = 'pecvsPincel';
+        var reglas = {};                       // selector -> { color, background, borderColor }
+        try { reglas = JSON.parse(localStorage.getItem(LLAVE) || '{}'); } catch (e) {}
+        var sel = null, elActual = null;
+
+        var hoja = document.createElement('style');
+        hoja.id = 'pincel-hoja';
+        document.head.appendChild(hoja);
+
+        var css = document.createElement('style');
+        css.textContent = [
+            '#pincel{position:fixed;left:0;right:0;bottom:0;z-index:2147483000;background:#0E2A5C;color:#fff;',
+            '  border-top:2px solid #FFC72C;padding:10px 12px calc(12px + env(safe-area-inset-bottom,0px));',
+            '  font-family:system-ui,sans-serif;font-size:12px;box-shadow:0 -6px 24px rgba(0,0,0,.5)}',
+            '#pincel.plegado .pincel-cuerpo{display:none}',
+            '#pincel h4{margin:0 0 8px;font-size:12px;font-weight:800;display:flex;justify-content:space-between;',
+            '  align-items:center;gap:8px;cursor:pointer}',
+            '#pincel-sel{font-family:ui-monospace,monospace;font-size:10.5px;background:rgba(255,255,255,.1);',
+            '  padding:5px 7px;border-radius:4px;margin-bottom:8px;word-break:break-all;line-height:1.4}',
+            '#pincel-cuenta{opacity:.7;font-size:10px}',
+            '.pincel-fila{display:flex;align-items:center;gap:8px;margin-bottom:6px}',
+            '.pincel-fila span{flex:1}',
+            '.pincel-fila input[type=color]{width:36px;height:26px;padding:0;border:1px solid rgba(255,255,255,.3);',
+            '  border-radius:4px;background:none;cursor:pointer;flex:none}',
+            '.pincel-fila button{padding:4px 8px;border-radius:4px;border:1px solid rgba(255,255,255,.25);',
+            '  background:none;color:#fff;font-size:10px;cursor:pointer;font-family:inherit;flex:none}',
+            '.pincel-btns{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}',
+            '.pincel-btns button{flex:1;min-width:78px;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,.25);',
+            '  background:rgba(255,255,255,.1);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}',
+            '.pincel-marcado{outline:2px dashed #FFC72C !important;outline-offset:1px !important}',
+            'body.pincel-on{cursor:crosshair}'
+        ].join('');
+        document.head.appendChild(css);
+
+        // ── Selector estable para el elemento ──────────────────────────────
+        // Con id, se usa el id y listo. Con clase, se usa la clase — y entonces
+        // la regla alcanza a todos sus hermanos, que a veces es justo lo que se
+        // quiere ("todas las tarjetas") y a veces no. Sin ninguna de las dos, se
+        // cae a la posicion dentro del padre.
+        function selectorDe(el) {
+            if (el.id) return '#' + CSS.escape(el.id);
+            var partes = [];
+            while (el && el.nodeType === 1 && el !== document.body) {
+                if (el.id) { partes.unshift('#' + CSS.escape(el.id)); break; }
+                var t = el.tagName.toLowerCase();
+                var cls = (typeof el.className === 'string' ? el.className : '')
+                    .trim().split(/\s+/)
+                    .filter(function (c) { return c && c.indexOf('pincel') !== 0; })
+                    .slice(0, 2);
+                if (cls.length) t += '.' + cls.map(function (c) { return CSS.escape(c); }).join('.');
+                else {
+                    var i = 1, s2 = el;
+                    while (s2.previousElementSibling) { s2 = s2.previousElementSibling; i++; }
+                    t += ':nth-child(' + i + ')';
+                }
+                partes.unshift(t);
+                el = el.parentElement;
+                if (partes.length >= 4) break;
+            }
+            return partes.join(' ');
+        }
+
+        function pintarHoja() {
+            hoja.textContent = Object.keys(reglas).map(function (s2) {
+                var d = reglas[s2];
+                var props = [];
+                if (d.color)       props.push('color: ' + d.color + ' !important');
+                if (d.background)  props.push('background: ' + d.background + ' !important');
+                if (d.borderColor) props.push('border-color: ' + d.borderColor + ' !important');
+                return props.length ? s2 + ' { ' + props.join('; ') + '; }' : '';
+            }).filter(Boolean).join('\n');
+            try { localStorage.setItem(LLAVE, JSON.stringify(reglas)); } catch (e) {}
+            var n = Object.keys(reglas).length;
+            document.getElementById('pincel-total').textContent = n ? n + ' cambio' + (n === 1 ? '' : 's') : 'sin cambios';
+        }
+
+        function aHex(c) {
+            c = (c || '').trim();
+            if (/^#[0-9a-f]{6}$/i.test(c)) return c.toLowerCase();
+            var m = c.match(/rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/i);
+            if (!m) return '#888888';
+            return '#' + [1,2,3].map(function (i) {
+                return ('0' + parseInt(m[i], 10).toString(16)).slice(-2);
+            }).join('');
+        }
+
+        var caja = document.createElement('div');
+        caja.id = 'pincel';
+        caja.innerHTML =
+            '<h4><span>Pincel · toca un elemento</span><span id="pincel-total">sin cambios</span></h4>' +
+            '<div class="pincel-cuerpo">' +
+            '<div id="pincel-sel">Nada seleccionado</div>' +
+            '<div id="pincel-controles" style="display:none;">' +
+              '<div class="pincel-fila"><span>Texto</span><input type="color" id="pincel-color">' +
+                '<button data-q="color">quitar</button></div>' +
+              '<div class="pincel-fila"><span>Fondo</span><input type="color" id="pincel-bg">' +
+                '<button data-q="background">quitar</button></div>' +
+              '<div class="pincel-fila"><span>Borde</span><input type="color" id="pincel-bd">' +
+                '<button data-q="borderColor">quitar</button></div>' +
+            '</div>' +
+            '<div class="pincel-btns">' +
+              '<button id="pincel-padre">↑ Contenedor</button>' +
+              '<button id="pincel-copiar">Copiar CSS</button>' +
+              '<button id="pincel-reset">Borrar todo</button>' +
+            '</div></div>';
+        document.body.appendChild(caja);
+        document.body.classList.add('pincel-on');
+
+        function seleccionar(el) {
+            if (elActual) elActual.classList.remove('pincel-marcado');
+            elActual = el;
+            el.classList.add('pincel-marcado');
+            sel = selectorDe(el);
+            var cuantos = document.querySelectorAll(sel).length;
+            document.getElementById('pincel-sel').innerHTML =
+                sel + '<br><span id="pincel-cuenta">afecta a ' + cuantos +
+                ' elemento' + (cuantos === 1 ? '' : 's') + ' de la pantalla</span>';
+            document.getElementById('pincel-controles').style.display = '';
+            var cs = getComputedStyle(el);
+            document.getElementById('pincel-color').value = aHex(cs.color);
+            document.getElementById('pincel-bg').value    = aHex(cs.backgroundColor);
+            document.getElementById('pincel-bd').value    = aHex(cs.borderTopColor);
+        }
+
+        // Captura en fase de captura para poder frenar los manejadores de la app:
+        // sin esto, tocar un boton para pintarlo tambien lo activaria.
+        document.addEventListener('click', function (ev) {
+            if (caja.contains(ev.target)) return;
+            ev.preventDefault(); ev.stopPropagation();
+            seleccionar(ev.target);
+        }, true);
+
+        function set(prop, valor) {
+            if (!sel) return;
+            reglas[sel] = reglas[sel] || {};
+            if (valor === null) delete reglas[sel][prop];
+            else reglas[sel][prop] = valor;
+            if (!Object.keys(reglas[sel]).length) delete reglas[sel];
+            pintarHoja();
+        }
+        document.getElementById('pincel-color').oninput = function () { set('color', this.value); };
+        document.getElementById('pincel-bg').oninput    = function () { set('background', this.value); };
+        document.getElementById('pincel-bd').oninput    = function () { set('borderColor', this.value); };
+        caja.querySelectorAll('.pincel-fila button').forEach(function (b) {
+            b.onclick = function () { set(b.dataset.q, null); };
+        });
+
+        document.getElementById('pincel-padre').onclick = function () {
+            if (elActual && elActual.parentElement && elActual.parentElement !== document.body) {
+                seleccionar(elActual.parentElement);
+            }
+        };
+        document.getElementById('pincel-copiar').onclick = function () {
+            var txt = hoja.textContent || '/* sin cambios */';
+            navigator.clipboard.writeText(txt).then(function () {
+                alert('Copiado. Pégamelo y lo dejo fijo en el código.');
+            }, function () { prompt('Copia esto:', txt); });
+        };
+        document.getElementById('pincel-reset').onclick = function () {
+            if (!confirm('¿Borrar todos los cambios del pincel?')) return;
+            reglas = {}; pintarHoja();
+            try { localStorage.removeItem(LLAVE); } catch (e) {}
+        };
+        caja.querySelector('h4').onclick = function () { caja.classList.toggle('plegado'); };
+
+        pintarHoja();
     })();
     </script>
 </body>
