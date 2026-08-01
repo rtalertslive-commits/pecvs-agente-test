@@ -1805,6 +1805,24 @@
         }
 
         /* Brand block del login: monograma grande + wordmark + subtitle pulsante */
+        /* Zona de proteccion del logo: el manual la define como la altura de la
+           "x" del logotipo. Se traduce en aire generoso alrededor y una linea
+           que lo separa del bloque de la app, para que se lea como la marca que
+           respalda y no como parte del nombre del producto. */
+        .login-logo {
+            display: flex;
+            justify-content: center;
+            padding-bottom: 20px;
+            margin-bottom: 22px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+        }
+        .login-logo img {
+            height: 34px;
+            width: auto;
+            max-width: 78%;
+            /* Sin filtros ni sombras: el manual prohibe agregarle efectos. */
+        }
+
         .login-brand {
             display: flex;
             flex-direction: column;
@@ -1990,6 +2008,10 @@
     <!-- LOGIN OVERLAY -->
     <div id="login-overlay">
         <div class="login-card">
+            <div class="login-logo">
+                <img src="./promessa-logo.png" alt="Promessa"
+                     onerror="this.parentElement.style.display='none'">
+            </div>
             <div class="login-brand">
                 <div class="brand-mono">A</div>
                 <div>
@@ -3006,7 +3028,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.9.0';
+        window.APP_HTML_VERSION = 'v4.10.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
