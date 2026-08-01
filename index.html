@@ -3028,7 +3028,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.13.0';
+        window.APP_HTML_VERSION = 'v4.13.1';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -3093,11 +3093,21 @@
                 // Guarda contra bucle: solo un auto-reload por versión publicada y por
                 // sesión. Si después de recargar seguimos viejos (proxy cacheando,
                 // CDN lento), no insistimos — mostramos el modal y que decida el user.
+                // DOS marcas, no una. sessionStorage es la normal, pero si el
+                // almacenamiento esta bloqueado —modo privado, cuota llena— tanto
+                // getItem como setItem tiran, alreadyTried se queda en null, nunca
+                // iguala a PUBLISHED y esto RECARGA EN BUCLE INFINITO. La app
+                // quedaria inservible y el usuario ni siquiera podria llegar a
+                // tocar el numero de version para salir.
+                //
+                // La marca en la URL sobrevive a la recarga sin depender de nada.
                 const KEY = 'pecvsAutoReloadFor';
+                const MARCA = 'pecvsR=' + PUBLISHED;
                 let alreadyTried = null;
                 try { alreadyTried = sessionStorage.getItem(KEY); } catch (e) {}
+                const yaEnUrl = location.search.indexOf(MARCA) !== -1;
 
-                if (alreadyTried !== PUBLISHED) {
+                if (alreadyTried !== PUBLISHED && !yaEnUrl) {
                     try { sessionStorage.setItem(KEY, PUBLISHED); } catch (e) {}
                     console.warn('[version] recargando para tomar', PUBLISHED);
                     // NO borrar los caches acá. Lo hice en v3.40.0 y causaba pantalla
@@ -3107,7 +3117,10 @@
                     // se recuperaba al cambiar de red, porque eso abortaba el fetch.
                     // El `cache: 'no-store'` del SW ya garantiza HTML fresco de la red;
                     // borrar el cache era redundante y destruía la red de seguridad.
-                    location.reload();
+                    // replace y no reload: deja la marca en la URL, que es la
+                    // que rompe el bucle si sessionStorage no funciona.
+                    location.replace(location.pathname + location.search +
+                                     (location.search ? '&' : '?') + MARCA);
                     return;
                 }
 
