@@ -18,7 +18,7 @@
 
     <!-- PWA / Mobile Web App Meta -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#04122F">
+    <meta name="theme-color" content="#071D49">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Actividad">
@@ -58,10 +58,9 @@
                como color de texto aca. El cobalto se queda para rellenos de
                boton (con texto blanco da 7.5:1) y el papel de acento de texto
                lo toma el azul medio, que sobre Oxford da 5.4:1. */
-            --bg: #04122F;          /* pagina: el nivel mas hundido */
-            --panel: #0E2A5C;       /* tarjeta */
+            --bg: #071D49;          /* pagina: azul Oxford */
+            --panel: #0E2A5C;       /* tarjeta: Oxford elevado */
             --panel2: #143566;      /* superficie mas elevada */
-            --chip: #072F5F;        /* insignias y pildoras sobre la tarjeta */
             --gold: #7999C2;        /* acento de TEXTO y bordes (azul medio) */
             --gold-l: #FFC72C;      /* enfasis: el amarillo, como micro-acento */
             --white: #FFFFFF;       /* texto principal */
@@ -173,10 +172,6 @@
             margin: 0;
         }
         .version-tag {
-            background: var(--chip);
-            color: var(--amarillo);
-            padding: 2px 7px;
-            border-radius: 20px;
             font-size: 10px;
             font-weight: 700;
             color: var(--gold);
@@ -198,14 +193,14 @@
 
         /* Row de info (solo karma badge ahora — el nombre del agente vive en Mi Perfil) */
         /* Karma badge inline (más compacto que el original) */
-        .header #karma-badge { background: var(--chip); color: #FFFFFF;
+        .header #karma-badge {
             padding: 4px 10px 4px 8px;
             margin-top: 0;
             border-radius: 8px;
         }
         .header #karma-badge .star { font-size: 14px; }
         .header #karma-badge .karma-num { font-size: 14px; letter-spacing: 0.5px; }
-        .header #karma-badge .karma-lbl { color: var(--amarillo); font-size: 9px; letter-spacing: 1.2px; }
+        .header #karma-badge .karma-lbl { font-size: 9px; letter-spacing: 1.2px; }
         .header #karma-badge .karma-info-i {
             width: 14px; height: 14px; font-size: 8px; margin-left: 2px;
         }
@@ -368,11 +363,9 @@
             /* Secundario: fondo blanco solido, borde y texto en cobalto. El
                blanco translucido de antes lo dejaba flotando sobre el fondo
                tintado sin llegar a ser una superficie. */
-            /* Relleno cobalto con texto blanco: sobre fondo oscuro un boton
-               delineado no tiene suficiente presencia. */
-            border: 1px solid var(--azul-cobalto);
-            background: var(--azul-cobalto);
-            color: #FFFFFF;
+            border: 1px solid var(--gold);
+            background: var(--panel);
+            color: var(--gold);
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
@@ -608,7 +601,7 @@
         }
 
         /* Día compacto (read-only, pasado o futuro) */
-        .m-day-compact { background: var(--panel); border-color: var(--border);
+        .m-day-compact {
             display: grid;
             grid-template-columns: auto 1fr auto;
             gap: 8px;
@@ -906,8 +899,7 @@
             .m-totals { display: grid; }
         }
         .m-total-card {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid var(--border);
+            background: rgba(32, 85, 154, 0.06);
             padding: 10px 8px;
             border-radius: 8px;
             text-align: center;
@@ -1308,9 +1300,7 @@
             border-radius: 8px; color: var(--white); font-size: 13px; font-family: inherit;
             padding: 10px; margin-bottom: 10px;
         }
-        .foro-area {
-            background: var(--azul-oxford);
-            color: #FFFFFF; resize: vertical; min-height: 110px; }
+        .foro-area { resize: vertical; min-height: 110px; }
         .foro-priv {
             display: flex; align-items: flex-start; gap: 9px; background: rgba(255, 255, 255, 0.04);
             border: 1px solid var(--border); border-radius: 8px; padding: 11px 12px; margin-bottom: 12px;
@@ -1380,7 +1370,7 @@
             background: var(--panel);
         }
 
-        .modal-box { background: var(--panel);
+        .modal-box {
             background: var(--panel);
             border: 1px solid var(--gold);
             border-radius: 8px;
@@ -1424,7 +1414,7 @@
             50%      { box-shadow: 0 0 20px rgba(32, 85, 154, 0.8), 0 0 40px rgba(32, 85, 154, 0.3); }
         }
         /* ── MULTIPLICADOR: badge junto al contador ────────────────────────── */
-        #mult-badge { background: var(--chip); color: #FFFFFF;
+        #mult-badge {
             display: inline-flex;
             align-items: center;
             gap: 5px;
@@ -1643,7 +1633,7 @@
         }
 
         /* Rules modal — reglas de totopos cuando el agente toca el balance. */
-        .rules-modal-box { background: var(--panel);
+        .rules-modal-box {
             background: var(--panel);
             border: 1.5px solid var(--gold);
             border-radius: 8px;
@@ -1765,7 +1755,7 @@
         }
 
         /* --- LOGIN OVERLAY --- */
-        #login-overlay { background: var(--bg);
+        #login-overlay {
             position: fixed;
             top: 0;
             left: 0;
@@ -2340,10 +2330,10 @@
                             REGLA: P ≥ E ≥ C ≥ V
                         </div>
                         <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; max-width: 250px; margin: 0 auto; width:100%;">
-                            <div style="width: 100%; height: 45px; background: #5B82B8; clip-path: polygon(0% 0%, 100% 0%, 95% 100%, 5% 100%); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; color:white;">P - Contactos</div>
+                            <div style="width: 100%; height: 45px; background: #20559A; clip-path: polygon(0% 0%, 100% 0%, 95% 100%, 5% 100%); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; color:white;">P - Contactos</div>
                             <div style="width: 100%; height: 45px; background: #7999C2; clip-path: polygon(5% 0%, 95% 0%, 90% 100%, 10% 100%); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; color:white;">E - Entrevistas</div>
-                            <div style="width: 100%; height: 45px; background: #A9BFD9; clip-path: polygon(10% 0%, 90% 0%, 85% 100%, 15% 100%); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; color:white;">C - Cotizaciones</div>
-                            <div style="width: 100%; height: 50px; background: #FFC72C; color:#071D49 !important; clip-path: polygon(15% 0%, 85% 0%, 80% 100%, 20% 100%); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; color:white;">V - Cierres</div>
+                            <div style="width: 100%; height: 45px; background: #C8C8C8; clip-path: polygon(10% 0%, 90% 0%, 85% 100%, 15% 100%); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; color:white;">C - Cotizaciones</div>
+                            <div style="width: 100%; height: 50px; background: #001D4B; clip-path: polygon(15% 0%, 85% 0%, 80% 100%, 20% 100%); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; color:white;">V - Cierres</div>
                         </div>
                         <p style="font-size:13px; color:var(--slate); margin-top:35px; line-height:1.6; text-align:justify; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top:20px;">
                             En sentido estricto el número debe ir de mayor a menor (o como máximo igual) en cada etapa del proceso. Es decir: <strong>nunca puede haber más entrevistas que prospectos contactados</strong>, ni más cotizaciones que entrevistas realizadas, ni más ventas concretadas que cotizaciones.
@@ -2910,6 +2900,87 @@
             color: var(--gold,#20559A) !important;
         }
         #notif-bell-btn.bell-pulsing i { color: var(--gold,#20559A); }
+
+        /* ═══ AJUSTES DE DISEÑO ═══════════════════════════════════════════
+           Colores elegidos elemento por elemento con el pincel (?editar=1)
+           y pegados tal cual salieron de la herramienta, para que lo que se
+           aprobo en pantalla sea exactamente lo que quedo en el codigo.
+
+           Van al final de la hoja a proposito: asi ganan por cascada.
+           Los !important tampoco son descuido — la app tiene 491 estilos
+           escritos dentro del HTML (style="...") y un estilo inline le gana
+           a cualquier regla de hoja que no los lleve.
+
+           OJO con los selectores de posicion (div:nth-child(9),
+           tbody tr:nth-child(2) td:nth-child(3)...): apuntan al LUGAR, no al
+           elemento. Si se agrega una fila a una tabla o un bloque a un modal,
+           el color salta a otra cosa. Estan marcados abajo. */
+        #login-overlay div.login-card { color: #ffffff !important; background: #071D49 !important; }
+        #login-btn { color: #ffffff !important; background: #20559A !important; }
+        #login-overlay { color: #676b6f !important; background: #04122f !important; }
+        div.app div.header div.row-menu button.btn.btn-sm { color: #ffffff !important; background: #20559A !important; }
+        #logout-btn { color: #ffffff !important; background: #071d49 !important; border-color: #ffffff !important; }
+        #cov-invite-btn { color: #ffffff !important; background: #20559A !important; border-color: #ffffff !important; }
+        #karma-badge { background: #072f5f !important; }
+        #karma-value { color: #ffffff !important; }
+        #karma-badge span.karma-lbl { color: #FFC72C !important; }
+        #mult-badge { color: #ffffff !important; background: #072F5F !important; border-color: #FFC72C !important; }
+        div.row-brand div.brand-block div.brand-title span.version-tag { color: #FFC72C !important; background: #072F5F !important; }
+        #notif-bell-btn { color: #ffffff !important; background: #072F5F !important; }
+        #anuncios-btn { color: #ffffff !important; background: #072F5F !important; }
+        #anuncios-badge { background: #e01600 !important; }
+        #mult-badge b:nth-child(2) { color: #FFC72C !important; }
+        #cov-invite-card { border-color: #ffffff !important; }
+        #mobile-week div.m-day-today { border-color: #FFC72C !important; }
+        #mobile-week div.m-day-compact { background: #002a61 !important; border-color: #a8a8a8 !important; }
+        #mobile-week div.m-day-compact div.m-day-label { color: #ededed !important; }
+        #mobile-week div.m-day-compact div.m-day-label small:nth-child(1) { color: #ffffff !important; }
+        #tab-bitacora div.card div.m-totals div.m-total-card { border-color: #ffffff !important; }
+        nav.bottom-nav button.bn-btn.active i.fa.fa-book-open { color: #A9BFD9 !important; border-color: #7797c0 !important; }
+        #cov-info-body div.mult-demo-wrap { background: #071D49 !important; }
+        #cov-info-body div.mult-demo-wrap span.karma-chip-demo { background: #072F5F !important; border-color: #FFC72C !important; }
+        #cov-info-body div.mult-demo-wrap span.mult-chip-demo { color: #ffffff !important; background: #072F5F !important; border-color: #FFC72C !important; }
+        #cov-info-body div.mult-demo-wrap span.mult-chip-demo b:nth-child(2) { color: #FFC72C !important; border-color: #9bc5ac !important; }
+        #cov-info-body div:nth-child(13) { border-color: #ffffff !important; }
+        #cov-info-body { background: #0E2A5C !important; }
+        #cov-info-modal div.modal-box { background: #0E2A5C !important; }
+        #cov-info-body div:nth-child(9) { border-color: #ffffff !important; }
+        tbody:nth-child(2) tr:nth-child(2) td:nth-child(2) span:nth-child(1) { color: #ffffff !important; }
+        tbody:nth-child(2) tr:nth-child(3) td:nth-child(2) span:nth-child(1) { color: #ffffff !important; }
+        tbody:nth-child(2) tr:nth-child(4) td:nth-child(2) span:nth-child(1) { color: #ffffff !important; }
+        tbody:nth-child(2) tr:nth-child(1) td:nth-child(2) span:nth-child(1) { color: #eaedf0 !important; }
+        tbody:nth-child(2) tr:nth-child(1) td:nth-child(3) span:nth-child(1) { color: #ecf2f9 !important; }
+        tbody:nth-child(2) tr:nth-child(2) td:nth-child(3) span:nth-child(1) { color: #ffffff !important; }
+        tbody:nth-child(2) tr:nth-child(3) td:nth-child(3) span:nth-child(1) { color: #ffffff !important; }
+        tbody:nth-child(2) tr:nth-child(4) td:nth-child(3) span:nth-child(1) { color: #ffffff !important; }
+        table:nth-child(1) thead:nth-child(1) tr:nth-child(1) th:nth-child(3) { color: #FEC72C !important; }
+        #mult-receipt-body div.mrec-row div.mrec-n { color: #018917 !important; border-color: #192129 !important; }
+        #mult-receipt-body div:nth-child(6) div:nth-child(2) { color: #ffc72c !important; }
+        #mult-receipt-body div:nth-child(6) { border-color: #ffc72c !important; }
+        #rules-mult-block div:nth-child(1) div:nth-child(1) { color: #ffc72c !important; }
+        tbody:nth-child(2) tr:nth-child(2) td:nth-child(3) span:nth-child(2) { color: #FEC72C !important; }
+        tbody:nth-child(2) tr:nth-child(3) td:nth-child(3) span:nth-child(2) { color: #FEC72C !important; }
+        tbody:nth-child(2) tr:nth-child(4) td:nth-child(3) span:nth-child(2) { color: #FEC72C !important; }
+        #rules-mult-block div:nth-child(1) { border-color: #ffffff !important; }
+        #rules-mult-block div:nth-child(1) div.mult-demo-wrap { background: #071D49 !important; }
+        #rules-mult-block div:nth-child(1) div.mult-demo-wrap span.karma-chip-demo { background: #072F5F !important; border-color: #ffffff !important; }
+        #rules-mult-block div:nth-child(1) div.mult-demo-wrap span.mult-chip-demo { color: #f7f7f7 !important; background: #072F5F !important; border-color: #ffffff !important; }
+        div:nth-child(1) div.mult-demo-wrap span.mult-chip-demo b:nth-child(2) { color: #ffc72c !important; }
+        div.rules-modal-box div.rules-modal-body ul:nth-child(3) li:nth-child(1) { border-color: #ffffff !important; }
+        #rules-modal div.rules-modal-box div.rules-modal-body ul:nth-child(3) { border-color: #ffffff !important; }
+        #tab-conceptos div.card h2:nth-child(1) { color: #ffffff !important; }
+        div.conceptos-grid div.conceptos-visual div:nth-child(3) div:nth-child(3) { background: #071D49 !important; }
+        div.conceptos-grid div.conceptos-visual div:nth-child(3) div:nth-child(4) { color: #00050f !important; background: #ffc72c !important; }
+        #kpi-period-sel { color: #8da7c8 !important; background: #071D49 !important; }
+        #kpiEfectividad { color: #FFFFFF !important; background: #143566 !important; }
+        #ts-btn-solicitudes { color: #ffffff !important; background: #0D2A63 !important; }
+        #ts-btn-actividad { color: #ffffff !important; background: #0D2A63 !important; }
+        #ts-btn-comprar { color: #ffffff !important; background: #0D2A63 !important; }
+        #tienda-items div:nth-child(1) div:nth-child(4) { color: #7999C2 !important; }
+        #tienda-items div:nth-child(2) div:nth-child(4) { color: #7999C2 !important; background: #143566 !important; border-color: #7999C2 !important; }
+        #foro-resp-txt { color: #ffffff !important; background: #071D49 !important; border-color: #ffffff !important; }
+        #foro-body button.foro-hilo-item div.foro-meta span.rol-badge { color: #ffffff !important; background: #071D49 !important; }
+        #cov-info-body div:nth-child(9) div:nth-child(5) { color: #ffffff !important; border-color: #4eca82 !important; }
     </style>
 
     <div id="karma-celebration">
