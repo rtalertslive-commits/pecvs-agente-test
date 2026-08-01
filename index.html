@@ -455,7 +455,7 @@
                 bottom: 0;
                 left: 0;
                 right: 0;
-                background: rgba(233, 238, 245, 0.92);
+                background: #22487C;
                 border-top: 1px solid var(--border);
                 padding: 8px 4px calc(10px + env(safe-area-inset-bottom, 0px));
                 backdrop-filter: blur(10px);
@@ -671,12 +671,9 @@
             font-weight: 400;
         }
         .m-today-badge {
-            /* OJO: amarillo sobre blanco da 1.7:1 de contraste y reprueba
-               cualquier norma de accesibilidad. Va asi por decision de diseno.
-               Para invertirlo: background var(--amarillo), color var(--azul-oxford)
-               — que es como el manual usa el chip amarillo. */
-            background: #FFFFFF;
-            color: var(--amarillo);
+            background: var(--azul-cobalto);
+            color: #FFFFFF;
+            border: 1px solid var(--azul-cobalto);
             padding: 4px 10px;
             border-radius: 20px;
             font-size: 10px;
@@ -1432,6 +1429,7 @@
             white-space: nowrap;
         }
         #mult-badge b { font-size: 15px; font-weight: 900; }
+        #mult-badge { border-color: var(--green); }
         #mult-badge:hover { transform: translateY(-1px); }
         #mult-badge:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
         #mult-badge.mult-on {
@@ -1506,11 +1504,12 @@
            Verde a propósito: es el mismo color del badge que van a ver cuando
            lo ganen, así asocian las dos cosas sin que nadie se lo explique. */
         .cov-invite {
-            border: 1.5px solid rgba(46, 125, 79,0.5);
+            border: 1.5px solid var(--border);
             border-radius: 8px;
-            background: linear-gradient(135deg, rgba(46, 125, 79,0.14), rgba(46, 125, 79,0.03));
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
             padding: 14px;
             cursor: pointer;
+            color: var(--slate);
         }
         .cov-invite .cov-fill { background: linear-gradient(90deg, var(--green), #2E7D4F); }
         .cov-invite-head {
@@ -1519,12 +1518,12 @@
         }
         .cov-chip-nuevo {
             display: inline-flex; align-items: center; gap: 4px;
-            background: #2E7D4F; color: #04231a;
+            background: var(--amarillo); color: var(--azul-oxford);
             font-size: 9.5px; font-weight: 900; letter-spacing: 0.09em;
             padding: 3px 8px; border-radius: 20px;
             text-transform: uppercase; white-space: nowrap;
         }
-        .cov-invite-claim { font-size: 12.5px; font-weight: 900; color: #2E7D4F; }
+        .cov-invite-claim { font-size: 12.5px; font-weight: 900; color: var(--amarillo); }
         .cov-invite-btn {
             display: block; width: 100%; margin-top: 12px;
             background: rgba(46, 125, 79,0.9); color: #04231a;
@@ -1564,6 +1563,7 @@
         .cov-dot { display: inline-block; width: 8px; height: 8px; border-radius: 8px;
                    margin-right: 5px; vertical-align: middle; }
 
+        #karma-badge { border-color: var(--amarillo) !important; }
         #karma-badge {
             display: inline-flex;
             align-items: center;
@@ -2925,7 +2925,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.5.0';
+        window.APP_HTML_VERSION = 'v4.6.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -8331,12 +8331,12 @@
                 '<button data-q="borderColor">quitar</button></div>' +
             '</div>' +
             '<div class="pincel-btns">' +
+              '<button id="pincel-modo" style="background:rgba(255,199,44,.2);border-color:#FFC72C;">✋ Navegar</button>' +
               '<button id="pincel-padre">↑ Contenedor</button>' +
               '<button id="pincel-copiar">Copiar CSS</button>' +
               '<button id="pincel-reset">Borrar todo</button>' +
             '</div></div>';
         document.body.appendChild(caja);
-        document.body.classList.add('pincel-on');
 
         function seleccionar(el) {
             if (elActual) elActual.classList.remove('pincel-marcado');
@@ -8356,7 +8356,9 @@
 
         // Captura en fase de captura para poder frenar los manejadores de la app:
         // sin esto, tocar un boton para pintarlo tambien lo activaria.
+        var pintando = false;
         document.addEventListener('click', function (ev) {
+            if (!pintando) return;                 // modo navegar: la app funciona normal
             if (caja.contains(ev.target)) return;
             ev.preventDefault(); ev.stopPropagation();
             seleccionar(ev.target);
@@ -8377,6 +8379,14 @@
             b.onclick = function () { set(b.dataset.q, null); };
         });
 
+        document.getElementById('pincel-modo').onclick = function () {
+            pintando = !pintando;
+            this.textContent = pintando ? '🖌 Pintando' : '✋ Navegar';
+            this.style.background = pintando ? 'rgba(255,199,44,.85)' : 'rgba(255,199,44,.2)';
+            this.style.color = pintando ? '#071D49' : '#fff';
+            document.body.classList.toggle('pincel-on', pintando);
+            if (!pintando && elActual) { elActual.classList.remove('pincel-marcado'); }
+        };
         document.getElementById('pincel-padre').onclick = function () {
             if (elActual && elActual.parentElement && elActual.parentElement !== document.body) {
                 seleccionar(elActual.parentElement);
