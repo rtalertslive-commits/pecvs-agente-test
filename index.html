@@ -2925,7 +2925,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.6.0';
+        window.APP_HTML_VERSION = 'v4.7.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -8242,8 +8242,12 @@
         var css = document.createElement('style');
         css.textContent = [
             '#pincel{position:fixed;left:0;right:0;bottom:0;z-index:2147483000;background:#0E2A5C;color:#fff;',
-            '  border-top:2px solid #FFC72C;padding:10px 12px calc(12px + env(safe-area-inset-bottom,0px));',
-            '  font-family:system-ui,sans-serif;font-size:12px;box-shadow:0 -6px 24px rgba(0,0,0,.5)}',
+            '  border:2px solid #FFC72C;padding:10px 12px calc(12px + env(safe-area-inset-bottom,0px));',
+            '  font-family:system-ui,sans-serif;font-size:12px;box-shadow:0 6px 24px rgba(0,0,0,.5);',
+            '  border-radius:8px}',
+            '#pincel.suelto{left:auto;right:auto;bottom:auto;width:340px;max-width:94vw;',
+            '  max-height:86vh;overflow-y:auto}',
+            '#pincel h4{touch-action:none;-webkit-user-select:none;user-select:none}',
             '#pincel.plegado .pincel-cuerpo{display:none}',
             '#pincel h4{margin:0 0 8px;font-size:12px;font-weight:800;display:flex;justify-content:space-between;',
             '  align-items:center;gap:8px;cursor:pointer}',
@@ -8254,6 +8258,9 @@
             '.pincel-fila span{flex:1}',
             '.pincel-fila input[type=color]{width:36px;height:26px;padding:0;border:1px solid rgba(255,255,255,.3);',
             '  border-radius:4px;background:none;cursor:pointer;flex:none}',
+            '.pincel-fila input[type=text]{width:76px;flex:none;padding:5px 6px;border-radius:4px;',
+            '  border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;',
+            '  font-family:ui-monospace,monospace;font-size:11px;text-transform:uppercase}',
             '.pincel-fila button{padding:4px 8px;border-radius:4px;border:1px solid rgba(255,255,255,.25);',
             '  background:none;color:#fff;font-size:10px;cursor:pointer;font-family:inherit;flex:none}',
             '.pincel-btns{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}',
@@ -8319,16 +8326,16 @@
         var caja = document.createElement('div');
         caja.id = 'pincel';
         caja.innerHTML =
-            '<h4><span>Pincel · toca un elemento</span><span id="pincel-total">sin cambios</span></h4>' +
+            '<h4><span>Pincel · arrastra para mover</span><span id="pincel-total">sin cambios</span></h4>' +
             '<div class="pincel-cuerpo">' +
             '<div id="pincel-sel">Nada seleccionado</div>' +
             '<div id="pincel-controles" style="display:none;">' +
-              '<div class="pincel-fila"><span>Texto</span><input type="color" id="pincel-color">' +
-                '<button data-q="color">quitar</button></div>' +
-              '<div class="pincel-fila"><span>Fondo</span><input type="color" id="pincel-bg">' +
-                '<button data-q="background">quitar</button></div>' +
-              '<div class="pincel-fila"><span>Borde</span><input type="color" id="pincel-bd">' +
-                '<button data-q="borderColor">quitar</button></div>' +
+              '<div class="pincel-fila"><span>Texto</span><input type="text" id="pincel-color-hex" placeholder="#20559A">' +
+                '<input type="color" id="pincel-color"><button data-q="color">quitar</button></div>' +
+              '<div class="pincel-fila"><span>Fondo</span><input type="text" id="pincel-bg-hex" placeholder="#20559A">' +
+                '<input type="color" id="pincel-bg"><button data-q="background">quitar</button></div>' +
+              '<div class="pincel-fila"><span>Borde</span><input type="text" id="pincel-bd-hex" placeholder="#20559A">' +
+                '<input type="color" id="pincel-bd"><button data-q="borderColor">quitar</button></div>' +
             '</div>' +
             '<div class="pincel-btns">' +
               '<button id="pincel-modo" style="background:rgba(255,199,44,.2);border-color:#FFC72C;">✋ Navegar</button>' +
@@ -8349,9 +8356,12 @@
                 ' elemento' + (cuantos === 1 ? '' : 's') + ' de la pantalla</span>';
             document.getElementById('pincel-controles').style.display = '';
             var cs = getComputedStyle(el);
-            document.getElementById('pincel-color').value = aHex(cs.color);
-            document.getElementById('pincel-bg').value    = aHex(cs.backgroundColor);
-            document.getElementById('pincel-bd').value    = aHex(cs.borderTopColor);
+            [['pincel-color', cs.color], ['pincel-bg', cs.backgroundColor],
+             ['pincel-bd', cs.borderTopColor]].forEach(function (par) {
+                var h = aHex(par[1]);
+                document.getElementById(par[0]).value = h;
+                document.getElementById(par[0] + '-hex').value = h.toUpperCase();
+            });
         }
 
         // Captura en fase de captura para poder frenar los manejadores de la app:
@@ -8372,9 +8382,21 @@
             if (!Object.keys(reglas[sel]).length) delete reglas[sel];
             pintarHoja();
         }
-        document.getElementById('pincel-color').oninput = function () { set('color', this.value); };
-        document.getElementById('pincel-bg').oninput    = function () { set('background', this.value); };
-        document.getElementById('pincel-bd').oninput    = function () { set('borderColor', this.value); };
+        [['color','pincel-color'],['background','pincel-bg'],['borderColor','pincel-bd']]
+        .forEach(function (par) {
+            var prop = par[0], rueda = document.getElementById(par[1]),
+                hex = document.getElementById(par[1] + '-hex');
+            rueda.oninput = function () {
+                hex.value = rueda.value.toUpperCase();
+                set(prop, rueda.value);
+            };
+            // Pegar un hex del manual es lo mas comun, asi que se acepta con o
+            // sin almohadilla y se aplica en cuanto queda valido.
+            hex.oninput = function () {
+                var v = hex.value.trim().replace(/^#?/, '#');
+                if (/^#[0-9a-f]{6}$/i.test(v)) { rueda.value = v.toLowerCase(); set(prop, v); }
+            };
+        });
         caja.querySelectorAll('.pincel-fila button').forEach(function (b) {
             b.onclick = function () { set(b.dataset.q, null); };
         });
@@ -8403,7 +8425,42 @@
             reglas = {}; pintarHoja();
             try { localStorage.removeItem(LLAVE); } catch (e) {}
         };
-        caja.querySelector('h4').onclick = function () { caja.classList.toggle('plegado'); };
+        // El panel tapa justo lo que se quiere pintar, asi que se arrastra desde
+        // su encabezado. Se distingue arrastre de toque por la distancia: menos
+        // de 4 px sigue contando como toque y pliega el panel.
+        (function arrastrable() {
+            var cab = caja.querySelector('h4');
+            var moviendo = false, movido = false, dx = 0, dy = 0, x0 = 0, y0 = 0;
+            function inicio(e) {
+                var t = e.touches ? e.touches[0] : e;
+                var r = caja.getBoundingClientRect();
+                caja.classList.add('suelto');
+                caja.style.left = r.left + 'px';
+                caja.style.top = r.top + 'px';
+                dx = t.clientX - r.left; dy = t.clientY - r.top;
+                x0 = t.clientX; y0 = t.clientY;
+                moviendo = true; movido = false;
+                e.preventDefault();
+            }
+            function mover(e) {
+                if (!moviendo) return;
+                var t = e.touches ? e.touches[0] : e;
+                if (Math.abs(t.clientX - x0) > 4 || Math.abs(t.clientY - y0) > 4) movido = true;
+                caja.style.left = Math.max(0, Math.min(window.innerWidth - 70, t.clientX - dx)) + 'px';
+                caja.style.top = Math.max(0, Math.min(window.innerHeight - 40, t.clientY - dy)) + 'px';
+                e.preventDefault();
+            }
+            function fin() {
+                if (moviendo && !movido) caja.classList.toggle('plegado');
+                moviendo = false;
+            }
+            cab.addEventListener('mousedown', inicio);
+            cab.addEventListener('touchstart', inicio, { passive: false });
+            document.addEventListener('mousemove', mover);
+            document.addEventListener('touchmove', mover, { passive: false });
+            document.addEventListener('mouseup', fin);
+            document.addEventListener('touchend', fin);
+        })();
 
         pintarHoja();
     })();
