@@ -642,11 +642,12 @@
 
         /* HOY: card grande, prominente */
         .m-day-today {
-            background: var(--panel);
-            border: 2px solid var(--gold);
+            background: var(--azul-oxford);
+            border: 2px solid var(--azul-oxford);
             border-radius: 8px;
             padding: 16px;
             margin: 10px 0;
+            color: #FFFFFF;
             box-shadow: 0 4px 20px rgba(32, 85, 154, 0.15);
         }
         .m-today-header {
@@ -658,8 +659,8 @@
         .m-today-day {
             font-family: 'Source Sans Pro', sans-serif;
             font-size: 20px;
-            font-weight: 700;
-            color: var(--gold-l);
+            font-weight: 900;
+            color: #FFFFFF;
         }
         .m-today-day small {
             display: block;
@@ -669,13 +670,29 @@
             font-weight: 400;
         }
         .m-today-badge {
-            background: var(--gold);
-            color: var(--on-brand);
+            /* OJO: amarillo sobre blanco da 1.7:1 de contraste y reprueba
+               cualquier norma de accesibilidad. Va asi por decision de diseno.
+               Para invertirlo: background var(--amarillo), color var(--azul-oxford)
+               — que es como el manual usa el chip amarillo. */
+            background: #FFFFFF;
+            color: var(--amarillo);
             padding: 4px 10px;
             border-radius: 20px;
             font-size: 10px;
             font-weight: 900;
             letter-spacing: 1px;
+        }
+        /* Sobre la tarjeta oscura los campos se definen ACLARANDOSE, que es como
+           funciona la jerarquia en superficie oscura. El borde solo los delimita. */
+        .m-day-today input {
+            background: rgba(255, 255, 255, 0.10);
+            border: 1.5px solid rgba(255, 255, 255, 0.30);
+            color: #FFFFFF;
+        }
+        .m-day-today input:focus {
+            background: rgba(255, 255, 255, 0.16);
+            border-color: var(--amarillo);
+            outline: none;
         }
         .m-today-grid {
             display: grid;
@@ -683,6 +700,10 @@
             gap: 10px;
         }
         .m-field { display: flex; flex-direction: column; }
+        .m-day-today .m-field label { color: rgba(255,255,255,0.78); }
+        .m-day-today .m-today-date,
+        .m-day-today .m-day-label,
+        .m-day-today .m-day-label small { color: rgba(255,255,255,0.72); }
         .m-field label {
             font-size: 11px;
             font-weight: 700;
@@ -761,6 +782,7 @@
             line-height: 1.25;
         }
         .m-status-msg.ok { color: var(--green); }
+        .m-day-today .m-status-msg.ok { color: #6FD79B; }
         .m-status-msg.error {
             color: var(--red);
             font-weight: 700;
@@ -778,9 +800,9 @@
         /* Botón "Sin intento de venta hoy" — solo cuando todo está en 0 y no marcado */
         .btn-no-activity {
             width: 100%;
-            background: rgba(101, 115, 142,0.08);
-            border: 1.5px dashed rgba(101, 115, 142,0.4);
-            color: var(--slate);
+            background: rgba(255, 255, 255, 0.07);
+            border: 1.5px dashed rgba(255, 255, 255, 0.38);
+            color: rgba(255, 255, 255, 0.85);
             padding: 10px;
             border-radius: 8px;
             font-size: 12px;
@@ -2902,7 +2924,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.1.0';
+        window.APP_HTML_VERSION = 'v4.2.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
