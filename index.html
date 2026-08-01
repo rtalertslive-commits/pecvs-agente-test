@@ -3028,7 +3028,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.10.0';
+        window.APP_HTML_VERSION = 'v4.11.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -3175,12 +3175,33 @@
         // Paleta de datos del sistema Promessa: cobalto, azul medio, gris, marino,
         // amarillo. El verde y el ambar de antes eran colores de ESTADO usados como
         // color de dato, cosa que la paleta corporativa no contempla.
-        const CHART_COLORS = { P: '#20559A', E: '#7999C2', C: '#071D49', V: '#FFC72C', S: '#D2DDEB' };
+        const CHART_COLORS = { P: '#3E7AC4', E: '#7999C2', C: '#A9BFD9', V: '#FFC72C', S: '#E8EFF7' };
         // Contorno claro para TODAS las series. No es decoracion: el Oxford de
         // Cotizaciones da 1.16:1 contra el fondo de la tarjeta y sin contorno la
         // barra desaparece. En el embudo no hace falta porque cada bloque esta
         // pegado al siguiente y se definen entre si; suelta sobre la tarjeta, no.
         const CHART_BORDE = '#A9BFD9';
+
+        // Chart.js no hereda del CSS: dibuja en canvas con sus propios valores,
+        // pensados para fondo claro. Se fijan una vez para que cualquier texto o
+        // rejilla que no declare color no termine en el gris de fabrica, que
+        // sobre navy es casi invisible. Los tooltips venian en negro solido y
+        // desentonaban con todo lo demas.
+        let _chartDefaultsListos = false;
+        function _chartDefaults() {
+            if (_chartDefaultsListos || typeof Chart === 'undefined') return;
+            Chart.defaults.color = '#D2DDEB';
+            Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.10)';
+            const tt = Chart.defaults.plugins && Chart.defaults.plugins.tooltip;
+            if (tt) {
+                tt.backgroundColor = '#143566';
+                tt.titleColor = '#FFFFFF';
+                tt.bodyColor = '#D2DDEB';
+                tt.borderColor = '#A9BFD9';
+                tt.borderWidth = 1;
+            }
+            _chartDefaultsListos = true;
+        }
 
         // notifPrefs por defecto: anuncios+reconocimientos ON, recordatorio OFF a las 19:00.
         // subscribed=true por defecto (first-time = enabled si acepta el banner).
@@ -7880,25 +7901,28 @@
             }
 
             destroyChart('kpiEfe');
+            _chartDefaults();
             charts['kpiEfe'] = new Chart(document.getElementById('kpiEfectividad'), {
                 type: 'doughnut',
-                data: { labels: ['Cierres (V)', 'Contactos (P)'], datasets: [{ data: [kTotals.V, Math.max(0, kTotals.P - kTotals.V)], borderColor: CHART_BORDE, borderWidth: 1.5, backgroundColor: [CHART_COLORS.V, CHART_COLORS.P], borderWidth: 0 }] },
+                data: { labels: ['Cierres (V)', 'Contactos (P)'], datasets: [{ data: [kTotals.V, Math.max(0, kTotals.P - kTotals.V)], backgroundColor: [CHART_COLORS.V, CHART_COLORS.P], borderWidth: 0 }] },
                 options: {
                     responsive: true, maintainAspectRatio: false,
                     plugins: {
-                        title: { display: true, text: `Efectividad: ${kTotals.P > 0 ? (kTotals.V / kTotals.P * 100).toFixed(1) : 0}%`, color: '#071D49' },
-                        legend: { position: 'top', align: 'center', labels: { boxWidth: 12, padding: 15, color: '#071D49', font: { weight: 'bold' } } }
+                        title: { display: true, text: `Efectividad: ${kTotals.P > 0 ? (kTotals.V / kTotals.P * 100).toFixed(1) : 0}%`, color: '#FFFFFF' },
+                        legend: { position: 'top', align: 'center', labels: { boxWidth: 12, padding: 15, color: '#FFFFFF', font: { weight: 'bold' } } }
                     },
                     cutout: '70%'
                 }
             });
             destroyChart('kpiVol');
+            _chartDefaults();
             charts['kpiVol'] = new Chart(document.getElementById('kpiVolumeFull'), {
                 type: 'bar',
-                data: { labels: ['P', 'E', 'C', 'V', 'S'], datasets: [{ label: 'Volumen', data: [kTotals.P, kTotals.E, kTotals.C, kTotals.V, kTotals.S], borderColor: CHART_BORDE, borderWidth: 1.5, backgroundColor: [CHART_COLORS.P, CHART_COLORS.E, CHART_COLORS.C, CHART_COLORS.V, CHART_COLORS.S] }] },
+                data: { labels: ['P', 'E', 'C', 'V', 'S'], datasets: [{ label: 'Volumen', data: [kTotals.P, kTotals.E, kTotals.C, kTotals.V, kTotals.S], backgroundColor: [CHART_COLORS.P, CHART_COLORS.E, CHART_COLORS.C, CHART_COLORS.V, CHART_COLORS.S] }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
             destroyChart('kpiRat');
+            _chartDefaults();
             charts['kpiRat'] = new Chart(document.getElementById('kpiRatios'), {
                 type: 'radar',
                 data: {
@@ -7949,9 +7973,10 @@
                 }
             });
             destroyChart('kpiPri');
+            _chartDefaults();
             charts['kpiPri'] = new Chart(document.getElementById('kpiPrimaAvg'), {
                 type: 'bar',
-                data: { labels: ['$/V', '$/S'], datasets: [{ data: [kTotals.V > 0 ? kTotals.prima / kTotals.V : 0, kTotals.S > 0 ? kTotals.prima / kTotals.S : 0], borderColor: CHART_BORDE, borderWidth: 1.5, backgroundColor: [CHART_COLORS.V, CHART_COLORS.S] }] },
+                data: { labels: ['$/V', '$/S'], datasets: [{ data: [kTotals.V > 0 ? kTotals.prima / kTotals.V : 0, kTotals.S > 0 ? kTotals.prima / kTotals.S : 0], backgroundColor: [CHART_COLORS.V, CHART_COLORS.S] }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
         }
@@ -8024,21 +8049,24 @@
             const labels = entries.map(e => `S${e.semana} ${e.mes.split(' ')[0].substring(0, 3)}`);
 
             destroyChart('lineV');
+            _chartDefaults();
             charts['lineV'] = new Chart(document.getElementById('chartVolume'), {
                 type: 'line',
                 data: { labels, datasets: COLS.map(c => ({ label: c, data: entries.map(e => e.totales[c]), borderColor: CHART_COLORS[c], tension: 0.3, pointRadius: 4 })) },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#071D49' } } }, scales: { x: { ticks: { color: '#A9BFD9' } }, y: { ticks: { color: '#A9BFD9' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#FFFFFF' } } }, scales: { x: { ticks: { color: '#A9BFD9' } }, y: { ticks: { color: '#A9BFD9' } } } }
             });
 
             destroyChart('lineP');
+            _chartDefaults();
             charts['lineP'] = new Chart(document.getElementById('chartPrima'), {
                 type: 'line',
                 data: { labels, datasets: [{ label: 'Prima Bruta', data: entries.map(e => e.totales.prima), borderColor: 'rgba(32, 85, 154, .8)', backgroundColor: 'rgba(32, 85, 154, .2)', fill: true, tension: 0.3 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#071D49' } } }, scales: { x: { ticks: { color: '#A9BFD9' } }, y: { ticks: { color: '#A9BFD9' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#FFFFFF' } } }, scales: { x: { ticks: { color: '#A9BFD9' } }, y: { ticks: { color: '#A9BFD9' } } } }
             });
 
             // TENDENCIA EFICIENCIA
             destroyChart('effT');
+            _chartDefaults();
             charts['effT'] = new Chart(document.getElementById('chartEffTrend'), {
                 type: 'line',
                 data: {
@@ -8049,11 +8077,12 @@
                         { label: 'C ➔ V', data: entries.map(e => e.totales.C > 0 ? (e.totales.V / e.totales.C * 100).toFixed(1) : 0), borderColor: CHART_COLORS.V, tension: 0.3 }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#071D49' } } }, scales: { y: { ticks: { color: '#A9BFD9', callback: v => v + '%' } }, x: { ticks: { color: '#A9BFD9' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#FFFFFF' } } }, scales: { y: { ticks: { color: '#A9BFD9', callback: v => v + '%' } }, x: { ticks: { color: '#A9BFD9' } } } }
             });
 
             // TENDENCIA PRIMA PROMEDIO
             destroyChart('priT');
+            _chartDefaults();
             charts['priT'] = new Chart(document.getElementById('chartPrimaTrend'), {
                 type: 'line',
                 data: {
@@ -8062,11 +8091,12 @@
                         { label: '$/Vta', data: entries.map(e => e.totales.V > 0 ? (e.totales.prima / e.totales.V).toFixed(0) : 0), borderColor: CHART_COLORS.V, tension: 0.3 }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#071D49' } } }, scales: { y: { ticks: { color: '#A9BFD9' } }, x: { ticks: { color: '#A9BFD9' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#FFFFFF' } } }, scales: { y: { ticks: { color: '#A9BFD9' } }, x: { ticks: { color: '#A9BFD9' } } } }
             });
 
             // TENDENCIA EFICIENCIA TOTAL
             destroyChart('ratT');
+            _chartDefaults();
             charts['ratT'] = new Chart(document.getElementById('chartRatioTrend'), {
                 type: 'line',
                 data: {
@@ -8075,7 +8105,7 @@
                         { label: '% P ➔ V (Cierre)', data: entries.map(e => e.totales.P > 0 ? (e.totales.V / e.totales.P * 100).toFixed(1) : 0), borderColor: CHART_COLORS.V, tension: 0.3 }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#071D49' } } }, scales: { y: { beginAtZero: true, ticks: { color: '#A9BFD9', callback: v => v + '%' } }, x: { ticks: { color: '#A9BFD9' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#FFFFFF' } } }, scales: { y: { beginAtZero: true, ticks: { color: '#A9BFD9', callback: v => v + '%' } }, x: { ticks: { color: '#A9BFD9' } } } }
             });
         }
 
