@@ -3006,7 +3006,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.8.1';
+        window.APP_HTML_VERSION = 'v4.9.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -3153,7 +3153,12 @@
         // Paleta de datos del sistema Promessa: cobalto, azul medio, gris, marino,
         // amarillo. El verde y el ambar de antes eran colores de ESTADO usados como
         // color de dato, cosa que la paleta corporativa no contempla.
-        const CHART_COLORS = { P: '#5B82B8', E: '#7999C2', C: '#A9BFD9', V: '#FFC72C', S: '#D2DDEB' };
+        const CHART_COLORS = { P: '#20559A', E: '#7999C2', C: '#071D49', V: '#FFC72C', S: '#D2DDEB' };
+        // Contorno claro para TODAS las series. No es decoracion: el Oxford de
+        // Cotizaciones da 1.16:1 contra el fondo de la tarjeta y sin contorno la
+        // barra desaparece. En el embudo no hace falta porque cada bloque esta
+        // pegado al siguiente y se definen entre si; suelta sobre la tarjeta, no.
+        const CHART_BORDE = '#A9BFD9';
 
         // notifPrefs por defecto: anuncios+reconocimientos ON, recordatorio OFF a las 19:00.
         // subscribed=true por defecto (first-time = enabled si acepta el banner).
@@ -7855,7 +7860,7 @@
             destroyChart('kpiEfe');
             charts['kpiEfe'] = new Chart(document.getElementById('kpiEfectividad'), {
                 type: 'doughnut',
-                data: { labels: ['Cierres (V)', 'Contactos (P)'], datasets: [{ data: [kTotals.V, Math.max(0, kTotals.P - kTotals.V)], backgroundColor: [CHART_COLORS.V, CHART_COLORS.P], borderWidth: 0 }] },
+                data: { labels: ['Cierres (V)', 'Contactos (P)'], datasets: [{ data: [kTotals.V, Math.max(0, kTotals.P - kTotals.V)], borderColor: CHART_BORDE, borderWidth: 1.5, backgroundColor: [CHART_COLORS.V, CHART_COLORS.P], borderWidth: 0 }] },
                 options: {
                     responsive: true, maintainAspectRatio: false,
                     plugins: {
@@ -7868,7 +7873,7 @@
             destroyChart('kpiVol');
             charts['kpiVol'] = new Chart(document.getElementById('kpiVolumeFull'), {
                 type: 'bar',
-                data: { labels: ['P', 'E', 'C', 'V', 'S'], datasets: [{ label: 'Volumen', data: [kTotals.P, kTotals.E, kTotals.C, kTotals.V, kTotals.S], backgroundColor: [CHART_COLORS.P, CHART_COLORS.E, CHART_COLORS.C, CHART_COLORS.V, CHART_COLORS.S] }] },
+                data: { labels: ['P', 'E', 'C', 'V', 'S'], datasets: [{ label: 'Volumen', data: [kTotals.P, kTotals.E, kTotals.C, kTotals.V, kTotals.S], borderColor: CHART_BORDE, borderWidth: 1.5, backgroundColor: [CHART_COLORS.P, CHART_COLORS.E, CHART_COLORS.C, CHART_COLORS.V, CHART_COLORS.S] }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
             destroyChart('kpiRat');
@@ -7887,7 +7892,7 @@
                         backgroundColor: 'rgba(32, 85, 154, .4)',
                         borderWidth: 4,
                         pointBackgroundColor: '#20559A',
-                        pointBorderColor: '#fff',
+                        pointBorderColor: CHART_BORDE,
                         pointBorderWidth: 2,
                         pointRadius: 7,
                         pointHoverRadius: 10,
@@ -7924,7 +7929,7 @@
             destroyChart('kpiPri');
             charts['kpiPri'] = new Chart(document.getElementById('kpiPrimaAvg'), {
                 type: 'bar',
-                data: { labels: ['$/V', '$/S'], datasets: [{ data: [kTotals.V > 0 ? kTotals.prima / kTotals.V : 0, kTotals.S > 0 ? kTotals.prima / kTotals.S : 0], backgroundColor: [CHART_COLORS.V, CHART_COLORS.S] }] },
+                data: { labels: ['$/V', '$/S'], datasets: [{ data: [kTotals.V > 0 ? kTotals.prima / kTotals.V : 0, kTotals.S > 0 ? kTotals.prima / kTotals.S : 0], borderColor: CHART_BORDE, borderWidth: 1.5, backgroundColor: [CHART_COLORS.V, CHART_COLORS.S] }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
         }
