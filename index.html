@@ -2925,7 +2925,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.3.0';
+        window.APP_HTML_VERSION = 'v4.4.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -8023,6 +8023,187 @@
         }
 
         // init(); <--- Desactivado para que solo corra en Auth gate
+    </script>
+
+    <!-- ═══ PANEL DE TEMA ═════════════════════════════════════════════════════
+         Editor de colores en vivo. Se activa SOLO con ?tema=1 en la URL, asi que
+         para cualquier agente no existe: ni se descarga logica extra ni hay una
+         combinacion secreta que alguien pueda descubrir por accidente.
+
+         Cubre los colores que pasan por variables CSS, que son poco mas de la
+         mitad del total. Lo que quedo clavado dentro de componentes puntuales no
+         se mueve desde aqui — para eso hay que tocar el codigo.
+
+         Lo que se elija se guarda en este dispositivo (localStorage) y sobrevive
+         a recargas y actualizaciones, para poder vivir con un tema unos dias
+         antes de decidir. El boton "Copiar" deja el bloque :root listo para
+         pegar. -->
+    <script>
+    (function () {
+        if (new URLSearchParams(location.search).get('tema') !== '1') return;
+
+        // [variable, etiqueta, tipo]. 'alfa' = color + opacidad, para los bordes,
+        // que son rgba y un selector de color normal no puede expresar.
+        var TOKENS = [
+            ['--bg',            'Fondo de la app',      'solido'],
+            ['--panel',         'Tarjetas',             'solido'],
+            ['--panel2',        'Superficie elevada',   'solido'],
+            ['--gold',          'Acento (texto/bordes)','solido'],
+            ['--gold-l',        'Énfasis',              'solido'],
+            ['--white',         'Texto principal',      'solido'],
+            ['--slate',         'Texto secundario',     'solido'],
+            ['--border',        'Bordes',               'alfa'],
+            ['--azul-cobalto',  'Relleno de botones',   'solido'],
+            ['--amarillo',      'Amarillo (plecas)',    'solido'],
+            ['--green',         'Éxito',                'solido'],
+            ['--red',           'Error',                'solido'],
+            ['--orange',        'Aviso',                'solido']
+        ];
+        var LLAVE = 'pecvsTema';
+        var raiz = document.documentElement;
+
+        function leer(v) {
+            return getComputedStyle(raiz).getPropertyValue(v).trim();
+        }
+        // Un <input type="color"> solo entiende #rrggbb. Los valores que vienen
+        // como rgba() o como #abc hay que traducirlos o el selector aparece negro.
+        function aHex(c) {
+            c = (c || '').trim();
+            if (/^#[0-9a-f]{6}$/i.test(c)) return c.toLowerCase();
+            if (/^#[0-9a-f]{3}$/i.test(c)) return '#' + c[1]+c[1]+c[2]+c[2]+c[3]+c[3];
+            var m = c.match(/rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/i);
+            if (!m) return '#000000';
+            return '#' + [1,2,3].map(function (i) {
+                return ('0' + parseInt(m[i], 10).toString(16)).slice(-2);
+            }).join('');
+        }
+        function alfaDe(c) {
+            var m = (c || '').match(/rgba\([^)]*,\s*([0-9.]+)\s*\)/);
+            return m ? parseFloat(m[1]) : 1;
+        }
+        function aRgba(hex, a) {
+            var n = parseInt(hex.slice(1), 16);
+            return 'rgba(' + [(n>>16)&255, (n>>8)&255, n&255].join(', ') + ', ' + a + ')';
+        }
+
+        // Contraste WCAG. Se muestra en vivo porque es el error que mas cuesta
+        // ver a ojo: dos azules pueden verse distintos y estar a 1.9:1, que es
+        // ilegible. AA pide 4.5 para texto normal.
+        function lum(hex) {
+            var n = parseInt(hex.slice(1), 16);
+            return [(n>>16)&255, (n>>8)&255, n&255].map(function (v) {
+                v /= 255;
+                return v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4);
+            }).reduce(function (a, c, i) { return a + c * [0.2126, 0.7152, 0.0722][i]; }, 0);
+        }
+        function contraste(a, b) {
+            var x = lum(a), y = lum(b);
+            return ((Math.max(x,y) + 0.05) / (Math.min(x,y) + 0.05));
+        }
+
+        var guardado = {};
+        try { guardado = JSON.parse(localStorage.getItem(LLAVE) || '{}'); } catch (e) {}
+        Object.keys(guardado).forEach(function (k) { raiz.style.setProperty(k, guardado[k]); });
+
+        function aplicar(v, valor) {
+            raiz.style.setProperty(v, valor);
+            guardado[v] = valor;
+            try { localStorage.setItem(LLAVE, JSON.stringify(guardado)); } catch (e) {}
+            pintarContraste();
+        }
+
+        var css = document.createElement('style');
+        css.textContent = [
+            '#tema-panel{position:fixed;right:0;bottom:0;z-index:2147483000;width:290px;max-width:92vw;',
+            '  max-height:80vh;overflow-y:auto;background:#0E2A5C;color:#fff;border:1px solid rgba(255,255,255,.2);',
+            '  border-radius:8px 0 0 0;padding:12px 14px calc(14px + env(safe-area-inset-bottom,0px));',
+            '  font-family:system-ui,sans-serif;font-size:12px;box-shadow:0 -4px 24px rgba(0,0,0,.4)}',
+            '#tema-panel.cerrado{width:auto;max-height:none;overflow:visible;padding:8px 12px}',
+            '#tema-panel.cerrado .tema-cuerpo{display:none}',
+            '#tema-panel h4{margin:0 0 10px;font-size:12px;font-weight:800;letter-spacing:.5px;',
+            '  display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer}',
+            '.tema-fila{display:flex;align-items:center;gap:8px;margin-bottom:7px}',
+            '.tema-fila span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+            '.tema-fila input[type=color]{width:34px;height:26px;padding:0;border:1px solid rgba(255,255,255,.3);',
+            '  border-radius:4px;background:none;cursor:pointer;flex:none}',
+            '.tema-fila input[type=range]{width:52px;flex:none}',
+            '#tema-contraste{margin:10px 0;padding:8px;border-radius:6px;background:rgba(255,255,255,.07);line-height:1.7}',
+            '#tema-contraste b{font-variant-numeric:tabular-nums}',
+            '.tema-btns{display:flex;gap:6px;margin-top:10px}',
+            '.tema-btns button{flex:1;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,.25);',
+            '  background:rgba(255,255,255,.1);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}'
+        ].join('');
+        document.head.appendChild(css);
+
+        var caja = document.createElement('div');
+        caja.id = 'tema-panel';
+        caja.innerHTML = '<h4><span>Tema · toca para plegar</span><span id="tema-flecha">▾</span></h4>' +
+                         '<div class="tema-cuerpo"><div id="tema-filas"></div>' +
+                         '<div id="tema-contraste"></div>' +
+                         '<div class="tema-btns"><button id="tema-copiar">Copiar CSS</button>' +
+                         '<button id="tema-reset">Restaurar</button></div></div>';
+        document.body.appendChild(caja);
+
+        var filas = caja.querySelector('#tema-filas');
+        TOKENS.forEach(function (t) {
+            var v = t[0], etiqueta = t[1], tipo = t[2];
+            var actual = guardado[v] || leer(v);
+            var f = document.createElement('div');
+            f.className = 'tema-fila';
+            f.innerHTML = '<span title="' + v + '">' + etiqueta + '</span>';
+
+            var col = document.createElement('input');
+            col.type = 'color'; col.value = aHex(actual);
+            f.appendChild(col);
+
+            if (tipo === 'alfa') {
+                var op = document.createElement('input');
+                op.type = 'range'; op.min = 0; op.max = 1; op.step = 0.02;
+                op.value = alfaDe(actual);
+                var manda = function () { aplicar(v, aRgba(col.value, op.value)); };
+                col.oninput = manda; op.oninput = manda;
+                f.appendChild(op);
+            } else {
+                col.oninput = function () { aplicar(v, col.value); };
+            }
+            filas.appendChild(f);
+        });
+
+        function pintarContraste() {
+            var bg = aHex(guardado['--bg'] || leer('--bg'));
+            var pares = [
+                ['Texto sobre fondo',  aHex(guardado['--white'] || leer('--white')), bg],
+                ['Acento sobre fondo', aHex(guardado['--gold']  || leer('--gold')),  bg],
+                ['Secundario s/fondo', aHex(guardado['--slate'] || leer('--slate')), bg]
+            ];
+            document.getElementById('tema-contraste').innerHTML = pares.map(function (p) {
+                var r = contraste(p[1], p[2]);
+                var ok = r >= 4.5 ? '#6FD79B' : (r >= 3 ? '#FFC72C' : '#F08A80');
+                return p[0] + ': <b style="color:' + ok + '">' + r.toFixed(1) + ':1</b>';
+            }).join('<br>') + '<br><span style="opacity:.6">4.5:1 es el mínimo legible</span>';
+        }
+        pintarContraste();
+
+        caja.querySelector('h4').onclick = function () {
+            caja.classList.toggle('cerrado');
+            document.getElementById('tema-flecha').textContent =
+                caja.classList.contains('cerrado') ? '▴' : '▾';
+        };
+        document.getElementById('tema-copiar').onclick = function () {
+            var txt = ':root {\n' + TOKENS.map(function (t) {
+                return '    ' + t[0] + ': ' + (guardado[t[0]] || leer(t[0])) + ';';
+            }).join('\n') + '\n}';
+            navigator.clipboard.writeText(txt).then(function () {
+                alert('Copiado. Pégamelo y lo dejo fijo en el código.');
+            }, function () { prompt('Copia esto:', txt); });
+        };
+        document.getElementById('tema-reset').onclick = function () {
+            Object.keys(guardado).forEach(function (k) { raiz.style.removeProperty(k); });
+            guardado = {};
+            try { localStorage.removeItem(LLAVE); } catch (e) {}
+            location.reload();
+        };
+    })();
     </script>
 </body>
 
