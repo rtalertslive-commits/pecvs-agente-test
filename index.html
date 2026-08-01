@@ -3028,7 +3028,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.11.0';
+        window.APP_HTML_VERSION = 'v4.12.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -7934,11 +7934,13 @@
                             kTotals.E > 0 ? kTotals.C / kTotals.E : 0,
                             kTotals.C > 0 ? kTotals.V / kTotals.C : 0
                         ],
-                        borderColor: '#071D49',
-                        backgroundColor: 'rgba(32, 85, 154, .4)',
-                        borderWidth: 4,
-                        pointBackgroundColor: '#20559A',
-                        pointBorderColor: CHART_BORDE,
+                        borderColor: '#A9BFD9',
+                        backgroundColor: 'rgba(122, 153, 194, .28)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#FFC72C',
+                        // Aro oscuro alrededor del punto amarillo: sin el, el
+                        // amarillo se funde con la linea clara al cruzarse.
+                        pointBorderColor: '#071D49',
                         pointBorderWidth: 2,
                         pointRadius: 7,
                         pointHoverRadius: 10,
@@ -8060,7 +8062,7 @@
             _chartDefaults();
             charts['lineP'] = new Chart(document.getElementById('chartPrima'), {
                 type: 'line',
-                data: { labels, datasets: [{ label: 'Prima Bruta', data: entries.map(e => e.totales.prima), borderColor: 'rgba(32, 85, 154, .8)', backgroundColor: 'rgba(32, 85, 154, .2)', fill: true, tension: 0.3 }] },
+                data: { labels, datasets: [{ label: 'Prima Bruta', data: entries.map(e => e.totales.prima), borderColor: '#FFC72C', backgroundColor: 'rgba(255, 199, 44, .16)', borderWidth: 3, pointBackgroundColor: '#FFC72C', pointBorderColor: '#071D49', pointBorderWidth: 2, pointRadius: 4, pointHitRadius: 24, fill: true, tension: 0.3 }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#FFFFFF' } } }, scales: { x: { ticks: { color: '#A9BFD9' } }, y: { ticks: { color: '#A9BFD9' } } } }
             });
 
