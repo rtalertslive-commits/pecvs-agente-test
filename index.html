@@ -7,7 +7,7 @@
     <title>Actividad — Registro Profesional</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700;900&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- defer: sin esto bloquea el parseo del HTML y si el CDN se cuelga la app
@@ -18,27 +18,61 @@
 
     <!-- PWA / Mobile Web App Meta -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#d4af37">
+    <meta name="theme-color" content="#20559A">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Actividad">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
     <style>
+        /* ═══ SISTEMA DE DISEÑO PROMESSA ═══════════════════════════════════════
+           Paleta corporativa. La app pasa de tema oscuro (marino + dorado) a
+           tema claro (blanco + azul cobalto + amarillo).
+
+           Los NOMBRES de las variables se conservan a proposito aunque ya no
+           describan el color. Hay ~380 usos repartidos en 9,000 lineas y 491
+           estilos inline; renombrarlos seria tocar todos esos lugares para no
+           ganar nada. El nombre es historico, el ROL es el que importa:
+
+             --white  = texto principal   (era claro sobre oscuro, hoy oscuro sobre claro)
+             --slate  = texto secundario
+             --gold   = color de marca    (era dorado, hoy cobalto)
+             --panel  = superficie de tarjeta
+             --bg     = fondo de pagina
+
+           Se verifico antes de voltearlas que ninguna se usara en dos roles a
+           la vez: --white son 60 usos y los 60 son color de texto; --panel son
+           13 y las 13 son fondo. Por eso el cambio es seguro. */
         :root {
-            --bg: #020617;
-            --panel: #0f172a;
-            --panel2: #1e293b;
-            --gold: #d4af37;
-            --gold-l: #fef08a;
-            --white: #f8fafc;
-            --slate: #94a3b8;
-            --border: rgba(212, 175, 55, 0.2);
-            --green: #10b981;
-            --orange: #f59e0b;
-            --red: #ef4444;
-            --blue: #3b82f6;
-            --teal: #06b6d4;
+            /* Colores base del sistema */
+            --azul-cobalto: #20559A;
+            --azul-oxford:  #071D49;
+            --amarillo:     #FFC72C;
+            --azul-medio:   #7999C2;
+            --azul-claro:   #D2DDEB;
+            --azul-palido:  #E9EEF5;
+
+            /* Roles (nombres heredados) */
+            --bg: #E9EEF5;          /* fondo de pagina  — era #E9EEF5 */
+            --panel: #FFFFFF;       /* tarjetas         — era #FFFFFF */
+            --panel2: #F4F7FB;      /* superficie elevada */
+            --gold: #20559A;        /* marca            — era #20559A */
+            --gold-l: #071D49;      /* enfasis sobre marca. En oscuro era un dorado
+                                       MAS claro; sobre blanco lo mas enfatico es
+                                       lo mas oscuro, no lo mas claro. */
+            --white: #071D49;       /* texto principal  — era #f8fafc */
+            --slate: #65738E;       /* texto secundario — era #65738E */
+            --border: #D2DDEB;
+            --green: #2E7D4F;
+            --orange: #8A5B00;
+            --red: #C0392B;
+            --blue: #20559A;
+            --teal: #7999C2;
+
+            /* Texto sobre superficie de marca. Antes esto era var(--bg) —el
+               marino oscuro sobre el boton dorado—; invertido el tema, el texto
+               sobre cobalto tiene que ser blanco o desaparece. */
+            --on-brand: #FFFFFF;
         }
 
         * {
@@ -51,7 +85,7 @@
         body {
             background: var(--bg);
             color: var(--white);
-            font-family: 'Inter', sans-serif;
+            font-family: 'Source Sans Pro', sans-serif;
             margin: 0;
             padding: 0;
             overflow-x: hidden;
@@ -83,10 +117,10 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            background: rgba(2, 6, 23, 0.92);
+            background: rgba(233, 238, 245, 0.92);
             backdrop-filter: blur(14px) saturate(140%);
             -webkit-backdrop-filter: blur(14px) saturate(140%);
-            border-bottom: 1px solid rgba(212, 175, 55, 0.18);
+            border-bottom: 1px solid rgba(32, 85, 154, 0.18);
             box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
         }
 
@@ -139,8 +173,8 @@
             font-size: 10px;
             font-weight: 700;
             color: var(--gold);
-            background: rgba(212, 175, 55, 0.10);
-            border: 1px solid rgba(212, 175, 55, 0.30);
+            background: rgba(32, 85, 154, 0.10);
+            border: 1px solid rgba(32, 85, 154, 0.30);
             padding: 2px 7px;
             border-radius: 5px;
             letter-spacing: 0.5px;
@@ -183,16 +217,16 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: 'Playfair Display', serif;
+            font-family: 'Source Sans Pro', sans-serif;
             font-weight: 900;
             font-size: 20px;
-            color: var(--bg);
-            box-shadow: 0 3px 10px rgba(212, 175, 55, 0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+            color: var(--on-brand);
+            box-shadow: 0 3px 10px rgba(32, 85, 154, 0.25), inset 0 1px 0 rgba(7, 29, 73, 0.2);
             flex-shrink: 0;
             line-height: 1;
         }
         .header-left h1 {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Source Sans Pro', sans-serif;
             font-weight: 800;
             font-size: 19px;
             margin: 0;
@@ -224,7 +258,7 @@
             }
             50% {
                 color: var(--gold-l);
-                text-shadow: 0 0 10px rgba(212, 175, 55, 0.7), 0 0 20px rgba(212, 175, 55, 0.35);
+                text-shadow: 0 0 10px rgba(32, 85, 154, 0.7), 0 0 20px rgba(32, 85, 154, 0.35);
             }
         }
         .pulse-text {
@@ -281,7 +315,7 @@
             min-width: 18px;
             height: 18px;
             padding: 0 5px;
-            background: #ef4444;
+            background: #C0392B;
             color: #fff;
             border-radius: 9px;
             font-size: 10px;
@@ -289,7 +323,7 @@
             display: none;
             align-items: center;
             justify-content: center;
-            border: 2px solid var(--panel, #0f172a);
+            border: 2px solid var(--panel, #FFFFFF);
             line-height: 1;
         }
         #anuncios-badge.show { display: flex; }
@@ -303,8 +337,8 @@
             border-radius: 8px;
         }
         @keyframes novedadGlowPulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.65); }
-            50%      { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0); }
+            0%, 100% { box-shadow: 0 0 0 0 rgba(32, 85, 154, 0.65); }
+            50%      { box-shadow: 0 0 0 10px rgba(32, 85, 154, 0); }
         }
         /* El pulso de la tarjeta del multiplicador no se apaga nunca. Para quien
            configuró el sistema sin animaciones (mareos, sensibilidad vestibular)
@@ -312,7 +346,7 @@
         @media (prefers-reduced-motion: reduce) {
             .novedad-glow {
                 animation: none;
-                box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.45);
+                box-shadow: 0 0 0 3px rgba(32, 85, 154, 0.45);
             }
         }
 
@@ -325,7 +359,7 @@
             padding: 12px 16px;
             border-radius: 8px;
             border: 1px solid var(--gold);
-            background: rgba(15, 23, 42, .8);
+            background: rgba(255, 255, 255, .8);
             color: var(--gold-l);
             font-size: 13px;
             font-weight: 600;
@@ -339,7 +373,7 @@
         @media (hover: hover) and (pointer: fine) {
             .btn:hover {
                 background: var(--gold);
-                color: var(--bg);
+                color: var(--on-brand);
             }
             .btn-green:hover {
                 background: var(--green);
@@ -413,7 +447,7 @@
                 bottom: 0;
                 left: 0;
                 right: 0;
-                background: rgba(2, 6, 23, 0.92);
+                background: rgba(233, 238, 245, 0.92);
                 border-top: 1px solid var(--border);
                 padding: 8px 4px calc(10px + env(safe-area-inset-bottom, 0px));
                 backdrop-filter: blur(10px);
@@ -476,8 +510,8 @@
         input[type=text],
         input[type=number],
         select {
-            background: rgba(2, 6, 23, .6);
-            border: 1px solid rgba(255, 255, 255, .1);
+            background: rgba(233, 238, 245, .6);
+            border: 1px solid rgba(7, 29, 73, .1);
             color: var(--white);
             padding: 12px;
             border-radius: 8px;
@@ -514,7 +548,7 @@
 
         .week-table td {
             padding: 10px 5px;
-            border-bottom: 1px solid rgba(255, 255, 255, .04);
+            border-bottom: 1px solid rgba(7, 29, 73, .04);
         }
 
         .num-input {
@@ -555,8 +589,8 @@
             border-radius: 8px;
             margin-bottom: 6px;
             opacity: 0.45;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.04);
+            background: rgba(7, 29, 73, 0.02);
+            border: 1px solid rgba(7, 29, 73, 0.04);
             font-size: 12px;
         }
         .m-day-compact .m-day-label {
@@ -588,12 +622,12 @@
 
         /* HOY: card grande, prominente */
         .m-day-today {
-            background: linear-gradient(135deg, rgba(212, 175, 55, 0.12), rgba(212, 175, 55, 0.04));
+            background: linear-gradient(135deg, rgba(32, 85, 154, 0.12), rgba(32, 85, 154, 0.04));
             border: 2px solid var(--gold);
             border-radius: 12px;
             padding: 16px;
             margin: 10px 0;
-            box-shadow: 0 4px 20px rgba(212, 175, 55, 0.15);
+            box-shadow: 0 4px 20px rgba(32, 85, 154, 0.15);
         }
         .m-today-header {
             display: flex;
@@ -602,21 +636,21 @@
             margin-bottom: 14px;
         }
         .m-today-day {
-            font-family: 'Playfair Display', serif;
+            font-family: 'Source Sans Pro', sans-serif;
             font-size: 20px;
             font-weight: 700;
             color: var(--gold-l);
         }
         .m-today-day small {
             display: block;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Source Sans Pro', sans-serif;
             font-size: 11px;
             color: var(--slate);
             font-weight: 400;
         }
         .m-today-badge {
             background: var(--gold);
-            color: var(--bg);
+            color: var(--on-brand);
             padding: 4px 10px;
             border-radius: 20px;
             font-size: 10px;
@@ -664,7 +698,7 @@
         .m-field input:focus {
             outline: none;
             border-color: var(--gold);
-            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+            box-shadow: 0 0 0 3px rgba(32, 85, 154, 0.15);
         }
         /* Conceptos: layout 2-cols en desktop, single-col reordenado en mobile.
            Mobile order: visual funnel → defs → MÉTRICAS DE VOLUMEN Y VALOR → totopos */
@@ -692,7 +726,7 @@
             align-items: center;
             margin-top: 14px;
             padding-top: 12px;
-            border-top: 1px solid rgba(212, 175, 55, 0.15);
+            border-top: 1px solid rgba(32, 85, 154, 0.15);
             font-size: 12px;
         }
         .m-funnel { font-weight: 700; }
@@ -724,8 +758,8 @@
         /* Botón "Sin intento de venta hoy" — solo cuando todo está en 0 y no marcado */
         .btn-no-activity {
             width: 100%;
-            background: rgba(148,163,184,0.08);
-            border: 1.5px dashed rgba(148,163,184,0.4);
+            background: rgba(101, 115, 142,0.08);
+            border: 1.5px dashed rgba(101, 115, 142,0.4);
             color: var(--slate);
             padding: 10px;
             border-radius: 8px;
@@ -742,8 +776,8 @@
         }
         @media (hover: hover) and (pointer: fine) {
             .btn-no-activity:hover {
-                background: rgba(148,163,184,0.15);
-                border-color: rgba(148,163,184,0.6);
+                background: rgba(101, 115, 142,0.15);
+                border-color: rgba(101, 115, 142,0.6);
                 color: var(--white);
             }
         }
@@ -754,7 +788,7 @@
         }
         .m-today-noactivity .moon { font-size: 56px; line-height: 1; margin-bottom: 12px; }
         .m-today-noactivity h3 {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Source Sans Pro', sans-serif;
             font-size: 15px;
             font-weight: 700;
             margin: 0 0 6px;
@@ -794,7 +828,7 @@
             position: absolute;
             cursor: pointer;
             inset: 0;
-            background: rgba(148,163,184,0.3);
+            background: rgba(101, 115, 142,0.3);
             transition: 0.2s;
             border-radius: 999px;
         }
@@ -895,7 +929,7 @@
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(2, 6, 23, .95);
+            background: rgba(233, 238, 245, .95);
             z-index: 9999;
             justify-content: center;
             align-items: center;
@@ -920,38 +954,38 @@
             position: relative;
         }
         .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 8px; }
-        .cal-title { font-family: 'Playfair Display', serif; font-size: 16px; color: var(--gold); font-weight: 700; flex: 1; line-height: 1.2; }
+        .cal-title { font-family: 'Source Sans Pro', sans-serif; font-size: 16px; color: var(--gold); font-weight: 700; flex: 1; line-height: 1.2; }
         .cal-close-btn { background: none; border: none; color: var(--white); font-size: 24px; cursor: pointer; line-height: 1; padding: 0 4px; }
         .cal-nav { display: flex; justify-content: center; align-items: center; gap: 12px; margin-bottom: 14px; }
-        .cal-nav-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: var(--white); border-radius: 8px; width: 32px; height: 32px; cursor: pointer; font-family: inherit; font-size: 14px; }
-        .cal-nav-btn:hover { background: rgba(255,255,255,0.14); }
+        .cal-nav-btn { background: rgba(7, 29, 73, 0.08); border: 1px solid rgba(7, 29, 73, 0.1); color: var(--white); border-radius: 8px; width: 32px; height: 32px; cursor: pointer; font-family: inherit; font-size: 14px; }
+        .cal-nav-btn:hover { background: rgba(7, 29, 73, 0.14); }
         .cal-nav-mes { font-weight: 700; font-size: 14px; min-width: 140px; text-align: center; color: var(--white); }
         .cal-grid-head { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px; }
         .cal-grid-body { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 12px; }
         .cal-cell-head { text-align: center; font-size: 10px; font-weight: 700; color: var(--slate); padding: 6px 0; text-transform: uppercase; letter-spacing: 1px; }
         .cal-cell { aspect-ratio: 1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; cursor: pointer; transition: transform .1s, box-shadow .15s; position: relative; padding: 2px; border: 1px solid transparent; }
         .cal-cell.empty { visibility: hidden; }
-        .cal-cell.none { background: rgba(255,255,255,0.04); color: var(--slate); }
-        .cal-cell.ok { background: rgba(16,185,129,0.18); color: #10b981; border-color: rgba(16,185,129,0.35); }
+        .cal-cell.none { background: rgba(7, 29, 73, 0.04); color: var(--slate); }
+        .cal-cell.ok { background: rgba(46, 125, 79,0.18); color: #2E7D4F; border-color: rgba(46, 125, 79,0.35); }
         /* Verde igual que .ok — la carita triste hace la diferencia semántica */
-        .cal-cell.ok-no-close { background: rgba(16,185,129,0.18); color: #10b981; border-color: rgba(16,185,129,0.35); }
-        .cal-cell.red { background: rgba(239,68,68,0.18); color: #ef4444; border-color: rgba(239,68,68,0.35); }
-        .cal-cell.sin-actividad { background: rgba(245,158,11,0.18); color: #f59e0b; border-color: rgba(245,158,11,0.35); }
-        .cal-cell.future { opacity: 0.22; cursor: not-allowed; background: rgba(255,255,255,0.015); color: var(--slate); pointer-events: none; }
+        .cal-cell.ok-no-close { background: rgba(46, 125, 79,0.18); color: #2E7D4F; border-color: rgba(46, 125, 79,0.35); }
+        .cal-cell.red { background: rgba(192, 57, 43,0.18); color: #C0392B; border-color: rgba(192, 57, 43,0.35); }
+        .cal-cell.sin-actividad { background: rgba(138, 91, 0,0.18); color: #8A5B00; border-color: rgba(138, 91, 0,0.35); }
+        .cal-cell.future { opacity: 0.22; cursor: not-allowed; background: rgba(7, 29, 73, 0.015); color: var(--slate); pointer-events: none; }
         .cal-cell:not(.empty):not(.future):hover { transform: scale(1.06); box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
         .cal-cell.selected { box-shadow: 0 0 0 2px var(--gold); }
         .cal-cell .cal-num { font-size: 12px; line-height: 1.1; }
         .cal-cell .cal-icon { font-size: 11px; line-height: 1; }
-        .cal-legend { font-size: 11px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; margin-bottom: 12px; padding: 8px; background: rgba(255,255,255,0.03); border-radius: 8px; }
+        .cal-legend { font-size: 11px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; margin-bottom: 12px; padding: 8px; background: rgba(7, 29, 73, 0.03); border-radius: 8px; }
         .cal-legend-item { display: flex; align-items: center; gap: 6px; color: var(--white); }
         .cal-legend-dot { width: 12px; height: 12px; border-radius: 4px; flex-shrink: 0; }
-        .cal-day-detail { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 10px 12px; font-size: 12px; min-height: 44px; color: var(--white); }
+        .cal-day-detail { background: rgba(7, 29, 73, 0.03); border: 1px solid rgba(7, 29, 73, 0.06); border-radius: 8px; padding: 10px 12px; font-size: 12px; min-height: 44px; color: var(--white); }
         .cal-day-detail .cal-detail-empty { color: var(--slate); }
 
         /* ═══ KPI INFO ICON + MODAL ═══ */
         .kpi-info-btn {
-            background: rgba(212,175,55,0.10);
-            border: 1px solid rgba(212,175,55,0.25);
+            background: rgba(32, 85, 154, 0.10);
+            border: 1px solid rgba(32, 85, 154, 0.25);
             color: var(--gold);
             border-radius: 50%;
             width: 22px;
@@ -968,7 +1002,7 @@
             vertical-align: middle;
         }
         .kpi-info-btn:hover {
-            background: rgba(212,175,55,0.22);
+            background: rgba(32, 85, 154, 0.22);
             border-color: var(--gold);
             transform: scale(1.1);
         }
@@ -991,10 +1025,10 @@
             gap: 12px;
             margin-bottom: 16px;
             padding-bottom: 12px;
-            border-bottom: 1px solid rgba(212,175,55,0.2);
+            border-bottom: 1px solid rgba(32, 85, 154, 0.2);
         }
         .kpi-info-title {
-            font-family: 'Playfair Display', serif;
+            font-family: 'Source Sans Pro', sans-serif;
             color: var(--gold);
             font-size: 17px;
             font-weight: 700;
@@ -1029,7 +1063,7 @@
         .kpi-info-body ul { margin: 0 0 12px; padding-left: 18px; }
         .kpi-info-body li { margin-bottom: 4px; }
         .kpi-info-body code {
-            background: rgba(212,175,55,0.12);
+            background: rgba(32, 85, 154, 0.12);
             color: var(--gold);
             padding: 2px 6px;
             border-radius: 4px;
@@ -1037,8 +1071,8 @@
             font-family: 'Courier New', monospace;
         }
         .kpi-info-body .kpi-tip {
-            background: rgba(16,185,129,0.08);
-            border-left: 3px solid var(--green, #10b981);
+            background: rgba(46, 125, 79,0.08);
+            border-left: 3px solid var(--green, #2E7D4F);
             padding: 8px 12px;
             border-radius: 6px;
             margin-top: 12px;
@@ -1062,20 +1096,20 @@
            cerrar y las categorías siguen alcanzables por largo que sea el hilo. */
         .foro-head {
             display: flex; align-items: center; gap: 10px;
-            padding: 14px 16px 10px; border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding: 14px 16px 10px; border-bottom: 1px solid rgba(7, 29, 73, 0.08);
             flex: 0 0 auto;
         }
-        .foro-title { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 19px; font-weight: 700; flex: 1; }
+        .foro-title { font-family: 'Source Sans Pro', sans-serif; color: var(--gold); font-size: 19px; font-weight: 700; flex: 1; }
         .foro-x { background: none; border: none; color: var(--slate); font-size: 26px; line-height: 1; cursor: pointer; padding: 0 4px; }
         .foro-x:hover { color: var(--white); }
         .foro-tabs { display: flex; gap: 6px; padding: 10px 12px; overflow-x: auto; flex: 0 0 auto;
-                     border-bottom: 1px solid rgba(255,255,255,0.08); }
+                     border-bottom: 1px solid rgba(7, 29, 73, 0.08); }
         .foro-tab {
-            flex: 0 0 auto; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10);
+            flex: 0 0 auto; background: rgba(7, 29, 73, 0.05); border: 1px solid rgba(7, 29, 73, 0.10);
             color: var(--slate); border-radius: 20px; padding: 6px 13px; font-size: 12px;
             font-weight: 700; cursor: pointer; white-space: nowrap; font-family: inherit;
         }
-        .foro-tab.on { background: var(--gold); border-color: var(--gold); color: #000; }
+        .foro-tab.on { background: var(--gold); border-color: var(--gold); color: var(--on-brand); }
         .foro-body { flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; padding: 14px 16px 18px; }
 
         /* El foro no es un diálogo corto como los demás modales: son hilos largos
@@ -1134,7 +1168,7 @@
         /* ── Buscador ── */
         .foro-busq-caja {
             display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(7, 29, 73, 0.05); border: 1px solid rgba(7, 29, 73, 0.12);
             border-radius: 10px; padding: 4px 4px 4px 12px;
         }
         .foro-busq-caja > .fa-magnifying-glass { color: var(--slate); font-size: 13px; }
@@ -1150,7 +1184,7 @@
             font-size: 20px; line-height: 1; cursor: pointer; padding: 0 4px;
         }
         .foro-busq-btn {
-            background: rgba(212,175,55,0.15); border: 1px solid rgba(212,175,55,0.35);
+            background: rgba(32, 85, 154, 0.15); border: 1px solid rgba(32, 85, 154, 0.35);
             color: var(--gold); border-radius: 8px; padding: 7px 13px;
             font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer;
             white-space: nowrap;
@@ -1159,21 +1193,21 @@
         /* ── Secciones de Mis hilos ── */
         .foro-subs { display: flex; gap: 8px; margin-bottom: 12px; }
         .foro-sub {
-            flex: 1; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.10);
+            flex: 1; background: rgba(7, 29, 73, 0.04); border: 1px solid rgba(7, 29, 73, 0.10);
             color: var(--slate); border-radius: 9px; padding: 9px 6px;
             font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer;
             display: flex; align-items: center; justify-content: center; gap: 6px;
         }
-        .foro-sub.on { background: rgba(212,175,55,0.15); border-color: var(--gold); color: var(--gold); }
+        .foro-sub.on { background: rgba(32, 85, 154, 0.15); border-color: var(--gold); color: var(--gold); }
 
         /* ── Paginador ── */
         .foro-pag {
             display: flex; align-items: center; justify-content: space-between;
             gap: 10px; margin-top: 16px; padding-top: 14px;
-            border-top: 1px solid rgba(255,255,255,0.08);
+            border-top: 1px solid rgba(7, 29, 73, 0.08);
         }
         .foro-pag-btn {
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(7, 29, 73, 0.05); border: 1px solid rgba(7, 29, 73, 0.12);
             color: var(--white); border-radius: 8px; padding: 8px 14px;
             font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer;
             display: flex; align-items: center; gap: 6px;
@@ -1185,12 +1219,12 @@
         .foro-chip-cat, .foro-chip-mio {
             border-radius: 20px; padding: 2px 8px; font-size: 10px; font-weight: 700;
         }
-        .foro-chip-cat { background: rgba(255,255,255,0.07); color: var(--slate); }
-        .foro-chip-mio { background: rgba(212,175,55,0.15); color: var(--gold); }
+        .foro-chip-cat { background: rgba(7, 29, 73, 0.07); color: var(--slate); }
+        .foro-chip-mio { background: rgba(32, 85, 154, 0.15); color: var(--gold); }
         .foro-nota {
             font-size: 12px; color: var(--slate); line-height: 1.5;
             margin-bottom: 14px; padding-bottom: 12px;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
+            border-bottom: 1px solid rgba(7, 29, 73, 0.08);
         }
 
         /* ── Badges de rol ── */
@@ -1202,47 +1236,47 @@
 
         /* ── Lista de hilos ── */
         .foro-hilo-item {
-            width: 100%; text-align: left; background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;
+            width: 100%; text-align: left; background: rgba(7, 29, 73, 0.03);
+            border: 1px solid rgba(7, 29, 73, 0.08); border-radius: 10px;
             padding: 12px 13px; margin-bottom: 9px; cursor: pointer; font-family: inherit;
             display: block;
         }
-        .foro-hilo-item:hover { background: rgba(255,255,255,0.06); border-color: rgba(212,175,55,0.35); }
+        .foro-hilo-item:hover { background: rgba(7, 29, 73, 0.06); border-color: rgba(32, 85, 154, 0.35); }
         .foro-hilo-titulo { font-size: 13.5px; font-weight: 700; color: var(--white); line-height: 1.35; margin-bottom: 5px; }
         .foro-meta { font-size: 11px; color: var(--slate); display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
 
         /* ── Post y respuestas ── */
-        .foro-post { border-bottom: 1px solid rgba(255,255,255,0.07); padding-bottom: 14px; margin-bottom: 14px; }
+        .foro-post { border-bottom: 1px solid rgba(7, 29, 73, 0.07); padding-bottom: 14px; margin-bottom: 14px; }
         .foro-post:last-child { border-bottom: none; }
         .foro-texto { font-size: 13px; color: var(--white); line-height: 1.6; white-space: pre-wrap; word-break: break-word; margin: 7px 0; }
         .foro-imgs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
         .foro-imgs img { width: 76px; height: 76px; object-fit: cover; border-radius: 7px;
-                         border: 1px solid rgba(255,255,255,0.12); cursor: pointer; }
+                         border: 1px solid rgba(7, 29, 73, 0.12); cursor: pointer; }
         .foro-oculto { opacity: 0.5; font-style: italic; }
 
         /* ── Compositor ── */
         .foro-input, .foro-area {
-            width: 100%; background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.12);
+            width: 100%; background: rgba(255, 255, 255,0.6); border: 1px solid rgba(7, 29, 73, 0.12);
             border-radius: 8px; color: var(--white); font-size: 13px; font-family: inherit;
             padding: 10px; margin-bottom: 10px;
         }
         .foro-area { resize: vertical; min-height: 110px; }
         .foro-priv {
-            display: flex; align-items: flex-start; gap: 9px; background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.10); border-radius: 8px; padding: 11px 12px; margin-bottom: 12px;
+            display: flex; align-items: flex-start; gap: 9px; background: rgba(7, 29, 73, 0.04);
+            border: 1px solid rgba(7, 29, 73, 0.10); border-radius: 8px; padding: 11px 12px; margin-bottom: 12px;
             cursor: pointer;
         }
         .foro-priv input { margin-top: 2px; flex: 0 0 auto; }
         .foro-thumbs { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 10px; }
         .foro-thumb { position: relative; width: 64px; height: 64px; }
-        .foro-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 7px; border: 1px solid rgba(255,255,255,0.12); }
+        .foro-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 7px; border: 1px solid rgba(7, 29, 73, 0.12); }
         .foro-thumb button {
             position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%;
             background: var(--red); color: #fff; border: none; font-size: 12px; line-height: 1; cursor: pointer;
             display: flex; align-items: center; justify-content: center; padding: 0;
         }
         .foro-btn-primary {
-            width: 100%; background: var(--gold); color: #000; border: none; border-radius: 8px;
+            width: 100%; background: var(--gold); color: var(--on-brand); border: none; border-radius: 8px;
             padding: 12px; font-size: 13px; font-weight: 800; cursor: pointer; font-family: inherit;
         }
         .foro-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -1312,8 +1346,8 @@
         }
 
         .info-box {
-            background: rgba(6, 182, 212, .06);
-            border: 1px solid rgba(6, 182, 212, .2);
+            background: rgba(121, 153, 194, .06);
+            border: 1px solid rgba(121, 153, 194, .2);
             border-radius: 8px;
             padding: 12px;
             font-size: 11px;
@@ -1332,12 +1366,12 @@
             50%      { transform: scale(1.3) rotate(6deg); }
         }
         @keyframes karmaGlow {
-            0%,100% { text-shadow: 0 0 20px rgba(212,175,55,0.6); }
-            50%      { text-shadow: 0 0 50px rgba(212,175,55,1), 0 0 80px rgba(255,215,0,0.6); }
+            0%,100% { text-shadow: 0 0 20px rgba(32, 85, 154, 0.6); }
+            50%      { text-shadow: 0 0 50px rgba(32, 85, 154, 1), 0 0 80px rgba(255, 199, 44,0.6); }
         }
         @keyframes karmaPulse {
-            0%,100% { box-shadow: 0 0 8px rgba(212,175,55,0.3); }
-            50%      { box-shadow: 0 0 20px rgba(212,175,55,0.8), 0 0 40px rgba(212,175,55,0.3); }
+            0%,100% { box-shadow: 0 0 8px rgba(32, 85, 154, 0.3); }
+            50%      { box-shadow: 0 0 20px rgba(32, 85, 154, 0.8), 0 0 40px rgba(32, 85, 154, 0.3); }
         }
         /* ── MULTIPLICADOR: badge junto al contador ────────────────────────── */
         #mult-badge {
@@ -1358,13 +1392,13 @@
         #mult-badge:hover { transform: translateY(-1px); }
         #mult-badge:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
         #mult-badge.mult-on {
-            background: linear-gradient(135deg, rgba(16,185,129,0.22), rgba(16,185,129,0.08));
-            border: 1.5px solid rgba(16,185,129,0.55);
-            color: #6ee7b7;
+            background: linear-gradient(135deg, rgba(46, 125, 79,0.22), rgba(46, 125, 79,0.08));
+            border: 1.5px solid rgba(46, 125, 79,0.55);
+            color: #2E7D4F;
         }
         #mult-badge.mult-off {
-            background: rgba(255,255,255,0.05);
-            border: 1.5px solid rgba(255,255,255,0.15);
+            background: rgba(7, 29, 73, 0.05);
+            border: 1.5px solid rgba(7, 29, 73, 0.15);
             color: var(--slate);
         }
         /* Réplica del badge para las explicaciones. Mismos valores visuales que
@@ -1378,9 +1412,9 @@
             font-size: 12px;
             font-weight: 600;
             white-space: nowrap;
-            background: linear-gradient(135deg, rgba(16,185,129,0.22), rgba(16,185,129,0.08));
-            border: 1.5px solid rgba(16,185,129,0.55);
-            color: #6ee7b7;
+            background: linear-gradient(135deg, rgba(46, 125, 79,0.22), rgba(46, 125, 79,0.08));
+            border: 1.5px solid rgba(46, 125, 79,0.55);
+            color: #2E7D4F;
         }
         .mult-chip-demo b { font-size: 15px; font-weight: 900; }
         /* Contador de totopos falso, solo para ubicar el badge en la pantalla */
@@ -1393,9 +1427,9 @@
             font-size: 12px;
             font-weight: 600;
             white-space: nowrap;
-            background: linear-gradient(135deg, rgba(212,175,55,0.18), rgba(212,175,55,0.06));
-            border: 1.5px solid rgba(212,175,55,0.5);
-            color: var(--gold-l, #e5c76b);
+            background: linear-gradient(135deg, rgba(32, 85, 154, 0.18), rgba(32, 85, 154, 0.06));
+            border: 1.5px solid rgba(32, 85, 154, 0.5);
+            color: var(--gold-l, #20559A);
         }
         .karma-chip-demo b { font-size: 14px; font-weight: 900; color: var(--white); }
         .mult-demo-wrap {
@@ -1407,8 +1441,8 @@
             padding: 14px 10px;
             margin: 10px 0 8px;
             border-radius: 10px;
-            background: rgba(15,23,42,0.55);
-            border: 1px dashed rgba(255,255,255,0.14);
+            background: rgba(255, 255, 255,0.55);
+            border: 1px dashed rgba(7, 29, 73, 0.14);
         }
 
         /* Filas del recibo */
@@ -1418,7 +1452,7 @@
             gap: 10px;
             align-items: start;
             padding: 11px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.07);
+            border-bottom: 1px solid rgba(7, 29, 73, 0.07);
         }
         .mrec-row:last-of-type { border-bottom: none; }
         .mrec-ico { font-size: 15px; line-height: 1.3; }
@@ -1429,59 +1463,59 @@
            Verde a propósito: es el mismo color del badge que van a ver cuando
            lo ganen, así asocian las dos cosas sin que nadie se lo explique. */
         .cov-invite {
-            border: 1.5px solid rgba(16,185,129,0.5);
+            border: 1.5px solid rgba(46, 125, 79,0.5);
             border-radius: 10px;
-            background: linear-gradient(135deg, rgba(16,185,129,0.14), rgba(16,185,129,0.03));
+            background: linear-gradient(135deg, rgba(46, 125, 79,0.14), rgba(46, 125, 79,0.03));
             padding: 14px;
             cursor: pointer;
         }
-        .cov-invite .cov-fill { background: linear-gradient(90deg, var(--green), #6ee7b7); }
+        .cov-invite .cov-fill { background: linear-gradient(90deg, var(--green), #2E7D4F); }
         .cov-invite-head {
             display: flex; align-items: center; gap: 8px;
             margin-bottom: 11px; flex-wrap: wrap;
         }
         .cov-chip-nuevo {
             display: inline-flex; align-items: center; gap: 4px;
-            background: #6ee7b7; color: #04231a;
+            background: #2E7D4F; color: #04231a;
             font-size: 9.5px; font-weight: 900; letter-spacing: 0.09em;
             padding: 3px 8px; border-radius: 20px;
             text-transform: uppercase; white-space: nowrap;
         }
-        .cov-invite-claim { font-size: 12.5px; font-weight: 800; color: #6ee7b7; }
+        .cov-invite-claim { font-size: 12.5px; font-weight: 800; color: #2E7D4F; }
         .cov-invite-btn {
             display: block; width: 100%; margin-top: 12px;
-            background: rgba(16,185,129,0.9); color: #04231a;
+            background: rgba(46, 125, 79,0.9); color: #04231a;
             border: none; border-radius: 8px; padding: 11px;
             font-size: 12.5px; font-weight: 800; cursor: pointer;
             font-family: inherit;
         }
         .cov-invite-btn:active { transform: scale(0.98); }
-        .cov-invite-btn:focus-visible { outline: 2px solid #6ee7b7; outline-offset: 2px; }
+        .cov-invite-btn:focus-visible { outline: 2px solid #2E7D4F; outline-offset: 2px; }
 
         /* Barra de cobertura */
         .cov-bar {
             height: 9px;
             border-radius: 5px;
-            background: rgba(255,255,255,0.09);
+            background: rgba(7, 29, 73, 0.09);
             overflow: hidden;
             margin: 8px 0 6px;
         }
         .cov-fill {
             height: 100%;
             border-radius: 5px;
-            background: linear-gradient(90deg, var(--gold), #f0d67a);
+            background: linear-gradient(90deg, var(--gold), #20559A);
             transition: width .4s ease;
         }
         /* Barra de 3 tramos: lo ganado, lo perdido y lo que todavía se puede.
            Mostrar "22 de 31" a secas hacía parecer alcanzables los 9 faltantes,
            cuando los días pasados sin reportar ya no se recuperan. */
         .cov-split { display: flex; height: 9px; border-radius: 5px; overflow: hidden;
-                     background: rgba(255,255,255,0.09); margin: 8px 0 7px; }
+                     background: rgba(7, 29, 73, 0.09); margin: 8px 0 7px; }
         .cov-seg { height: 100%; transition: width .4s ease; }
-        .cov-seg-ok    { background: linear-gradient(90deg, var(--gold), #f0d67a); }
+        .cov-seg-ok    { background: linear-gradient(90deg, var(--gold), #20559A); }
         .cov-seg-lost  { background: repeating-linear-gradient(45deg,
-                            rgba(239,68,68,0.38) 0 4px, rgba(239,68,68,0.16) 4px 8px); }
-        .cov-seg-open  { background: rgba(255,255,255,0.07); }
+                            rgba(192, 57, 43,0.38) 0 4px, rgba(192, 57, 43,0.16) 4px 8px); }
+        .cov-seg-open  { background: rgba(7, 29, 73, 0.07); }
         .cov-legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11px; color: var(--slate); }
         .cov-legend i { font-style: normal; }
         .cov-dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px;
@@ -1491,8 +1525,8 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: linear-gradient(135deg, rgba(212,175,55,0.18), rgba(212,175,55,0.06));
-            border: 1.5px solid rgba(212,175,55,0.5);
+            background: linear-gradient(135deg, rgba(32, 85, 154, 0.18), rgba(32, 85, 154, 0.06));
+            border: 1.5px solid rgba(32, 85, 154, 0.5);
             border-radius: 24px;
             padding: 5px 16px 5px 10px;
             margin-top: 6px;
@@ -1504,12 +1538,12 @@
         #karma-badge:hover {
             transform: scale(1.04);
             border-color: var(--gold);
-            box-shadow: 0 0 16px rgba(212,175,55,0.45);
+            box-shadow: 0 0 16px rgba(32, 85, 154, 0.45);
         }
         #karma-badge:active { transform: scale(0.98); }
         #karma-badge .karma-info-i {
-            background: rgba(212,175,55,0.30);
-            border: 1px solid rgba(212,175,55,0.7);
+            background: rgba(32, 85, 154, 0.30);
+            border: 1px solid rgba(32, 85, 154, 0.7);
             color: var(--gold);
             border-radius: 50%;
             width: 16px;
@@ -1527,8 +1561,8 @@
            para indicar que el badge es clickeable. Auto-fade tras 6s o al click. */
         .karma-tooltip {
             position: fixed;
-            background: rgba(212,175,55,0.97);
-            color: #0f172a;
+            background: rgba(32, 85, 154, 0.97);
+            color: #FFFFFF;
             padding: 9px 14px;
             border-radius: 10px;
             font-size: 12px;
@@ -1548,7 +1582,7 @@
             top: 100%;
             left: 24px;
             border: 8px solid transparent;
-            border-top-color: rgba(212,175,55,0.97);
+            border-top-color: rgba(32, 85, 154, 0.97);
         }
         @keyframes karmaTooltipFloat {
             0%, 100% { transform: translateY(0); }
@@ -1573,11 +1607,11 @@
             justify-content: space-between;
             margin-bottom: 14px;
             padding-bottom: 12px;
-            border-bottom: 1px solid rgba(212,175,55,0.2);
+            border-bottom: 1px solid rgba(32, 85, 154, 0.2);
             gap: 10px;
         }
         .rules-modal-title {
-            font-family: 'Playfair Display', serif;
+            font-family: 'Source Sans Pro', sans-serif;
             color: var(--gold);
             font-size: 18px;
             font-weight: 700;
@@ -1609,8 +1643,8 @@
             color: var(--slate);
             margin-top: 8px;
             padding: 8px 12px;
-            background: rgba(245,158,11,0.08);
-            border-left: 3px solid #f59e0b;
+            background: rgba(138, 91, 0,0.08);
+            border-left: 3px solid #8A5B00;
             border-radius: 6px;
         }
         #karma-badge .star { font-size: 20px; }
@@ -1684,7 +1718,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at top right, #1e293b, #0f172a);
+            background: radial-gradient(circle at top right, #F4F7FB, #FFFFFF);
             z-index: 9999;
             display: flex;
             align-items: center;
@@ -1700,9 +1734,9 @@
         }
 
         .login-card {
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(7, 29, 73, 0.03);
             backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(7, 29, 73, 0.1);
             padding: 40px 30px;
             border-radius: 24px;
             text-align: center;
@@ -1713,7 +1747,7 @@
 
         .login-card h2 {
             color: var(--white);
-            font-family: 'Inter', sans-serif;
+            font-family: 'Source Sans Pro', sans-serif;
             font-weight: 800;
             font-size: 28px;
             margin: 0;
@@ -1740,7 +1774,7 @@
             height: 76px;
             border-radius: 18px;
             font-size: 42px;
-            box-shadow: 0 8px 28px rgba(212, 175, 55, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+            box-shadow: 0 8px 28px rgba(32, 85, 154, 0.35), inset 0 1px 0 rgba(7, 29, 73, 0.25);
         }
         .login-brand .login-sub {
             font-size: 10px;
@@ -1785,7 +1819,7 @@
             padding: 12px;
             border-radius: 10px;
             border: 1.5px solid var(--gold);
-            background: rgba(212, 175, 55, 0.08);
+            background: rgba(32, 85, 154, 0.08);
             color: var(--gold-l);
             font-size: 13px;
             font-weight: 700;
@@ -1797,7 +1831,7 @@
         }
         .btn-install:hover {
             background: var(--gold);
-            color: var(--bg);
+            color: var(--on-brand);
         }
         .btn-install.show { display: inline-flex; }
         .btn-install .ic { font-size: 16px; }
@@ -1824,7 +1858,7 @@
             text-align: center;
         }
         #ios-install-modal h3 {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Source Sans Pro', sans-serif;
             font-weight: 800;
             font-size: 18px;
             color: var(--white);
@@ -1841,7 +1875,7 @@
         #ios-install-modal ol strong { color: var(--gold-l); }
         #ios-install-modal .close-btn {
             background: var(--gold);
-            color: var(--bg);
+            color: var(--on-brand);
             border: none;
             border-radius: 8px;
             padding: 10px 24px;
@@ -1895,18 +1929,18 @@
         </defs>
         <symbol id="totopo" viewBox="0 0 100 100">
             <path d="M 47 11 Q 51 11 56 16 L 63 22 Q 71 32 76 42 L 84 56 Q 89 68 90 75 Q 91 80 87 84 L 78 84 Q 65 83 50 84 Q 34 83 22 84 L 14 84 Q 9 83 9 78 Q 11 70 16 60 L 24 45 Q 30 32 36 23 L 41 16 Q 44 11 47 11 Z" fill="url(#totopoGrad)" stroke="#4a2706" stroke-width="3.2" stroke-linejoin="round"/>
-            <circle cx="36" cy="46" r="3.5" fill="#3a1f04" opacity="0.85"/>
-            <circle cx="58" cy="38" r="3" fill="#3a1f04" opacity="0.8"/>
-            <circle cx="48" cy="58" r="3.8" fill="#3a1f04" opacity="0.88"/>
-            <circle cx="65" cy="55" r="2.5" fill="#3a1f04" opacity="0.75"/>
-            <circle cx="30" cy="65" r="2.6" fill="#3a1f04" opacity="0.78"/>
-            <circle cx="55" cy="72" r="2.2" fill="#3a1f04" opacity="0.75"/>
-            <circle cx="40" cy="74" r="1.8" fill="#3a1f04" opacity="0.7"/>
-            <circle cx="68" cy="72" r="2" fill="#3a1f04" opacity="0.72"/>
-            <circle cx="45" cy="34" r="1.5" fill="#3a1f04" opacity="0.65"/>
-            <circle cx="52" cy="50" r="1.5" fill="#fff5d0" opacity="0.55"/>
-            <circle cx="38" cy="58" r="1.1" fill="#fff5d0" opacity="0.5"/>
-            <circle cx="60" cy="62" r="0.9" fill="#fff5d0" opacity="0.45"/>
+            <circle cx="36" cy="46" r="3.5" fill="#071D49" opacity="0.85"/>
+            <circle cx="58" cy="38" r="3" fill="#071D49" opacity="0.8"/>
+            <circle cx="48" cy="58" r="3.8" fill="#071D49" opacity="0.88"/>
+            <circle cx="65" cy="55" r="2.5" fill="#071D49" opacity="0.75"/>
+            <circle cx="30" cy="65" r="2.6" fill="#071D49" opacity="0.78"/>
+            <circle cx="55" cy="72" r="2.2" fill="#071D49" opacity="0.75"/>
+            <circle cx="40" cy="74" r="1.8" fill="#071D49" opacity="0.7"/>
+            <circle cx="68" cy="72" r="2" fill="#071D49" opacity="0.72"/>
+            <circle cx="45" cy="34" r="1.5" fill="#071D49" opacity="0.65"/>
+            <circle cx="52" cy="50" r="1.5" fill="#FFF4D6" opacity="0.55"/>
+            <circle cx="38" cy="58" r="1.1" fill="#FFF4D6" opacity="0.5"/>
+            <circle cx="60" cy="62" r="0.9" fill="#FFF4D6" opacity="0.45"/>
         </symbol>
     </svg>
 
@@ -1969,7 +2003,7 @@
                     </button>
                     <button id="notif-bell-btn" class="btn" onclick="openNotifModal()" title="Notificaciones">
                         <i class="fa fa-bell"></i>
-                        <span id="notif-bell-dot" style="display:none; position:absolute; top:6px; right:6px; width:9px; height:9px; background:var(--gold); border-radius:50%; border:1.5px solid var(--panel, #0f172a);"></span>
+                        <span id="notif-bell-dot" style="display:none; position:absolute; top:6px; right:6px; width:9px; height:9px; background:var(--gold); border-radius:50%; border:1.5px solid var(--panel, #FFFFFF);"></span>
                     </button>
                     <button id="anuncios-btn" class="btn" onclick="openAnunciosModal()" title="Anuncios de la dirección">
                         <i class="fa fa-bullhorn"></i>
@@ -2045,13 +2079,13 @@
                     </div>
                 </div>
 
-                <div style="background:rgba(212,175,55,0.08); border:1px solid rgba(212,175,55,0.25); border-radius:8px; padding:12px 14px; margin:14px 0; font-size:12px; color:var(--slate); line-height:1.5;">
+                <div style="background:rgba(32, 85, 154, 0.08); border:1px solid rgba(32, 85, 154, 0.25); border-radius:8px; padding:12px 14px; margin:14px 0; font-size:12px; color:var(--slate); line-height:1.5;">
                     ⏱️ <strong>Día en curso:</strong> edítalo libremente durante el día — agrega, cambia o corrige tus P-E-C-V-S-$ las veces que quieras (se guarda automáticamente). A las <strong>12:00 AM</strong> se hace el corte automático y se te dan los totopos <svg class="totopo-icon"><use href="#totopo"/></svg>
                     <!-- El OTRO reloj: lo que está construyendo para el mes que viene -->
-                    <div id="cov-block" style="margin-top:12px; padding-top:12px; border-top:1px dashed rgba(212,175,55,0.35);"></div>
-                    <div style="margin-top:12px; padding-top:12px; border-top:1px dashed rgba(212,175,55,0.35); display:flex; justify-content:center;">
+                    <div id="cov-block" style="margin-top:12px; padding-top:12px; border-top:1px dashed rgba(32, 85, 154, 0.35);"></div>
+                    <div style="margin-top:12px; padding-top:12px; border-top:1px dashed rgba(32, 85, 154, 0.35); display:flex; justify-content:center;">
                         <button onclick="openMyCalendar()" title="Ver todos tus días reportados del mes en un calendario"
-                            style="background:var(--gold); border:none; color:#000; border-radius:8px; padding:10px 18px; font-size:12px; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow:0 2px 8px rgba(212,175,55,0.25);">
+                            style="background:var(--gold); border:none; color: var(--on-brand); border-radius:8px; padding:10px 18px; font-size:12px; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow:0 2px 8px rgba(32, 85, 154, 0.25);">
                             <i class="fa fa-calendar-check"></i> Tu calendario de reportes
                         </button>
                     </div>
@@ -2083,7 +2117,7 @@
                                 <td id="tt-$" style="text-align:right; color:var(--gold-l);">0.00</td>
                                 <td></td>
                             </tr>
-                            <tr style="background:rgba(212,175,55,0.05);">
+                            <tr style="background:rgba(32, 85, 154, 0.05);">
                                 <td style="color:var(--gold); font-weight:800;">TOTAL MES <span id="mt-month-suffix" style="font-weight:500; font-size:9px; opacity:0.75; text-transform:none; letter-spacing:0;"></span></td>
                                 <td id="mt-P" style="text-align:center; font-weight:700;">0</td>
                                 <td id="mt-E" style="text-align:center; font-weight:700;">0</td>
@@ -2125,7 +2159,7 @@
                     style="display:flex; justify-content: space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
                     <div style="display:flex; align-items:center; gap:10px;">
                         <h2 style="margin:0;"><i class="fa fa-chart-pie"></i> Mis KPIs</h2>
-                        <span id="kpi-week-indicator" style="font-size:11px; color:var(--teal); font-weight:600; padding:4px 8px; background:rgba(6,182,212,0.1); border-radius:4px; display:none;"></span>
+                        <span id="kpi-week-indicator" style="font-size:11px; color:var(--teal); font-weight:600; padding:4px 8px; background:rgba(121, 153, 194,0.1); border-radius:4px; display:none;"></span>
                     </div>
                     <select id="kpi-period-sel" class="num-input" style="width:auto; height:35px;"
                         onchange="renderKPIs()">
@@ -2200,7 +2234,7 @@
         <div id="tab-conceptos" class="tab-panel">
             <div class="card" style="padding: 25px;">
                 <h2
-                    style="font-family:'Playfair Display',serif; color:var(--gold); border-bottom: 2px solid var(--gold); padding-bottom:10px; margin-bottom:25px; font-size:22px;">
+                    style="font-family:'Source Sans Pro',sans-serif; color:var(--gold); border-bottom: 2px solid var(--gold); padding-bottom:10px; margin-bottom:25px; font-size:22px;">
                     <i class="fa fa-graduation-cap-solid"></i> EL EMBUDO DE EFECTIVIDAD
                 </h2>
 
@@ -2247,25 +2281,25 @@
 
                     <!-- VISUAL EMBUDO — desktop: columna der sticky · mobile: order 1 -->
                     <div class="conceptos-visual"
-                        style="background: rgba(255,255,255,0.03); border-radius:15px; padding:25px; text-align:center; border: 1px solid rgba(255,255,255,0.05); height: fit-content; position: sticky; top: 20px;">
-                        <h2 style="font-family:'Playfair Display',serif; color:var(--white); margin-top:0;">EMBUDO MATEMÁTICO</h2>
-                        <div style="background:var(--gold); color:var(--bg); padding:4px 15px; border-radius:20px; display:inline-block; font-weight:bold; font-size:12px; margin-bottom:30px;">
+                        style="background: rgba(7, 29, 73, 0.03); border-radius:15px; padding:25px; text-align:center; border: 1px solid rgba(7, 29, 73, 0.05); height: fit-content; position: sticky; top: 20px;">
+                        <h2 style="font-family:'Source Sans Pro',sans-serif; color:var(--white); margin-top:0;">EMBUDO MATEMÁTICO</h2>
+                        <div style="background:var(--gold); color: var(--on-brand); padding:4px 15px; border-radius:20px; display:inline-block; font-weight:bold; font-size:12px; margin-bottom:30px;">
                             REGLA: P ≥ E ≥ C ≥ V
                         </div>
                         <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; max-width: 250px; margin: 0 auto; width:100%;">
-                            <div style="width: 100%; height: 45px; background: #3b82f6; clip-path: polygon(0% 0%, 100% 0%, 95% 100%, 5% 100%); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; color:white;">P - Contactos</div>
-                            <div style="width: 100%; height: 45px; background: #06b6d4; clip-path: polygon(5% 0%, 95% 0%, 90% 100%, 10% 100%); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; color:white;">E - Entrevistas</div>
-                            <div style="width: 100%; height: 45px; background: #a855f7; clip-path: polygon(10% 0%, 90% 0%, 85% 100%, 15% 100%); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; color:white;">C - Cotizaciones</div>
-                            <div style="width: 100%; height: 50px; background: #10b981; clip-path: polygon(15% 0%, 85% 0%, 80% 100%, 20% 100%); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; color:white;">V - Cierres</div>
+                            <div style="width: 100%; height: 45px; background: #20559A; clip-path: polygon(0% 0%, 100% 0%, 95% 100%, 5% 100%); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; color:white;">P - Contactos</div>
+                            <div style="width: 100%; height: 45px; background: #7999C2; clip-path: polygon(5% 0%, 95% 0%, 90% 100%, 10% 100%); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; color:white;">E - Entrevistas</div>
+                            <div style="width: 100%; height: 45px; background: #7999C2; clip-path: polygon(10% 0%, 90% 0%, 85% 100%, 15% 100%); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; color:white;">C - Cotizaciones</div>
+                            <div style="width: 100%; height: 50px; background: #2E7D4F; clip-path: polygon(15% 0%, 85% 0%, 80% 100%, 20% 100%); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; color:white;">V - Cierres</div>
                         </div>
-                        <p style="font-size:13px; color:var(--slate); margin-top:35px; line-height:1.6; text-align:justify; border-top: 1px solid rgba(255,255,255,0.1); padding-top:20px;">
+                        <p style="font-size:13px; color:var(--slate); margin-top:35px; line-height:1.6; text-align:justify; border-top: 1px solid rgba(7, 29, 73, 0.1); padding-top:20px;">
                             En sentido estricto el número debe ir de mayor a menor (o como máximo igual) en cada etapa del proceso. Es decir: <strong>nunca puede haber más entrevistas que prospectos contactados</strong>, ni más cotizaciones que entrevistas realizadas, ni más ventas concretadas que cotizaciones.
                         </p>
                     </div>
 
                     <!-- MÉTRICAS DE VOLUMEN Y VALOR (S + $) — desktop: full-width · mobile: order 3 -->
                     <div class="conceptos-prima">
-                        <h2 style="font-family:'Playfair Display',serif; color:var(--gold); border-bottom: 2px solid var(--gold); padding-bottom:10px; margin:20px 0 25px; font-size:22px;">
+                        <h2 style="font-family:'Source Sans Pro',sans-serif; color:var(--gold); border-bottom: 2px solid var(--gold); padding-bottom:10px; margin:20px 0 25px; font-size:22px;">
                             <i class="fa fa-chart-line"></i> MÉTRICAS DE VOLUMEN Y VALOR
                         </h2>
                         <div style="margin-bottom:24px;">
@@ -2295,10 +2329,10 @@
         <!-- ═══════════════════ TAB: TIENDA ═══════════════════ -->
         <div id="tab-tienda" class="tab-panel">
             <!-- Sub-tabs -->
-            <div id="tienda-subtabs" style="display:flex; gap:6px; margin-bottom:16px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:2px;">
-                <button id="ts-btn-comprar" onclick="switchTiendaSubtab('comprar')" style="flex:1; padding:10px; background:rgba(212,175,55,0.15); border:1px solid rgba(212,175,55,0.4); border-radius:6px 6px 0 0; color:var(--gold-l); font-weight:700; font-size:13px; cursor:pointer;">🛒 Comprar</button>
-                <button id="ts-btn-solicitudes" onclick="switchTiendaSubtab('solicitudes')" style="flex:1; padding:10px; background:transparent; border:1px solid rgba(255,255,255,0.10); border-radius:6px 6px 0 0; color:rgba(255,255,255,0.7); font-weight:600; font-size:13px; cursor:pointer;">📜 Mis solicitudes</button>
-                <button id="ts-btn-actividad" onclick="switchTiendaSubtab('actividad')" style="flex:1; padding:10px; background:transparent; border:1px solid rgba(255,255,255,0.10); border-radius:6px 6px 0 0; color:rgba(255,255,255,0.7); font-weight:600; font-size:13px; cursor:pointer;">🔥 Actividad</button>
+            <div id="tienda-subtabs" style="display:flex; gap:6px; margin-bottom:16px; border-bottom:1px solid rgba(7, 29, 73, 0.08); padding-bottom:2px;">
+                <button id="ts-btn-comprar" onclick="switchTiendaSubtab('comprar')" style="flex:1; padding:10px; background:rgba(32, 85, 154, 0.15); border:1px solid rgba(32, 85, 154, 0.4); border-radius:6px 6px 0 0; color:var(--gold-l); font-weight:700; font-size:13px; cursor:pointer;">🛒 Comprar</button>
+                <button id="ts-btn-solicitudes" onclick="switchTiendaSubtab('solicitudes')" style="flex:1; padding:10px; background:transparent; border:1px solid rgba(7, 29, 73, 0.10); border-radius:6px 6px 0 0; color:rgba(7, 29, 73, 0.7); font-weight:600; font-size:13px; cursor:pointer;">📜 Mis solicitudes</button>
+                <button id="ts-btn-actividad" onclick="switchTiendaSubtab('actividad')" style="flex:1; padding:10px; background:transparent; border:1px solid rgba(7, 29, 73, 0.10); border-radius:6px 6px 0 0; color:rgba(7, 29, 73, 0.7); font-weight:600; font-size:13px; cursor:pointer;">🔥 Actividad</button>
             </div>
 
             <!-- Sub-view: COMPRAR -->
@@ -2327,9 +2361,9 @@
                 <div class="card" style="margin-bottom:16px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
                         <p class="card-title" style="margin:0;">🏆 <span id="lb-period-label">Top del mes</span></p>
-                        <div id="lb-period-toggle" style="display:flex; gap:4px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.10); border-radius:8px; padding:3px;">
-                            <button id="lb-btn-month" onclick="switchLeaderboardPeriod('month')" style="padding:5px 14px; background:rgba(212,175,55,0.18); border:none; border-radius:5px; color:var(--gold-l); font-weight:700; font-size:12px; cursor:pointer;">Mes</button>
-                            <button id="lb-btn-year" onclick="switchLeaderboardPeriod('year')" style="padding:5px 14px; background:transparent; border:none; border-radius:5px; color:rgba(255,255,255,0.6); font-weight:600; font-size:12px; cursor:pointer;">Año</button>
+                        <div id="lb-period-toggle" style="display:flex; gap:4px; background:rgba(7, 29, 73, 0.04); border:1px solid rgba(7, 29, 73, 0.10); border-radius:8px; padding:3px;">
+                            <button id="lb-btn-month" onclick="switchLeaderboardPeriod('month')" style="padding:5px 14px; background:rgba(32, 85, 154, 0.18); border:none; border-radius:5px; color:var(--gold-l); font-weight:700; font-size:12px; cursor:pointer;">Mes</button>
+                            <button id="lb-btn-year" onclick="switchLeaderboardPeriod('year')" style="padding:5px 14px; background:transparent; border:none; border-radius:5px; color:rgba(7, 29, 73, 0.6); font-weight:600; font-size:12px; cursor:pointer;">Año</button>
                         </div>
                     </div>
                     <p style="font-size:11px;color:var(--slate);margin:0 0 12px;">Los agentes que más gastaron en tu región.</p>
@@ -2385,7 +2419,7 @@
     <div class="modal-overlay" id="update-available-modal">
         <div class="modal-box" style="max-width:340px;text-align:center;">
             <div style="font-size:48px;margin-bottom:8px;">🚀</div>
-            <h2 style="font-family:'Inter',sans-serif;font-weight:800;color:var(--white);margin:0 0 8px;font-size:18px;">Nueva versión disponible</h2>
+            <h2 style="font-family:'Source Sans Pro',sans-serif;font-weight:800;color:var(--white);margin:0 0 8px;font-size:18px;">Nueva versión disponible</h2>
             <p style="color:var(--slate);font-size:13px;margin:0 0 20px;line-height:1.5;">Recargá la app para obtener las últimas mejoras y arreglos.</p>
             <div style="display:flex;gap:10px;">
                 <button class="btn btn-sm" style="flex:1;" onclick="dismissUpdate()">Después</button>
@@ -2398,7 +2432,7 @@
     <div class="modal-overlay" id="logout-confirm-modal" onclick="if(event.target===this)cancelLogout()">
         <div class="modal-box" style="max-width:340px;text-align:center;">
             <div style="font-size:42px;margin-bottom:8px;">👋</div>
-            <h2 style="font-family:'Inter',sans-serif;font-weight:800;color:var(--white);margin:0 0 8px;font-size:18px;">¿Cerrar sesión?</h2>
+            <h2 style="font-family:'Source Sans Pro',sans-serif;font-weight:800;color:var(--white);margin:0 0 8px;font-size:18px;">¿Cerrar sesión?</h2>
             <p style="color:var(--slate);font-size:13px;margin:0 0 20px;">Tendrás que volver a entrar con Google la próxima vez.</p>
             <div style="display:flex;gap:10px;">
                 <button class="btn btn-sm" style="flex:1;" onclick="cancelLogout()">Cancelar</button>
@@ -2459,19 +2493,19 @@
     <div class="modal-overlay" id="canje-confirm-modal" onclick="if(event.target===this)cancelCanje()">
         <div class="modal-box" style="max-width:380px;text-align:center;">
             <div style="font-size:42px;margin-bottom:8px;">🛒</div>
-            <h2 style="font-family:'Inter',sans-serif;font-weight:800;color:var(--white);margin:0 0 12px;font-size:18px;">Confirmar canje</h2>
+            <h2 style="font-family:'Source Sans Pro',sans-serif;font-weight:800;color:var(--white);margin:0 0 12px;font-size:18px;">Confirmar canje</h2>
             <p id="canje-confirm-text" style="color:var(--slate);font-size:13px;margin:0 0 16px;line-height:1.5;"></p>
 
             <!-- Selector de cantidad: − [N] + -->
             <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin:0 0 14px;">
                 <span style="color:var(--slate);font-size:12px;">Cantidad:</span>
-                <button id="canje-qty-dec" type="button" onclick="changeCanjeQty(-1)" style="width:34px;height:34px;border-radius:50%;border:1px solid var(--gold);background:rgba(15,23,42,0.8);color:var(--gold-l);font-size:18px;font-weight:700;cursor:pointer;padding:0;">−</button>
+                <button id="canje-qty-dec" type="button" onclick="changeCanjeQty(-1)" style="width:34px;height:34px;border-radius:50%;border:1px solid var(--gold);background:rgba(255, 255, 255,0.8);color:var(--gold-l);font-size:18px;font-weight:700;cursor:pointer;padding:0;">−</button>
                 <span id="canje-qty-display" style="font-size:20px;font-weight:800;color:var(--white);min-width:40px;display:inline-block;">1</span>
-                <button id="canje-qty-inc" type="button" onclick="changeCanjeQty(1)" style="width:34px;height:34px;border-radius:50%;border:1px solid var(--gold);background:rgba(15,23,42,0.8);color:var(--gold-l);font-size:18px;font-weight:700;cursor:pointer;padding:0;">+</button>
+                <button id="canje-qty-inc" type="button" onclick="changeCanjeQty(1)" style="width:34px;height:34px;border-radius:50%;border:1px solid var(--gold);background:rgba(255, 255, 255,0.8);color:var(--gold-l);font-size:18px;font-weight:700;cursor:pointer;padding:0;">+</button>
             </div>
 
             <!-- Resumen: costo total y limit info -->
-            <div style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.25);border-radius:8px;padding:10px 12px;margin:0 0 16px;font-size:12px;">
+            <div style="background:rgba(32, 85, 154, 0.08);border:1px solid rgba(32, 85, 154, 0.25);border-radius:8px;padding:10px 12px;margin:0 0 16px;font-size:12px;">
                 <div style="color:var(--gold-l);font-weight:700;font-size:15px;margin-bottom:4px;">
                     <svg class="totopo-icon"><use href="#totopo"/></svg> <span id="canje-total-display">0</span> totopos
                 </div>
@@ -2488,22 +2522,22 @@
     <!-- CONFIG MODAL -->
     <div class="modal-overlay" id="config-modal">
         <div class="modal-box">
-            <h2 style="font-family:'Playfair Display',serif; color:var(--gold); margin-top:0;">Mi Perfil</h2>
+            <h2 style="font-family:'Source Sans Pro',sans-serif; color:var(--gold); margin-top:0;">Mi Perfil</h2>
             <p style="font-size:11px; color:var(--slate); margin:0 0 15px;">Si algún dato está incorrecto, contacta al director para que lo corrija.</p>
             <div style="display:flex; flex-direction:column; gap:12px;">
-                <div style="background:rgba(212,175,55,0.07); border:1px solid rgba(212,175,55,0.2); border-radius:10px; padding:12px 14px;">
+                <div style="background:rgba(32, 85, 154, 0.07); border:1px solid rgba(32, 85, 154, 0.2); border-radius:10px; padding:12px 14px;">
                     <label style="font-size:10px; color:var(--slate); font-weight:700; display:block; margin-bottom:6px;">MI NOMBRE COMPLETO</label>
                     <span id="disp-myname" style="font-size:16px; font-weight:700; color:#fff;">—</span>
                 </div>
-                <div style="background:rgba(212,175,55,0.07); border:1px solid rgba(212,175,55,0.2); border-radius:10px; padding:12px 14px;">
+                <div style="background:rgba(32, 85, 154, 0.07); border:1px solid rgba(32, 85, 154, 0.2); border-radius:10px; padding:12px 14px;">
                     <label style="font-size:10px; color:var(--slate); font-weight:700; display:block; margin-bottom:6px;">MI CORREO</label>
                     <span id="disp-myemail" style="font-size:13px; font-weight:600; color:#fff; word-break:break-all;">—</span>
                 </div>
-                <div style="background:rgba(212,175,55,0.07); border:1px solid rgba(212,175,55,0.2); border-radius:10px; padding:12px 14px;">
+                <div style="background:rgba(32, 85, 154, 0.07); border:1px solid rgba(32, 85, 154, 0.2); border-radius:10px; padding:12px 14px;">
                     <label style="font-size:10px; color:var(--slate); font-weight:700; display:block; margin-bottom:6px;">MI CLAVE DE AGENTE</label>
                     <span id="disp-mycode" style="font-size:22px; font-weight:800; color:var(--gold); letter-spacing:6px;">—</span>
                 </div>
-                <div style="background:rgba(212,175,55,0.07); border:1px solid rgba(212,175,55,0.2); border-radius:10px; padding:12px 14px;">
+                <div style="background:rgba(32, 85, 154, 0.07); border:1px solid rgba(32, 85, 154, 0.2); border-radius:10px; padding:12px 14px;">
                     <label style="font-size:10px; color:var(--slate); font-weight:700; display:block; margin-bottom:6px;">MI REGIÓN</label>
                     <span id="disp-myregion" style="font-size:16px; font-weight:700; color:#fff;">—</span>
                 </div>
@@ -2517,10 +2551,10 @@
     <!-- NOTIFICATIONS MODAL — gestionar suscripción y prefs por tipo -->
     <div class="modal-overlay" id="notif-modal">
         <div class="modal-box">
-            <h2 style="font-family:'Playfair Display',serif; color:var(--gold); margin-top:0;"><i class="fa fa-bell" style="margin-right:8px;"></i>Notificaciones</h2>
+            <h2 style="font-family:'Source Sans Pro',sans-serif; color:var(--gold); margin-top:0;"><i class="fa fa-bell" style="margin-right:8px;"></i>Notificaciones</h2>
             <p style="font-size:12px; color:var(--slate); margin:0 0 18px;">Recibí avisos importantes del director y reconocimientos directamente en tu dispositivo.</p>
 
-            <label id="notif-master-row" style="display:none; align-items:center; justify-content:space-between; padding:14px 16px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:10px; margin-bottom:12px; cursor:pointer; gap:12px;">
+            <label id="notif-master-row" style="display:none; align-items:center; justify-content:space-between; padding:14px 16px; background:rgba(7, 29, 73, 0.04); border:1px solid rgba(7, 29, 73, 0.1); border-radius:10px; margin-bottom:12px; cursor:pointer; gap:12px;">
                 <div style="flex:1; min-width:0;">
                     <div id="notif-master-title" style="font-size:15px; color:#fff; font-weight:700;">Notificaciones</div>
                     <div id="notif-master-sub" style="font-size:12px; color:var(--slate); margin-top:3px;">Cargando…</div>
@@ -2528,13 +2562,13 @@
                 <input type="checkbox" id="notif-master-toggle" onchange="onMasterToggle()" style="width:26px; height:26px; accent-color:var(--gold); cursor:pointer; flex-shrink:0;">
             </label>
 
-            <div id="notif-status" style="display:none; font-size:13px; font-weight:600; color:#fff; margin-bottom:12px; line-height:1.4; padding:12px 14px; background:rgba(255,255,255,0.04); border-radius:10px;">Cargando…</div>
+            <div id="notif-status" style="display:none; font-size:13px; font-weight:600; color:#fff; margin-bottom:12px; line-height:1.4; padding:12px 14px; background:rgba(7, 29, 73, 0.04); border-radius:10px;">Cargando…</div>
             <button id="notif-action-btn" class="btn btn-sm" style="display:none; width:100%; margin-bottom:10px;" onclick="onNotifActionClick()">Activar notificaciones</button>
 
-            <div id="notif-prefs" style="display:none; margin-top:8px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.08);">
+            <div id="notif-prefs" style="display:none; margin-top:8px; padding-top:14px; border-top:1px solid rgba(7, 29, 73, 0.08);">
                 <div style="font-size:11px; color:var(--slate); font-weight:700; margin-bottom:10px; letter-spacing:0.5px;">RECIBIR AVISOS DE:</div>
 
-                <label class="notif-toggle-row" style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer;">
+                <label class="notif-toggle-row" style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(7, 29, 73, 0.05); cursor:pointer;">
                     <div style="flex:1; min-width:0;">
                         <div style="font-size:14px; color:#fff; font-weight:600;">📢 Anuncios de la dirección</div>
                         <div style="font-size:11px; color:var(--slate); margin-top:2px;">Broadcasts importantes del director, promotor y coach.</div>
@@ -2542,7 +2576,7 @@
                     <input type="checkbox" id="notif-pref-anuncios" onchange="saveNotifPrefs()" style="width:22px; height:22px; accent-color:var(--gold); cursor:pointer; flex-shrink:0;" checked>
                 </label>
 
-                <label class="notif-toggle-row" style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer;">
+                <label class="notif-toggle-row" style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(7, 29, 73, 0.05); cursor:pointer;">
                     <div style="flex:1; min-width:0;">
                         <div style="font-size:14px; color:#fff; font-weight:600;">🏆 Reconocimientos</div>
                         <div style="font-size:11px; color:var(--slate); margin-top:2px;">Cuando ganas totopos o desbloqueas logros.</div>
@@ -2559,17 +2593,17 @@
                         <input type="checkbox" id="notif-pref-recordatorio" onchange="onRecordatorioToggle()" style="width:22px; height:22px; accent-color:var(--gold); cursor:pointer; flex-shrink:0;">
                     </label>
                     <div id="notif-recordatorio-time-row" style="display:none; margin-top:10px; padding:8px 10px; background:rgba(0,0,0,0.2); border-radius:6px; align-items:center; gap:10px;">
-                        <span style="font-size:12px; color:rgba(255,255,255,0.7); font-weight:600;">Hora:</span>
-                        <input type="time" id="notif-pref-recordatorio-time" onchange="saveNotifPrefs()" value="19:00" style="flex:1; background:rgba(255,255,255,0.08); color:#fff; border:1px solid rgba(255,255,255,0.15); border-radius:6px; padding:6px 8px; font-size:14px; font-family:inherit;">
+                        <span style="font-size:12px; color:rgba(7, 29, 73, 0.7); font-weight:600;">Hora:</span>
+                        <input type="time" id="notif-pref-recordatorio-time" onchange="saveNotifPrefs()" value="19:00" style="flex:1; background:rgba(7, 29, 73, 0.08); color:#fff; border:1px solid rgba(7, 29, 73, 0.15); border-radius:6px; padding:6px 8px; font-size:14px; font-family:inherit;">
                     </div>
                 </div>
 
-                <div id="notif-prefs-saved" style="display:none; font-size:11px; color:#34d399; margin-top:6px; text-align:right;">✓ Guardado</div>
+                <div id="notif-prefs-saved" style="display:none; font-size:11px; color:#2E7D4F; margin-top:6px; text-align:right;">✓ Guardado</div>
             </div>
 
             <details style="margin-top:14px;">
-                <summary style="font-size:10px; color:rgba(255,255,255,0.4); cursor:pointer; user-select:none;">Diagnóstico técnico</summary>
-                <div id="notif-debug" style="font-size:10px; color:rgba(255,255,255,0.5); font-family:monospace; margin-top:6px; word-break:break-all;"></div>
+                <summary style="font-size:10px; color:rgba(7, 29, 73, 0.4); cursor:pointer; user-select:none;">Diagnóstico técnico</summary>
+                <div id="notif-debug" style="font-size:10px; color:rgba(7, 29, 73, 0.5); font-family:monospace; margin-top:6px; word-break:break-all;"></div>
                 <div id="notif-last-result" style="display:none; font-size:11px; font-family:monospace; padding:6px 8px; background:rgba(0,0,0,0.3); border-radius:6px; margin-top:6px; word-break:break-all; line-height:1.4;"></div>
             </details>
 
@@ -2583,10 +2617,10 @@
         <div class="modal-box">
             <!-- × sticky en esquina superior derecha (siempre alcanzable aún con muchas notifs) -->
             <div class="modal-x-bar"><button onclick="closeAnunciosModal()" aria-label="Cerrar"
-                style="width:32px; height:32px; padding:0; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.12); border-radius:50%; font-size:18px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; flex:0 0 auto;">&times;</button></div>
+                style="width:32px; height:32px; padding:0; background:rgba(7, 29, 73, 0.06); color:rgba(7, 29, 73, 0.7); border:1px solid rgba(7, 29, 73, 0.12); border-radius:50%; font-size:18px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; flex:0 0 auto;">&times;</button></div>
 
             <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:6px;">
-                <h2 style="font-family:'Playfair Display',serif; color:var(--gold); margin:0;"><i class="fa fa-bullhorn" style="margin-right:8px;"></i>Anuncios</h2>
+                <h2 style="font-family:'Source Sans Pro',sans-serif; color:var(--gold); margin:0;"><i class="fa fa-bullhorn" style="margin-right:8px;"></i>Anuncios</h2>
             </div>
             <p style="font-size:12px; color:var(--slate); margin:0 0 12px;">Mensajes y broadcasts importantes del director, promotor y coach.</p>
 
@@ -2598,7 +2632,7 @@
                 <button id="anuncios-clear-read-btn" onclick="clearReadAnuncios()" class="btn btn-sm" style="flex:1; min-width:130px; padding:7px 10px; font-size:11px;" title="Limpiar (ocultar) los que ya leíste">
                     <i class="fa fa-broom"></i> Limpiar leídos
                 </button>
-                <button id="anuncios-clear-all-btn" onclick="clearAllAnuncios()" class="btn btn-sm" style="flex:1; min-width:130px; padding:7px 10px; font-size:11px; border-color:rgba(239,68,68,0.5); color:#f87171;" title="Ocultar todos los anuncios (siguen disponibles si quieres volver a verlos manualmente)">
+                <button id="anuncios-clear-all-btn" onclick="clearAllAnuncios()" class="btn btn-sm" style="flex:1; min-width:130px; padding:7px 10px; font-size:11px; border-color:rgba(192, 57, 43,0.5); color:#C0392B;" title="Ocultar todos los anuncios (siguen disponibles si quieres volver a verlos manualmente)">
                     <i class="fa fa-trash-can"></i> Limpiar todos
                 </button>
             </div>
@@ -2609,7 +2643,7 @@
                 <div id="anuncios-empty" style="text-align:center; padding:40px 20px;">
                     <div style="font-size:48px; opacity:0.3; margin-bottom:12px;">📢</div>
                     <div style="font-size:14px; color:var(--slate); font-weight:600; margin-bottom:6px;">No tienes anuncios</div>
-                    <div style="font-size:12px; color:rgba(255,255,255,0.4); line-height:1.5;">Cuando el director, promotor o coach mande algo, aparece acá.</div>
+                    <div style="font-size:12px; color:rgba(7, 29, 73, 0.4); line-height:1.5;">Cuando el director, promotor o coach mande algo, aparece acá.</div>
                 </div>
             </div>
 
@@ -2622,15 +2656,15 @@
     <div class="modal-overlay" id="buzon-modal" onclick="if(event.target===this)closeBuzonModal()">
         <div class="modal-box" style="max-width:520px;">
             <div class="modal-x-bar"><button onclick="closeBuzonModal()" aria-label="Cerrar"
-                style="width:32px; height:32px; padding:0; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.12); border-radius:50%; font-size:18px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; flex:0 0 auto;">&times;</button></div>
+                style="width:32px; height:32px; padding:0; background:rgba(7, 29, 73, 0.06); color:rgba(7, 29, 73, 0.7); border:1px solid rgba(7, 29, 73, 0.12); border-radius:50%; font-size:18px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; flex:0 0 auto;">&times;</button></div>
 
-            <h2 style="font-family:'Playfair Display',serif; color:var(--gold); margin:0 0 6px;"><i class="fa fa-envelope" style="margin-right:8px;"></i>Buzón</h2>
+            <h2 style="font-family:'Source Sans Pro',sans-serif; color:var(--gold); margin:0 0 6px;"><i class="fa fa-envelope" style="margin-right:8px;"></i>Buzón</h2>
             <p style="font-size:12px; color:var(--slate); margin:0 0 16px;">Tu voz cuenta. Mandale a tu director tus ideas, sugerencias o errores que veas — él las lee todas.</p>
 
             <!-- Tabs: Nuevo / Mis envíos -->
-            <div style="display:flex; gap:6px; margin-bottom:16px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:8px;">
-                <button id="buzon-tab-nuevo-btn" onclick="switchBuzonTab('nuevo')" style="flex:1; padding:8px; border-radius:6px; border:none; background:var(--gold); color:#000; font-weight:700; font-size:12px; cursor:pointer;">📝 Nuevo</button>
-                <button id="buzon-tab-mios-btn" onclick="switchBuzonTab('mios')" style="flex:1; padding:8px; border-radius:6px; border:none; background:rgba(255,255,255,0.06); color:var(--slate); font-weight:600; font-size:12px; cursor:pointer;">📬 Mis envíos</button>
+            <div style="display:flex; gap:6px; margin-bottom:16px; border-bottom:1px solid rgba(7, 29, 73, 0.08); padding-bottom:8px;">
+                <button id="buzon-tab-nuevo-btn" onclick="switchBuzonTab('nuevo')" style="flex:1; padding:8px; border-radius:6px; border:none; background:var(--gold); color: var(--on-brand); font-weight:700; font-size:12px; cursor:pointer;">📝 Nuevo</button>
+                <button id="buzon-tab-mios-btn" onclick="switchBuzonTab('mios')" style="flex:1; padding:8px; border-radius:6px; border:none; background:rgba(7, 29, 73, 0.06); color:var(--slate); font-weight:600; font-size:12px; cursor:pointer;">📬 Mis envíos</button>
             </div>
 
             <!-- Tab: Nuevo mensaje -->
@@ -2642,10 +2676,10 @@
                     <option value="otro">💬 Otro</option>
                 </select>
 
-                <label style="display:block; font-size:11px; color:var(--slate); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Mensaje <span id="buzon-charcount" style="float:right; text-transform:none; letter-spacing:0; color:rgba(255,255,255,0.4);">0 / 500</span></label>
-                <textarea id="buzon-texto" maxlength="500" rows="6" placeholder="Escribe lo que quieras compartir con tu director..." style="width:100%; resize:vertical; margin-bottom:16px; font-family:inherit; padding:10px; background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:var(--white); font-size:13px;" oninput="_updateBuzonCharCount()"></textarea>
+                <label style="display:block; font-size:11px; color:var(--slate); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Mensaje <span id="buzon-charcount" style="float:right; text-transform:none; letter-spacing:0; color:rgba(7, 29, 73, 0.4);">0 / 500</span></label>
+                <textarea id="buzon-texto" maxlength="500" rows="6" placeholder="Escribe lo que quieras compartir con tu director..." style="width:100%; resize:vertical; margin-bottom:16px; font-family:inherit; padding:10px; background:rgba(255, 255, 255,0.6); border:1px solid rgba(7, 29, 73, 0.12); border-radius:8px; color:var(--white); font-size:13px;" oninput="_updateBuzonCharCount()"></textarea>
 
-                <button id="buzon-send-btn" onclick="sendBuzonMensaje()" style="width:100%; padding:12px; background:var(--gold); color:#000; border:none; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;">
+                <button id="buzon-send-btn" onclick="sendBuzonMensaje()" style="width:100%; padding:12px; background:var(--gold); color: var(--on-brand); border:none; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;">
                     <i class="fa fa-paper-plane"></i> Enviar al buzón
                 </button>
             </div>
@@ -2682,11 +2716,11 @@
             </div>
             <div class="cal-grid-body" id="my-cal-grid-body"></div>
             <div class="cal-legend">
-                <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(16,185,129,0.5)"></span> 💪 Actividad con cierre</div>
-                <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(16,185,129,0.5)"></span> 🌱 Actividad sin cierre</div>
-                <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(245,158,11,0.5)"></span> 🌙 Sin intento</div>
-                <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(239,68,68,0.5)"></span> 🔴 Con errores</div>
-                <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(255,255,255,0.1)"></span> ⚪ Sin reporte</div>
+                <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(46, 125, 79,0.5)"></span> 💪 Actividad con cierre</div>
+                <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(46, 125, 79,0.5)"></span> 🌱 Actividad sin cierre</div>
+                <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(138, 91, 0,0.5)"></span> 🌙 Sin intento</div>
+                <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(192, 57, 43,0.5)"></span> 🔴 Con errores</div>
+                <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(7, 29, 73, 0.1)"></span> ⚪ Sin reporte</div>
             </div>
             <div class="cal-day-detail" id="my-cal-day-detail"><span class="cal-detail-empty">Toca un día para ver detalles.</span></div>
             <!-- Conecta los ⚪ que el agente está viendo con lo que le cuestan -->
@@ -2726,7 +2760,7 @@
     <!-- HISTORY MODAL -->
     <div class="modal-overlay" id="history-modal">
         <div class="modal-box" style="max-width:500px;">
-            <h2 style="font-family:'Playfair Display',serif; color:var(--gold); margin-top:0;">Mis Reportes Enviados
+            <h2 style="font-family:'Source Sans Pro',sans-serif; color:var(--gold); margin-top:0;">Mis Reportes Enviados
             </h2>
             <div id="history-list"
                 style="max-height:300px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;"></div>
@@ -2736,10 +2770,10 @@
     </div>
 
     <!-- REGISTER OVERLAY -->
-    <div id="register-overlay" style="display:none; position:fixed; inset:0; background:radial-gradient(circle at top right,#1e293b,#0f172a); z-index:10001; align-items:center; justify-content:center; flex-direction:column; padding:20px;">
+    <div id="register-overlay" style="display:none; position:fixed; inset:0; background:radial-gradient(circle at top right,#F4F7FB,#FFFFFF); z-index:10001; align-items:center; justify-content:center; flex-direction:column; padding:20px;">
         <div class="login-card" style="max-width:420px;">
             <div style="font-size:40px; margin-bottom:16px;">📝</div>
-            <h2 style="color:var(--gold); font-family:'Playfair Display',serif; margin-bottom:8px;">Solicitar Acceso</h2>
+            <h2 style="color:var(--gold); font-family:'Source Sans Pro',sans-serif; margin-bottom:8px;">Solicitar Acceso</h2>
             <p style="color:var(--slate); font-size:13px; margin-bottom:24px;">Tu cuenta de Google no está registrada. Ingresa tus datos para solicitar acceso al sistema.</p>
             <div style="text-align:left; display:flex; flex-direction:column; gap:14px; margin-bottom:20px;">
                 <div>
@@ -2752,90 +2786,90 @@
                 </div>
                 <div>
                     <label style="font-size:11px; color:var(--slate); font-weight:700; display:block; margin-bottom:6px;">TU REGIÓN</label>
-                    <select id="reg-region" style="width:100%; padding:10px; background:var(--panel); color:#fff; border:1px solid rgba(255,255,255,0.15); border-radius:8px; font-size:14px;">
+                    <select id="reg-region" style="width:100%; padding:10px; background:var(--panel); color:#fff; border:1px solid rgba(7, 29, 73, 0.15); border-radius:8px; font-size:14px;">
                         <option value="">Cargando regiones...</option>
                     </select>
                 </div>
             </div>
-            <div style="background:rgba(212,175,55,0.1); border:1px solid rgba(212,175,55,0.3); border-radius:8px; padding:12px; font-size:12px; color:var(--gold-l); margin-bottom:20px; text-align:left; line-height:1.6;">
+            <div style="background:rgba(32, 85, 154, 0.1); border:1px solid rgba(32, 85, 154, 0.3); border-radius:8px; padding:12px; font-size:12px; color:var(--gold-l); margin-bottom:20px; text-align:left; line-height:1.6;">
                 <i class="fa fa-circle-info"></i> Tu solicitud será revisada por el director, quien te asignará tu rol y equipo.
             </div>
             <button id="reg-submit-btn" onclick="submitRegistration()" style="width:100%; padding:13px; border-radius:10px; background:var(--green); color:#fff; border:none; font-size:14px; font-weight:700; cursor:pointer;">
                 <i class="fa fa-paper-plane"></i> Enviar Solicitud de Acceso
             </button>
-            <button onclick="doSignOut()" style="width:100%; margin-top:10px; padding:10px; border-radius:10px; background:none; border:1px solid rgba(255,255,255,0.15); color:var(--slate); font-size:13px; cursor:pointer;">Salir</button>
+            <button onclick="doSignOut()" style="width:100%; margin-top:10px; padding:10px; border-radius:10px; background:none; border:1px solid rgba(7, 29, 73, 0.15); color:var(--slate); font-size:13px; cursor:pointer;">Salir</button>
         </div>
     </div>
 
     <!-- PENDING OVERLAY -->
-    <div id="pending-overlay" style="display:none; position:fixed; inset:0; background:radial-gradient(circle at top right,#1e293b,#0f172a); z-index:10001; align-items:center; justify-content:center; flex-direction:column; padding:20px;">
+    <div id="pending-overlay" style="display:none; position:fixed; inset:0; background:radial-gradient(circle at top right,#F4F7FB,#FFFFFF); z-index:10001; align-items:center; justify-content:center; flex-direction:column; padding:20px;">
         <div class="login-card" style="max-width:400px;">
             <div style="font-size:50px; margin-bottom:16px;">⏳</div>
-            <h2 style="color:var(--orange); font-family:'Playfair Display',serif; margin-bottom:8px;">Solicitud Pendiente</h2>
+            <h2 style="color:var(--orange); font-family:'Source Sans Pro',sans-serif; margin-bottom:8px;">Solicitud Pendiente</h2>
             <p style="color:var(--slate); font-size:13px; margin-bottom:20px;">Tu solicitud de acceso está pendiente de aprobación por el director. Por favor intenta más tarde.</p>
-            <button onclick="doSignOut()" style="width:100%; padding:12px; border-radius:10px; background:none; border:1px solid rgba(255,255,255,0.15); color:var(--slate); font-size:13px; cursor:pointer;">Salir</button>
+            <button onclick="doSignOut()" style="width:100%; padding:12px; border-radius:10px; background:none; border:1px solid rgba(7, 29, 73, 0.15); color:var(--slate); font-size:13px; cursor:pointer;">Salir</button>
         </div>
     </div>
 
     <!-- REVOKED OVERLAY -->
-    <div id="revoked-overlay" style="display:none; position:fixed; inset:0; background:radial-gradient(circle at top right,#1e293b,#0f172a); z-index:10001; align-items:center; justify-content:center; flex-direction:column; padding:20px;">
+    <div id="revoked-overlay" style="display:none; position:fixed; inset:0; background:radial-gradient(circle at top right,#F4F7FB,#FFFFFF); z-index:10001; align-items:center; justify-content:center; flex-direction:column; padding:20px;">
         <div class="login-card" style="max-width:400px;">
             <div style="font-size:50px; margin-bottom:16px;">🚫</div>
-            <h2 style="color:var(--red); font-family:'Playfair Display',serif; margin-bottom:8px;">Acceso Revocado</h2>
+            <h2 style="color:var(--red); font-family:'Source Sans Pro',sans-serif; margin-bottom:8px;">Acceso Revocado</h2>
             <p style="color:var(--slate); font-size:13px; margin-bottom:20px;">Tu acceso al sistema ha sido revocado. Contacta al director si crees que es un error.</p>
-            <button onclick="doSignOut()" style="width:100%; padding:12px; border-radius:10px; background:none; border:1px solid rgba(255,255,255,0.15); color:var(--slate); font-size:13px; cursor:pointer;">Salir</button>
+            <button onclick="doSignOut()" style="width:100%; padding:12px; border-radius:10px; background:none; border:1px solid rgba(7, 29, 73, 0.15); color:var(--slate); font-size:13px; cursor:pointer;">Salir</button>
         </div>
     </div><!-- /revoked-overlay -->
 
     <!-- KARMA CELEBRATION MODAL -->
     <!-- Push notification permission banner (compacto, sin copy extra) -->
-    <div id="push-banner" style="display:none; position:fixed; top:0; left:0; right:0; z-index:9999; background:linear-gradient(135deg,#1e3a8a,#0f172a); padding:12px 16px; border-bottom:1px solid rgba(212,175,55,0.3); box-shadow:0 4px 16px rgba(0,0,0,0.4); align-items:center; gap:10px;">
+    <div id="push-banner" style="display:none; position:fixed; top:0; left:0; right:0; z-index:9999; background:linear-gradient(135deg,#1e3a8a,#FFFFFF); padding:12px 16px; border-bottom:1px solid rgba(32, 85, 154, 0.3); box-shadow:0 4px 16px rgba(0,0,0,0.4); align-items:center; gap:10px;">
         <div style="font-size:22px; flex-shrink:0;">🔔</div>
         <div style="flex:1; color:#fff; font-size:15px; font-weight:700;">¿Activar notificaciones?</div>
-        <button onclick="requestPushPermission()" style="padding:8px 14px; background:var(--gold,#d4af37); color:#000; border:none; border-radius:8px; font-weight:800; font-size:13px; cursor:pointer; white-space:nowrap;">Aceptar</button>
-        <button onclick="dismissPushBanner()" style="padding:8px 12px; background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.85); border:1px solid rgba(255,255,255,0.15); border-radius:8px; font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap;">Rechazar</button>
+        <button onclick="requestPushPermission()" style="padding:8px 14px; background:var(--gold,#20559A); color: var(--on-brand); border:none; border-radius:8px; font-weight:800; font-size:13px; cursor:pointer; white-space:nowrap;">Aceptar</button>
+        <button onclick="dismissPushBanner()" style="padding:8px 12px; background:rgba(7, 29, 73, 0.08); color:rgba(7, 29, 73, 0.85); border:1px solid rgba(7, 29, 73, 0.15); border-radius:8px; font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap;">Rechazar</button>
     </div>
     <style>
         #push-banner.show { display:flex !important; }
         .in-app-toast {
             position:fixed; top:20px; left:50%; transform:translate(-50%,-100px);
             min-width:280px; max-width:90vw;
-            background:linear-gradient(135deg,#1e293b,#0f172a);
-            border:1px solid rgba(212,175,55,0.4);
+            background:linear-gradient(135deg,#F4F7FB,#FFFFFF);
+            border:1px solid rgba(32, 85, 154, 0.4);
             border-radius:12px; padding:14px 18px;
             box-shadow:0 8px 32px rgba(0,0,0,0.5);
             z-index:10005;
             transition:transform 0.3s ease-out;
         }
         .in-app-toast.show { transform:translate(-50%,0); }
-        .in-app-toast .toast-title { color:var(--gold,#d4af37); font-weight:800; font-size:15px; margin-bottom:3px; }
+        .in-app-toast .toast-title { color:var(--gold,#20559A); font-weight:800; font-size:15px; margin-bottom:3px; }
         .in-app-toast .toast-body { color:#fff; font-size:13px; line-height:1.4; }
 
         @keyframes bellPulseGold {
-            0%   { box-shadow: 0 0 0 0 rgba(212,175,55,0.7); transform: scale(1); }
-            50%  { box-shadow: 0 0 0 10px rgba(212,175,55,0); transform: scale(1.06); }
-            100% { box-shadow: 0 0 0 0 rgba(212,175,55,0); transform: scale(1); }
+            0%   { box-shadow: 0 0 0 0 rgba(32, 85, 154, 0.7); transform: scale(1); }
+            50%  { box-shadow: 0 0 0 10px rgba(32, 85, 154, 0); transform: scale(1.06); }
+            100% { box-shadow: 0 0 0 0 rgba(32, 85, 154, 0); transform: scale(1); }
         }
         #notif-bell-btn.bell-pulsing {
             animation: bellPulseGold 1.6s ease-in-out infinite;
-            background: rgba(212,175,55,0.18) !important;
-            border-color: var(--gold,#d4af37) !important;
-            color: var(--gold,#d4af37) !important;
+            background: rgba(32, 85, 154, 0.18) !important;
+            border-color: var(--gold,#20559A) !important;
+            color: var(--gold,#20559A) !important;
         }
-        #notif-bell-btn.bell-pulsing i { color: var(--gold,#d4af37); }
+        #notif-bell-btn.bell-pulsing i { color: var(--gold,#20559A); }
     </style>
 
     <div id="karma-celebration">
         <div id="karma-particles"></div>
         <div style="text-align:center;position:relative;z-index:2;padding:30px 20px;max-width:360px;">
             <div style="animation:karmaBounce 0.7s ease-in-out infinite;display:inline-block;margin-bottom:8px;"><svg style="width:70px;height:70px;display:block;"><use href="#totopo"/></svg></div>
-            <div style="font-family:'Playfair Display',serif;color:var(--gold);font-size:34px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">¡Felicidades!</div>
-            <div style="color:rgba(255,255,255,0.7);font-size:15px;margin-bottom:12px;">Ganaste desde tu última visita</div>
+            <div style="font-family:'Source Sans Pro',sans-serif;color:var(--gold);font-size:34px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">¡Felicidades!</div>
+            <div style="color:rgba(7, 29, 73, 0.7);font-size:15px;margin-bottom:12px;">Ganaste desde tu última visita</div>
             <div id="celebrate-earned" style="font-size:80px;font-weight:900;color:var(--gold);animation:karmaGlow 1.5s ease-in-out infinite;line-height:1;">+0</div>
             <div style="color:var(--gold-l);font-size:16px;font-weight:700;letter-spacing:4px;text-transform:uppercase;margin-bottom:6px;">Totopos <svg class="totopo-icon"><use href="#totopo"/></svg></div>
-            <div id="celebrate-reason" style="color:rgba(255,255,255,0.85); font-size:13px; margin: 0 0 10px; line-height:1.4; max-width:280px; margin-left:auto; margin-right:auto;"></div>
+            <div id="celebrate-reason" style="color:rgba(7, 29, 73, 0.85); font-size:13px; margin: 0 0 10px; line-height:1.4; max-width:280px; margin-left:auto; margin-right:auto;"></div>
             <div id="celebrate-total" style="color:var(--slate);font-size:13px;margin-bottom:28px;">Saldo total: 0 totopos</div>
-            <button onclick="dismissKarmaCelebration()" style="padding:14px 48px;background:linear-gradient(135deg,var(--gold),#f0c040);color:#000;border:none;border-radius:30px;font-size:16px;font-weight:800;cursor:pointer;letter-spacing:1px;box-shadow:0 4px 20px rgba(212,175,55,0.4);">¡GENIAL! 🎉</button>
+            <button onclick="dismissKarmaCelebration()" style="padding:14px 48px;background:linear-gradient(135deg,var(--gold),#f0c040);color: var(--on-brand);border:none;border-radius:30px;font-size:16px;font-weight:800;cursor:pointer;letter-spacing:1px;box-shadow:0 4px 20px rgba(32, 85, 154, 0.4);">¡GENIAL! 🎉</button>
         </div>
     </div>
 
@@ -2848,7 +2882,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v3.69.0';
+        window.APP_HTML_VERSION = 'v4.0.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -2884,7 +2918,7 @@
                 document.querySelectorAll('[data-app-version]').forEach(el => {
                     el.textContent = txt;
                     if (warn) {
-                        el.style.color = '#f59e0b';
+                        el.style.color = '#8A5B00';
                         el.style.fontWeight = '700';
                         el.title = 'Estás corriendo una versión vieja. Recarga para actualizar.';
                     }
@@ -2992,7 +3026,7 @@
         const DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
         const COLS = ['P', 'E', 'C', 'V', 'S'];
         const MONTHS_ES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-        const CHART_COLORS = { P: '#3b82f6', E: '#06b6d4', C: '#a855f7', V: '#10b981', S: '#f59e0b' };
+        const CHART_COLORS = { P: '#20559A', E: '#7999C2', C: '#7999C2', V: '#2E7D4F', S: '#8A5B00' };
 
         // notifPrefs por defecto: anuncios+reconocimientos ON, recordatorio OFF a las 19:00.
         // subscribed=true por defecto (first-time = enabled si acepta el banner).
@@ -3197,7 +3231,7 @@
         function _setLastPushResult(msg, isError) {
             const el = document.getElementById('notif-last-result');
             if (!el) return;
-            el.style.color = isError ? '#f87171' : '#34d399';
+            el.style.color = isError ? '#C0392B' : '#2E7D4F';
             el.textContent = msg;
             el.style.display = '';
         }
@@ -3321,7 +3355,7 @@
             return escaped.replace(/\[\[([\w-]+)\]\]/g, (match, key) => {
                 const el = ANUNCIO_UI_ELEMENTS[key.toLowerCase()];
                 if (!el) return match;
-                return `<span title="${escapeHtml(el.label)}" style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; border:1px solid var(--gold); background:rgba(15,23,42,0.8); color:var(--gold-l); font-size:11px; margin:0 3px; vertical-align:middle;"><i class="fa ${el.icon}"></i></span>`;
+                return `<span title="${escapeHtml(el.label)}" style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; border:1px solid var(--gold); background:rgba(255, 255, 255,0.8); color:var(--gold-l); font-size:11px; margin:0 3px; vertical-align:middle;"><i class="fa ${el.icon}"></i></span>`;
             });
         }
 
@@ -3436,11 +3470,11 @@
             { id: 'sugerencias', label: 'Sugerencias' }
         ];
         const FORO_ROLES = {
-            agente:        { label: 'Agente',        bg: 'rgba(59,130,246,0.20)',  fg: '#93c5fd' },
-            coach:         { label: 'Coach',         bg: 'rgba(6,182,212,0.20)',   fg: '#67e8f9' },
-            promotor:      { label: 'Promotor',      bg: 'rgba(245,158,11,0.20)',  fg: '#fcd34d' },
-            director:      { label: 'Director',      bg: 'rgba(212,175,55,0.22)',  fg: '#f0d67a' },
-            superdirector: { label: 'Superdirector', bg: 'rgba(239,68,68,0.20)',   fg: '#fca5a5' }
+            agente:        { label: 'Agente',        bg: 'rgba(32, 85, 154,0.20)',  fg: '#20559A' },
+            coach:         { label: 'Coach',         bg: 'rgba(121, 153, 194,0.20)',   fg: '#7999C2' },
+            promotor:      { label: 'Promotor',      bg: 'rgba(138, 91, 0,0.20)',  fg: '#8A5B00' },
+            director:      { label: 'Director',      bg: 'rgba(32, 85, 154, 0.22)',  fg: '#20559A' },
+            superdirector: { label: 'Superdirector', bg: 'rgba(192, 57, 43,0.20)',   fg: '#C0392B' }
         };
         // Este archivo es la app del AGENTE, asi que el rol propio es fijo.
         const FORO_MI_ROL = 'agente';
@@ -3892,7 +3926,7 @@
             const body = document.getElementById('foro-body');
             if (!body || !_foroHilo) return;
             const priv = _foroHilo.visibilidad === 'privado'
-                ? `<div style="background:rgba(245,158,11,0.10); border:1px solid rgba(245,158,11,0.35); border-radius:8px;
+                ? `<div style="background:rgba(138, 91, 0,0.10); border:1px solid rgba(138, 91, 0,0.35); border-radius:8px;
                         padding:9px 11px; font-size:11.5px; color:var(--orange); margin-bottom:12px;">
                      <i class="fa fa-lock"></i> Tema privado — solo lo ven la dirección y vos.</div>` : '';
             body.innerHTML = priv
@@ -3900,7 +3934,7 @@
                 + (_foroResps.length
                     ? _foroResps.map(r => _foroPost(r, false)).join('')
                     : '<div style="font-size:12px; color:var(--slate); text-align:center; padding:10px 0;">Sin respuestas todavía.</div>')
-                + `<div style="border-top:1px solid rgba(255,255,255,0.10); padding-top:14px; margin-top:6px;">
+                + `<div style="border-top:1px solid rgba(7, 29, 73, 0.10); padding-top:14px; margin-top:6px;">
                      <textarea id="foro-resp-txt" class="foro-area" style="min-height:80px;"
                        placeholder="Escribe tu respuesta…" maxlength="4000"></textarea>
                      <div class="foro-thumbs" id="foro-resp-thumbs"></div>
@@ -4139,8 +4173,8 @@
             const tabMios = document.getElementById('buzon-tab-mios');
             const btnNuevo = document.getElementById('buzon-tab-nuevo-btn');
             const btnMios = document.getElementById('buzon-tab-mios-btn');
-            const activeStyle = 'background:var(--gold); color:#000; font-weight:700;';
-            const inactiveStyle = 'background:rgba(255,255,255,0.06); color:var(--slate); font-weight:600;';
+            const activeStyle = 'background:var(--gold); color: var(--on-brand); font-weight:700;';
+            const inactiveStyle = 'background:rgba(7, 29, 73, 0.06); color:var(--slate); font-weight:600;';
             if (which === 'mios') {
                 tabNuevo.style.display = 'none';
                 tabMios.style.display = 'block';
@@ -4212,7 +4246,7 @@
                         <div style="text-align:center; padding:40px 20px;">
                             <div style="font-size:48px; opacity:0.3; margin-bottom:12px;">📮</div>
                             <div style="font-size:14px; color:var(--slate); font-weight:600; margin-bottom:6px;">Sin envíos todavía</div>
-                            <div style="font-size:12px; color:rgba(255,255,255,0.4); line-height:1.5;">Cuando mandes algo desde la pestaña "Nuevo" aparecerá acá.</div>
+                            <div style="font-size:12px; color:rgba(7, 29, 73, 0.4); line-height:1.5;">Cuando mandes algo desde la pestaña "Nuevo" aparecerá acá.</div>
                         </div>`;
                     return;
                 }
@@ -4222,7 +4256,7 @@
                 listEl.innerHTML = items.map(it => {
                     const fecha = it.createdAt?.toDate?.().toLocaleString?.('es-MX', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) || '—';
                     return `
-                        <div style="padding:12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px;">
+                        <div style="padding:12px; background:rgba(7, 29, 73, 0.03); border:1px solid rgba(7, 29, 73, 0.08); border-radius:8px;">
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                                 <span style="font-size:11px; color:var(--gold-l); font-weight:700;">${tipoEmoji[it.tipo] || '💬'} ${tipoLabel[it.tipo] || it.tipo}</span>
                                 <span style="font-size:10px; color:var(--slate);">${escapeHtml(fecha)}</span>
@@ -4416,20 +4450,20 @@
                     const dt = a.createdAt ? new Date(a.createdAt).toLocaleString('es-MX',
                         { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
                     const card = document.createElement('div');
-                    card.style.cssText = `position:relative; padding:12px 36px 12px 14px; background:${isUnread ? 'rgba(212,175,55,0.08)' : 'rgba(255,255,255,0.03)'};
-                        border:1px solid ${isUnread ? 'rgba(212,175,55,0.35)' : 'rgba(255,255,255,0.08)'};
+                    card.style.cssText = `position:relative; padding:12px 36px 12px 14px; background:${isUnread ? 'rgba(32, 85, 154, 0.08)' : 'rgba(7, 29, 73, 0.03)'};
+                        border:1px solid ${isUnread ? 'rgba(32, 85, 154, 0.35)' : 'rgba(7, 29, 73, 0.08)'};
                         border-radius:8px; transition:background .15s;`;
                     card.innerHTML = `
                         <button onclick="event.stopPropagation(); hideAnuncio('${a.id}')" aria-label="Ocultar"
-                            style="position:absolute; top:8px; right:8px; width:24px; height:24px; padding:0; background:transparent; color:rgba(255,255,255,0.4); border:none; font-size:18px; line-height:1; cursor:pointer; border-radius:50%; display:flex; align-items:center; justify-content:center;">&times;</button>
+                            style="position:absolute; top:8px; right:8px; width:24px; height:24px; padding:0; background:transparent; color:rgba(7, 29, 73, 0.4); border:none; font-size:18px; line-height:1; cursor:pointer; border-radius:50%; display:flex; align-items:center; justify-content:center;">&times;</button>
                         <div style="cursor:pointer;" data-mark-read>
                             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:6px; padding-right:8px;">
                                 <div style="font-weight:700; color:${isUnread ? 'var(--gold-l)' : '#fff'}; font-size:14px; line-height:1.3;">
-                                    ${isUnread ? '<span style="color:#ef4444; margin-right:4px;">●</span>' : ''}${escapeHtml(a.title || '')}
+                                    ${isUnread ? '<span style="color:#C0392B; margin-right:4px;">●</span>' : ''}${escapeHtml(a.title || '')}
                                 </div>
                                 <div style="font-size:11px; color:var(--slate); white-space:nowrap; flex-shrink:0;">${dt}</div>
                             </div>
-                            <div style="font-size:13px; color:rgba(255,255,255,0.85); line-height:1.45; margin-bottom:6px; white-space:pre-wrap;">${renderAnuncioBody(a.body || '')}</div>
+                            <div style="font-size:13px; color:rgba(7, 29, 73, 0.85); line-height:1.45; margin-bottom:6px; white-space:pre-wrap;">${renderAnuncioBody(a.body || '')}</div>
                             <div style="font-size:10px; color:var(--slate);">— ${escapeHtml(a.createdByName || a.createdBy || '')}</div>
                         </div>
                     `;
@@ -4629,9 +4663,9 @@
             }
             if (perm === 'denied') {
                 if (isIOSDevice) {
-                    showStatus('🚫 <b style="color:#f87171;">Bloqueadas en iOS.</b><br><span style="font-size:11px; color:var(--slate);">Ajustes → Notificaciones → buscá esta app → Permitir.</span>');
+                    showStatus('🚫 <b style="color:#C0392B;">Bloqueadas en iOS.</b><br><span style="font-size:11px; color:var(--slate);">Ajustes → Notificaciones → buscá esta app → Permitir.</span>');
                 } else {
-                    showStatus('🚫 <b style="color:#f87171;">Bloqueadas.</b><br><span style="font-size:11px; color:var(--slate);">Candado al lado de la URL → Notificaciones → Permitir. Refrescá.</span>');
+                    showStatus('🚫 <b style="color:#C0392B;">Bloqueadas.</b><br><span style="font-size:11px; color:var(--slate);">Candado al lado de la URL → Notificaciones → Permitir. Refrescá.</span>');
                 }
                 showMaster(false); showPrefs(false); return;
             }
@@ -4643,7 +4677,7 @@
                 masterSub.textContent = isOn
                     ? 'Tu dispositivo recibe avisos del director.'
                     : 'Activá para recibir avisos importantes.';
-                masterSub.style.color = isOn ? '#34d399' : 'var(--slate)';
+                masterSub.style.color = isOn ? '#2E7D4F' : 'var(--slate)';
             }
             if (isOn) { showPrefs(true); loadNotifPrefsIntoUI(); }
             else { showPrefs(false); }
@@ -4986,7 +5020,7 @@
             banner = document.createElement('div');
             banner.id = 'load-error-banner';
             banner.style.cssText = `position:fixed; top:0; left:0; right:0; z-index:99999;
-                background:linear-gradient(135deg,#7c2d12,#450a0a); color:#fff;
+                background:linear-gradient(135deg,#8A5B00,#450a0a); color:#fff;
                 padding:14px 18px; box-shadow:0 4px 16px rgba(0,0,0,0.4);
                 display:flex; align-items:center; gap:12px; font-family:Inter,sans-serif;`;
             banner.innerHTML = `
@@ -4995,7 +5029,7 @@
                     <div style="font-weight:800; margin-bottom:2px;">No pudimos cargar tu información</div>
                     <div style="opacity:0.85; font-size:12px;">Para no perder datos, refrescá la app antes de seguir reportando.</div>
                 </div>
-                <button onclick="location.reload()" style="padding:8px 14px; background:#fff; color:#7c2d12; border:none; border-radius:8px; font-weight:800; font-size:13px; cursor:pointer; white-space:nowrap;">Refrescar</button>
+                <button onclick="location.reload()" style="padding:8px 14px; background:#fff; color:#8A5B00; border:none; border-radius:8px; font-weight:800; font-size:13px; cursor:pointer; white-space:nowrap;">Refrescar</button>
             `;
             document.body.appendChild(banner);
         }
@@ -5644,7 +5678,7 @@
             if (!el || !mx) return;
             const base = (pointsConfig && pointsConfig.agentDailyPoints) || 10;
             const mes  = _mesLargo(mx.month);
-            const head = `<h2 style="font-family:'Playfair Display',serif; color:var(--gold); margin:0 0 4px; font-size:20px;">Tu multiplicador</h2>
+            const head = `<h2 style="font-family:'Source Sans Pro',sans-serif; color:var(--gold); margin:0 0 4px; font-size:20px;">Tu multiplicador</h2>
                 <div style="font-size:12px; color:var(--slate); margin-bottom:16px; text-transform:capitalize;">${mes} ${String(mx.month || '').split('-')[0]}</div>`;
 
             // ── No lo ganó ──────────────────────────────────────────────────
@@ -5669,7 +5703,7 @@
                         <div><div class="mrec-k">${titulo}</div><div class="mrec-v">${detalle}</div></div>
                         <div></div>
                     </div>
-                    <div style="background:rgba(212,175,55,0.08); border:1px solid rgba(212,175,55,0.22); border-radius:8px; padding:12px 14px; margin-top:14px; font-size:12px; color:var(--slate); line-height:1.55;">
+                    <div style="background:rgba(32, 85, 154, 0.08); border:1px solid rgba(32, 85, 154, 0.22); border-radius:8px; padding:12px 14px; margin-top:14px; font-size:12px; color:var(--slate); line-height:1.55;">
                         ${accion}
                     </div>
                     <div style="text-align:center; margin-top:16px; font-size:12px; color:var(--slate);">
@@ -5711,9 +5745,9 @@
                     <div class="mrec-n" style="color:${covFull ? 'var(--green)' : 'var(--gold)'};">${covPct}%</div>
                 </div>
 
-                <div style="background:linear-gradient(135deg, rgba(16,185,129,0.18), rgba(16,185,129,0.05)); border:1px solid rgba(16,185,129,0.4); border-radius:10px; padding:16px; margin-top:16px; text-align:center;">
+                <div style="background:linear-gradient(135deg, rgba(46, 125, 79,0.18), rgba(46, 125, 79,0.05)); border:1px solid rgba(46, 125, 79,0.4); border-radius:10px; padding:16px; margin-top:16px; text-align:center;">
                     <div style="font-size:11px; color:var(--slate); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">Cada día que reportes vale</div>
-                    <div style="font-size:38px; font-weight:900; color:#6ee7b7; line-height:1;">${val}</div>
+                    <div style="font-size:38px; font-weight:900; color:#2E7D4F; line-height:1;">${val}</div>
                     <div style="font-size:11px; color:var(--slate); margin-top:2px;">totopos <svg class="totopo-icon"><use href="#totopo"/></svg></div>
                 </div>
 
@@ -5783,7 +5817,7 @@
 
             foot.style.display = 'block';
             foot.innerHTML = `
-                <div style="margin-top:12px; padding:13px 15px; background:rgba(212,175,55,0.07); border:1px solid rgba(212,175,55,0.22); border-radius:8px;">
+                <div style="margin-top:12px; padding:13px 15px; background:rgba(32, 85, 154, 0.07); border:1px solid rgba(32, 85, 154, 0.22); border-radius:8px;">
                     <div style="font-size:10.5px; color:var(--slate); text-transform:uppercase; letter-spacing:1px; font-weight:700; margin-bottom:7px;">${titulo}</div>
                     <div class="cov-bar" style="margin:0 0 6px;">
                         <div class="cov-fill" style="width:${Math.min(100, pct)}%; background:${colorBarra};"></div>
@@ -5834,7 +5868,7 @@
                     </div>
                     <div class="cov-legend">
                         <span><b style="color:var(--white); font-size:13px;">${bd.reportados}</b> reportados</span>
-                        ${bd.perdidos > 0 ? `<span style="color:#f87171;">${bd.perdidos} ${bd.perdidos === 1 ? 'perdido' : 'perdidos'}</span>` : ''}
+                        ${bd.perdidos > 0 ? `<span style="color:#C0392B;">${bd.perdidos} ${bd.perdidos === 1 ? 'perdido' : 'perdidos'}</span>` : ''}
                         ${bd.porVenir > 0 ? `<span>${bd.porVenir} por reportar</span>` : ''}
                     </div>
                     <button class="cov-invite-btn" id="cov-invite-btn" type="button">Ver cómo funciona</button>
@@ -5980,20 +6014,20 @@
                 const off = t.pct === 0;
                 // `bdr`, no `bd`: el desglose de cobertura ya usa `bd` en el scope
                 // de arriba y un shadow acá sería una trampa para el próximo cambio.
-                const bdr = 'border-bottom:1px solid rgba(255,255,255,0.05);';
+                const bdr = 'border-bottom:1px solid rgba(7, 29, 73, 0.05);';
                 const num = (v, size, color, weight) =>
                     `<span style="font-size:${size}px; font-weight:${weight}; color:${color}; font-variant-numeric:tabular-nums;">${v}</span>`;
                 return `<tr style="${off ? 'opacity:0.55;' : ''}">
                     <td style="padding:8px 0; font-size:12.5px; ${bdr}">
-                        ${rango}${off ? '' : `<br><span style="font-size:11px; color:var(--gold-l,#e5c76b); font-weight:700;">hasta +${t.pct}%</span>`}
+                        ${rango}${off ? '' : `<br><span style="font-size:11px; color:var(--gold-l,#20559A); font-weight:700;">hasta +${t.pct}%</span>`}
                     </td>
                     <td style="padding:8px 4px; text-align:right; ${bdr}">${num(completo, 17, off ? 'var(--slate)' : 'var(--gold)', 800)}</td>
-                    <td style="padding:8px 0 8px 12px; text-align:right; ${bdr}">${num(mitad, 14, off ? 'var(--slate)' : 'rgba(248,113,113,0.85)', 700)}</td>
+                    <td style="padding:8px 0 8px 12px; text-align:right; ${bdr}">${num(mitad, 14, off ? 'var(--slate)' : 'rgba(192, 57, 43,0.85)', 700)}</td>
                 </tr>`;
             }).join('');
 
             el.innerHTML = `
-                <h2 style="font-family:'Playfair Display',serif; color:var(--gold); margin:0 0 4px; font-size:20px;">Tu Multiplicador</h2>
+                <h2 style="font-family:'Source Sans Pro',sans-serif; color:var(--gold); margin:0 0 4px; font-size:20px;">Tu Multiplicador</h2>
                 <div style="font-size:12.5px; color:var(--slate); margin-bottom:6px; line-height:1.55;">
                     Tus días pueden valer hasta <b style="color:var(--white);">${_cuantoMas()}</b> en
                     <b style="color:var(--gold); text-transform:capitalize;">${mesSig}</b>.
@@ -6019,13 +6053,13 @@
                     </div><div></div>
                 </div>
 
-                <div style="margin-top:20px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.10); font-size:12.5px; color:var(--slate); line-height:1.6;">
+                <div style="margin-top:20px; padding-top:16px; border-top:1px solid rgba(7, 29, 73, 0.10); font-size:12.5px; color:var(--slate); line-height:1.6;">
                     Y los días que reportes en <b style="color:var(--white); text-transform:capitalize;">${mesAct}</b>
                     deciden <b style="color:var(--white);">cuánto de ese multiplicador cobras</b> en
                     <b style="color:var(--gold); text-transform:capitalize;">${mesSig}</b>.
                 </div>
 
-                <div style="background:rgba(212,175,55,0.08); border:1px solid rgba(212,175,55,0.25); border-radius:8px; padding:14px; margin:12px 0 16px;">
+                <div style="background:rgba(32, 85, 154, 0.08); border:1px solid rgba(32, 85, 154, 0.25); border-radius:8px; padding:14px; margin:12px 0 16px;">
                     <div style="font-size:12px; color:var(--slate); margin-bottom:6px;">Llevas</div>
                     <div style="font-size:26px; font-weight:900; color:var(--white); line-height:1;">${bd.reportados} <span style="font-size:15px; font-weight:600; color:var(--slate);">de ${total} días</span></div>
                     <div class="cov-split">
@@ -6034,9 +6068,9 @@
                         <div class="cov-seg cov-seg-open" style="width:${(bd.porVenir   / total) * 100}%;"></div>
                     </div>
                     <div class="cov-legend">
-                        <span><i class="cov-dot" style="background:linear-gradient(90deg,var(--gold),#f0d67a);"></i><b style="color:var(--white);">${bd.reportados}</b> reportados</span>
-                        ${bd.perdidos > 0 ? `<span><i class="cov-dot" style="background:rgba(239,68,68,0.45);"></i><b style="color:#f87171;">${bd.perdidos}</b> ${bd.perdidos === 1 ? 'perdido' : 'perdidos'}</span>` : ''}
-                        ${bd.porVenir > 0 ? `<span><i class="cov-dot" style="background:rgba(255,255,255,0.18);"></i><b style="color:var(--white);">${bd.porVenir}</b> por reportar</span>` : ''}
+                        <span><i class="cov-dot" style="background:linear-gradient(90deg,var(--gold),#20559A);"></i><b style="color:var(--white);">${bd.reportados}</b> reportados</span>
+                        ${bd.perdidos > 0 ? `<span><i class="cov-dot" style="background:rgba(192, 57, 43,0.45);"></i><b style="color:#C0392B;">${bd.perdidos}</b> ${bd.perdidos === 1 ? 'perdido' : 'perdidos'}</span>` : ''}
+                        ${bd.porVenir > 0 ? `<span><i class="cov-dot" style="background:rgba(7, 29, 73, 0.18);"></i><b style="color:var(--white);">${bd.porVenir}</b> por reportar</span>` : ''}
                     </div>
                     ${bd.perdidos > 0 ? `
                     <div style="font-size:11.5px; color:var(--slate); margin-top:9px; line-height:1.5;">
@@ -6044,24 +6078,24 @@
                         ${bd.porVenir > 0 ? `Reportando los ${bd.porVenir} que faltan llegas a <b style="color:var(--white);">${bd.alcanzable} de ${total}</b>.` : ''}
                     </div>`
                     : (bd.porVenir > 0 ? `
-                    <div style="font-size:11.5px; color:#6ee7b7; margin-top:9px; line-height:1.5;">
+                    <div style="font-size:11.5px; color:#2E7D4F; margin-top:9px; line-height:1.5;">
                         Vas al día — no has dejado pasar ningún día de ${mesAct}.
                         Si sigues así, tu multiplicador de ${mesSig} entra completo.
                     </div>` : '')}
                 </div>
 
                 <div style="display:flex; align-items:center; gap:8px; margin:16px 0 6px; flex-wrap:wrap;">
-                    <span style="background:rgba(255,255,255,0.10); color:var(--slate); font-size:9px; font-weight:800; letter-spacing:1px; text-transform:uppercase; padding:3px 8px; border-radius:4px;">Ejemplos</span>
+                    <span style="background:rgba(7, 29, 73, 0.10); color:var(--slate); font-size:9px; font-weight:800; letter-spacing:1px; text-transform:uppercase; padding:3px 8px; border-radius:4px;">Ejemplos</span>
                     <span style="font-size:11px; color:var(--gold); text-transform:uppercase; letter-spacing:1px; font-weight:700;">
                         Lo que valdría cada día de ${mesSig}
                     </span>
                 </div>
                 <div style="overflow-x:auto;">
                 <table style="width:100%; border-collapse:collapse;">
-                    <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.14);">
+                    <thead><tr style="border-bottom:1px solid rgba(7, 29, 73, 0.14);">
                         <th style="text-align:left; font-size:9.5px; color:var(--slate); text-transform:uppercase; letter-spacing:0.8px; font-weight:500; padding-bottom:7px;">Si cierras ${mesAct} con…</th>
                         <th style="text-align:right; font-size:8.5px; color:var(--gold); text-transform:uppercase; letter-spacing:0.2px; font-weight:800; padding-bottom:7px; padding-left:8px; line-height:1.3;">Reportando<br>todos los días<br>del mes</th>
-                        <th style="text-align:right; font-size:8.5px; color:rgba(248,113,113,0.85); text-transform:uppercase; letter-spacing:0.2px; font-weight:700; padding-bottom:7px; padding-left:10px; line-height:1.3;">Habiendo<br>reportado la mitad<br>de los días</th>
+                        <th style="text-align:right; font-size:8.5px; color:rgba(192, 57, 43,0.85); text-transform:uppercase; letter-spacing:0.2px; font-weight:700; padding-bottom:7px; padding-left:10px; line-height:1.3;">Habiendo<br>reportado la mitad<br>de los días</th>
                     </tr></thead>
                     <tbody>${filas}</tbody>
                 </table>
@@ -6074,27 +6108,27 @@
                 </div>
 
                 ${faltan > 0 ? `
-                <div style="background:rgba(16,185,129,0.10); border:1px solid rgba(16,185,129,0.35); border-radius:8px; padding:13px 15px; margin-top:16px; font-size:12.5px; color:var(--slate); line-height:1.6;">
-                    Te quedan <b style="color:#6ee7b7;">${faltan} ${faltan === 1 ? 'día' : 'días'}</b> por reportar en ${mesAct}.
+                <div style="background:rgba(46, 125, 79,0.10); border:1px solid rgba(46, 125, 79,0.35); border-radius:8px; padding:13px 15px; margin-top:16px; font-size:12.5px; color:var(--slate); line-height:1.6;">
+                    Te quedan <b style="color:#2E7D4F;">${faltan} ${faltan === 1 ? 'día' : 'días'}</b> por reportar en ${mesAct}.
                     Si reportas todos, llegas a esos números. Cada uno que falte los baja.
                 </div>` : `
-                <div style="background:rgba(16,185,129,0.10); border:1px solid rgba(16,185,129,0.35); border-radius:8px; padding:13px 15px; margin-top:16px; font-size:12.5px; color:#6ee7b7; line-height:1.6; text-align:center;">
+                <div style="background:rgba(46, 125, 79,0.10); border:1px solid rgba(46, 125, 79,0.35); border-radius:8px; padding:13px 15px; margin-top:16px; font-size:12.5px; color:#2E7D4F; line-height:1.6; text-align:center;">
                     ${bd.perdidos > 0
                         ? `Ya no quedan días por reportar en ${mesAct}. Cerraste con ${bd.reportados} de ${total}.`
                         : 'Reportaste el mes completo. Tu multiplicador va a entrar al 100%.'}
                 </div>`}
 
-                <div style="margin-top:18px; border-top:1px solid rgba(255,255,255,0.10); padding-top:14px; display:flex; flex-direction:column; gap:10px;">
-                    <div style="background:rgba(16,185,129,0.08); border-left:3px solid var(--green); border-radius:0 6px 6px 0; padding:10px 12px;">
-                        <div style="font-size:10.5px; color:#6ee7b7; text-transform:uppercase; letter-spacing:1px; font-weight:800; margin-bottom:6px;">✓ Días que sí cuentan</div>
+                <div style="margin-top:18px; border-top:1px solid rgba(7, 29, 73, 0.10); padding-top:14px; display:flex; flex-direction:column; gap:10px;">
+                    <div style="background:rgba(46, 125, 79,0.08); border-left:3px solid var(--green); border-radius:0 6px 6px 0; padding:10px 12px;">
+                        <div style="font-size:10.5px; color:#2E7D4F; text-transform:uppercase; letter-spacing:1px; font-weight:800; margin-bottom:6px;">✓ Días que sí cuentan</div>
                         <div style="font-size:12px; color:var(--slate); line-height:1.85;">
                             💪 &nbsp;Actividad con cierre<br>
                             🌱 &nbsp;Actividad sin cierre<br>
                             🌙 &nbsp;Sin intento de venta
                         </div>
                     </div>
-                    <div style="background:rgba(239,68,68,0.07); border-left:3px solid var(--red); border-radius:0 6px 6px 0; padding:10px 12px;">
-                        <div style="font-size:10.5px; color:#f87171; text-transform:uppercase; letter-spacing:1px; font-weight:800; margin-bottom:6px;">✗ Días que no cuentan</div>
+                    <div style="background:rgba(192, 57, 43,0.07); border-left:3px solid var(--red); border-radius:0 6px 6px 0; padding:10px 12px;">
+                        <div style="font-size:10.5px; color:#C0392B; text-transform:uppercase; letter-spacing:1px; font-weight:800; margin-bottom:6px;">✗ Días que no cuentan</div>
                         <div style="font-size:12px; color:var(--slate); line-height:1.85;">
                             ⚪ &nbsp;No reportó<br>
                             🔴 &nbsp;Con errores en el embudo
@@ -6347,14 +6381,14 @@
                     const eCatalog = escapeHtml(catalogId);
                     const eImgUrl = item.imageUrl ? escapeHtml(item.imageUrl) : '';
                     const visualHtml = eImgUrl
-                        ? `<img src="${eImgUrl}" alt="${eNombre}" loading="lazy" onclick="openImagePreview('${eImgUrl}')" style="width:100px;height:100px;object-fit:cover;border-radius:10px;cursor:zoom-in;margin:0 auto;display:block;border:1px solid rgba(212,175,55,0.2);">`
+                        ? `<img src="${eImgUrl}" alt="${eNombre}" loading="lazy" onclick="openImagePreview('${eImgUrl}')" style="width:100px;height:100px;object-fit:cover;border-radius:10px;cursor:zoom-in;margin:0 auto;display:block;border:1px solid rgba(32, 85, 154, 0.2);">`
                         : `<div style="font-size:36px;text-align:center;">${eEmoji}</div>`;
                     const disabled = !puedo || sinStock;
                     let btnLabel;
                     if (sinStock)        btnLabel = 'Sin stock';
                     else if (!puedo)     btnLabel = 'Totopos insuficientes';
                     else                 btnLabel = '🛒 Solicitar canje';
-                    return `<div style="background:var(--panel2);border-radius:12px;padding:16px;border:1px solid rgba(212,175,55,0.15);display:flex;flex-direction:column;gap:8px;">
+                    return `<div style="background:var(--panel2);border-radius:12px;padding:16px;border:1px solid rgba(32, 85, 154, 0.15);display:flex;flex-direction:column;gap:8px;">
                         ${visualHtml}
                         <div style="font-weight:700;font-size:14px;text-align:center;">${eNombre}</div>
                         <div style="font-size:12px;color:var(--slate);text-align:center;">${eDesc}</div>
@@ -6400,7 +6434,7 @@
                     const rightSide = isPending
                         ? `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
                                <span style="color:${color};font-size:11px;font-weight:700;white-space:nowrap;">${label}</span>
-                               <button class="btn btn-sm" onclick="cancelarMiSolicitud('${eReqId}','${eName.replace(/'/g, "\\'")}')" style="padding:4px 10px;font-size:11px;border-color:rgba(239,68,68,0.5) !important;color:#fca5a5 !important;">
+                               <button class="btn btn-sm" onclick="cancelarMiSolicitud('${eReqId}','${eName.replace(/'/g, "\\'")}')" style="padding:4px 10px;font-size:11px;border-color:rgba(192, 57, 43,0.5) !important;color:#C0392B !important;">
                                    <i class="fa fa-times"></i> Cancelar
                                </button>
                            </div>`
@@ -6444,14 +6478,14 @@
                 if (view) view.style.display = isActive ? '' : 'none';
                 if (btn) {
                     if (isActive) {
-                        btn.style.background = 'rgba(212,175,55,0.15)';
-                        btn.style.borderColor = 'rgba(212,175,55,0.4)';
+                        btn.style.background = 'rgba(32, 85, 154, 0.15)';
+                        btn.style.borderColor = 'rgba(32, 85, 154, 0.4)';
                         btn.style.color = 'var(--gold-l)';
                         btn.style.fontWeight = '700';
                     } else {
                         btn.style.background = 'transparent';
-                        btn.style.borderColor = 'rgba(255,255,255,0.10)';
-                        btn.style.color = 'rgba(255,255,255,0.7)';
+                        btn.style.borderColor = 'rgba(7, 29, 73, 0.10)';
+                        btn.style.color = 'rgba(7, 29, 73, 0.7)';
                         btn.style.fontWeight = '600';
                     }
                 }
@@ -6492,11 +6526,11 @@
             if (monthBtn && yearBtn) {
                 const active = period === 'month' ? monthBtn : yearBtn;
                 const inactive = period === 'month' ? yearBtn : monthBtn;
-                active.style.background = 'rgba(212,175,55,0.18)';
+                active.style.background = 'rgba(32, 85, 154, 0.18)';
                 active.style.color = 'var(--gold-l)';
                 active.style.fontWeight = '700';
                 inactive.style.background = 'transparent';
-                inactive.style.color = 'rgba(255,255,255,0.6)';
+                inactive.style.color = 'rgba(7, 29, 73, 0.6)';
                 inactive.style.fontWeight = '600';
             }
             if (label) label.textContent = period === 'month' ? 'Top del mes' : 'Top del año';
@@ -6541,9 +6575,9 @@
                             const cantStr = cantidad > 1 ? ` ×${cantidad}` : '';
                             const dt = _relativeTimeEs(r.fechaResolucion || r.fechaSolicitud);
                             const isMine = r.emailSolicitante === user.email;
-                            return `<div style="padding:10px 12px; background:${isMine ? 'rgba(212,175,55,0.10)' : 'var(--panel)'}; border-radius:8px; ${isMine ? 'border:1px solid rgba(212,175,55,0.35);' : ''}">
+                            return `<div style="padding:10px 12px; background:${isMine ? 'rgba(32, 85, 154, 0.10)' : 'var(--panel)'}; border-radius:8px; ${isMine ? 'border:1px solid rgba(32, 85, 154, 0.35);' : ''}">
                                 <div style="font-weight:700; font-size:13px; color:${isMine ? 'var(--gold-l)' : '#fff'};">👤 ${eName}${isMine ? ' (tú)' : ''}</div>
-                                <div style="font-size:12px; color:rgba(255,255,255,0.75); margin-top:3px;">${eEmoji} ${eItem}${cantStr} · <span style="color:var(--gold); font-weight:700;"><svg class="totopo-icon"><use href="#totopo"/></svg> ${costoTotal}</span> · <span style="color:var(--slate);">${dt}</span></div>
+                                <div style="font-size:12px; color:rgba(7, 29, 73, 0.75); margin-top:3px;">${eEmoji} ${eItem}${cantStr} · <span style="color:var(--gold); font-weight:700;"><svg class="totopo-icon"><use href="#totopo"/></svg> ${costoTotal}</span> · <span style="color:var(--slate);">${dt}</span></div>
                             </div>`;
                         }).join('')
                         : '<div class="empty-state"><i class="fa fa-inbox"></i> Sin compras aprobadas en tu región todavía.</div>';
@@ -6593,8 +6627,8 @@
                     const medal = medals[r.position] || (r.position + '.');
                     const sepGap = r._separator ? 'margin-top:10px; position:relative;' : '';
                     const sepLine = r._separator
-                        ? `<div style="position:absolute; top:-7px; left:0; right:0; border-top:1px dashed rgba(255,255,255,0.2);"></div>` : '';
-                    return `<div style="padding:8px 12px; background:${isMe ? 'rgba(212,175,55,0.15)' : 'var(--panel)'}; border-radius:8px; ${isMe ? 'border:1px solid rgba(212,175,55,0.4);' : ''} display:flex; justify-content:space-between; align-items:center; ${sepGap}">
+                        ? `<div style="position:absolute; top:-7px; left:0; right:0; border-top:1px dashed rgba(7, 29, 73, 0.2);"></div>` : '';
+                    return `<div style="padding:8px 12px; background:${isMe ? 'rgba(32, 85, 154, 0.15)' : 'var(--panel)'}; border-radius:8px; ${isMe ? 'border:1px solid rgba(32, 85, 154, 0.4);' : ''} display:flex; justify-content:space-between; align-items:center; ${sepGap}">
                         ${sepLine}
                         <span style="font-size:13px; ${isMe ? 'font-weight:700; color:var(--gold-l);' : ''}">${medal} ${escapeHtml(r.name)}${isMe ? ' (tú)' : ''}</span>
                         <span style="color:var(--gold); font-weight:700; font-size:13px;"><svg class="totopo-icon"><use href="#totopo"/></svg> ${r.total}</span>
@@ -7343,7 +7377,7 @@
         window.openHistory = function () {
             const list = document.getElementById('history-list');
             list.innerHTML = state.entries.map((e, i) => `
-                <div style="background:rgba(255,255,255,.05); padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+                <div style="background:rgba(7, 29, 73, .05); padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
                     <div onclick="loadEntry(${i})" style="cursor:pointer; flex:1;">
                         <div style="font-weight:700; color:var(--gold);">${e.mes} · Sem ${e.semana}</div>
                         <div style="font-size:11px; color:var(--slate);">P:${e.totales.P} V:${e.totales.V} $:${e.totales.prima}</div>
@@ -7501,9 +7535,9 @@
                     ? `${_money(t.min)} — ${_money(tiers[i + 1].min - 1)}`
                     : `${_money(t.min)} o más`;
                 return `<tr>
-                    <td style="padding:6px 0; font-size:12px; border-bottom:1px solid rgba(255,255,255,0.05);">${rango}</td>
-                    <td style="padding:6px 0; text-align:right; font-size:11.5px; color:var(--slate); border-bottom:1px solid rgba(255,255,255,0.05); font-variant-numeric:tabular-nums; white-space:nowrap;">hasta +${t.pct}%</td>
-                    <td style="padding:6px 0 6px 12px; text-align:right; border-bottom:1px solid rgba(255,255,255,0.05); white-space:nowrap;">
+                    <td style="padding:6px 0; font-size:12px; border-bottom:1px solid rgba(7, 29, 73, 0.05);">${rango}</td>
+                    <td style="padding:6px 0; text-align:right; font-size:11.5px; color:var(--slate); border-bottom:1px solid rgba(7, 29, 73, 0.05); font-variant-numeric:tabular-nums; white-space:nowrap;">hasta +${t.pct}%</td>
+                    <td style="padding:6px 0 6px 12px; text-align:right; border-bottom:1px solid rgba(7, 29, 73, 0.05); white-space:nowrap;">
                         <span style="font-size:10px; color:var(--slate);">hasta</span>
                         <span style="font-size:15px; font-weight:800; color:var(--gold); font-variant-numeric:tabular-nums;">${Math.round(base * (1 + t.pct / 100))}</span>
                     </td>
@@ -7511,8 +7545,8 @@
             }).join('');
 
             el.innerHTML = `
-                <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.32); border-radius:10px; padding:14px 16px; margin-top:16px;">
-                    <div style="font-size:12px; color:#6ee7b7; text-transform:uppercase; letter-spacing:1.2px; font-weight:800; margin-bottom:8px;">
+                <div style="background:rgba(46, 125, 79,0.08); border:1px solid rgba(46, 125, 79,0.32); border-radius:10px; padding:14px 16px; margin-top:16px;">
+                    <div style="font-size:12px; color:#2E7D4F; text-transform:uppercase; letter-spacing:1.2px; font-weight:800; margin-bottom:8px;">
                         <i class="fa fa-bolt"></i> El multiplicador
                     </div>
                     <p style="margin:0 0 10px; font-size:12.5px; line-height:1.6;">
@@ -7524,16 +7558,16 @@
                     </p>
                     <div style="overflow-x:auto;">
                     <table style="width:100%; border-collapse:collapse;">
-                        <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.14); color:var(--slate);">
+                        <thead><tr style="border-bottom:1px solid rgba(7, 29, 73, 0.14); color:var(--slate);">
                             <th style="text-align:left; font-size:9.5px; text-transform:uppercase; letter-spacing:1px; font-weight:500; padding-bottom:6px;">Prima ingresada en el mes</th>
                             <th style="text-align:right; font-size:9.5px; text-transform:uppercase; letter-spacing:1px; font-weight:500; padding-bottom:6px;">Bonus</th>
                             <th style="text-align:right; font-size:9.5px; text-transform:uppercase; letter-spacing:1px; font-weight:500; padding-bottom:6px; padding-left:12px;">Vale el día</th>
                         </tr></thead>
                         <tbody>
                             <tr style="opacity:0.55;">
-                                <td style="padding:6px 0; font-size:12px; border-bottom:1px solid rgba(255,255,255,0.05);">menos de ${_money(piso.min)}</td>
-                                <td style="padding:6px 0; text-align:right; font-size:11.5px; color:var(--slate); border-bottom:1px solid rgba(255,255,255,0.05);">—</td>
-                                <td style="padding:6px 0 6px 12px; text-align:right; font-size:15px; font-weight:800; color:var(--slate); border-bottom:1px solid rgba(255,255,255,0.05); font-variant-numeric:tabular-nums;">${base}</td>
+                                <td style="padding:6px 0; font-size:12px; border-bottom:1px solid rgba(7, 29, 73, 0.05);">menos de ${_money(piso.min)}</td>
+                                <td style="padding:6px 0; text-align:right; font-size:11.5px; color:var(--slate); border-bottom:1px solid rgba(7, 29, 73, 0.05);">—</td>
+                                <td style="padding:6px 0 6px 12px; text-align:right; font-size:15px; font-weight:800; color:var(--slate); border-bottom:1px solid rgba(7, 29, 73, 0.05); font-variant-numeric:tabular-nums;">${base}</td>
                             </tr>
                             ${filas}
                         </tbody>
@@ -7710,10 +7744,10 @@
                             kTotals.E > 0 ? kTotals.C / kTotals.E : 0,
                             kTotals.C > 0 ? kTotals.V / kTotals.C : 0
                         ],
-                        borderColor: '#fef08a',
-                        backgroundColor: 'rgba(212,175,55,.4)',
+                        borderColor: '#071D49',
+                        backgroundColor: 'rgba(32, 85, 154, .4)',
                         borderWidth: 4,
-                        pointBackgroundColor: '#d4af37',
+                        pointBackgroundColor: '#20559A',
                         pointBorderColor: '#fff',
                         pointBorderWidth: 2,
                         pointRadius: 7,
@@ -7730,9 +7764,9 @@
                     interaction: { mode: 'nearest', intersect: false },
                     scales: {
                         r: {
-                            grid: { color: 'rgba(255,255,255,0.1)' },
-                            angleLines: { color: 'rgba(255,255,255,0.1)' },
-                            pointLabels: { color: '#94a3b8', font: { size: 11, weight: 'bold' } },
+                            grid: { color: 'rgba(7, 29, 73, 0.1)' },
+                            angleLines: { color: 'rgba(7, 29, 73, 0.1)' },
+                            pointLabels: { color: '#65738E', font: { size: 11, weight: 'bold' } },
                             ticks: { display: false },
                             suggestedMin: 0,
                             suggestedMax: 1
@@ -7827,14 +7861,14 @@
             charts['lineV'] = new Chart(document.getElementById('chartVolume'), {
                 type: 'line',
                 data: { labels, datasets: COLS.map(c => ({ label: c, data: entries.map(e => e.totales[c]), borderColor: CHART_COLORS[c], tension: 0.3, pointRadius: 4 })) },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#94a3b8' } }, y: { ticks: { color: '#94a3b8' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#65738E' } }, y: { ticks: { color: '#65738E' } } } }
             });
 
             destroyChart('lineP');
             charts['lineP'] = new Chart(document.getElementById('chartPrima'), {
                 type: 'line',
-                data: { labels, datasets: [{ label: 'Prima Bruta', data: entries.map(e => e.totales.prima), borderColor: 'rgba(212,175,55,.8)', backgroundColor: 'rgba(212,175,55,.2)', fill: true, tension: 0.3 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#94a3b8' } }, y: { ticks: { color: '#94a3b8' } } } }
+                data: { labels, datasets: [{ label: 'Prima Bruta', data: entries.map(e => e.totales.prima), borderColor: 'rgba(32, 85, 154, .8)', backgroundColor: 'rgba(32, 85, 154, .2)', fill: true, tension: 0.3 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#65738E' } }, y: { ticks: { color: '#65738E' } } } }
             });
 
             // TENDENCIA EFICIENCIA
@@ -7849,7 +7883,7 @@
                         { label: 'C ➔ V', data: entries.map(e => e.totales.C > 0 ? (e.totales.V / e.totales.C * 100).toFixed(1) : 0), borderColor: CHART_COLORS.V, tension: 0.3 }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { ticks: { color: '#94a3b8', callback: v => v + '%' } }, x: { ticks: { color: '#94a3b8' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { ticks: { color: '#65738E', callback: v => v + '%' } }, x: { ticks: { color: '#65738E' } } } }
             });
 
             // TENDENCIA PRIMA PROMEDIO
@@ -7862,7 +7896,7 @@
                         { label: '$/Vta', data: entries.map(e => e.totales.V > 0 ? (e.totales.prima / e.totales.V).toFixed(0) : 0), borderColor: CHART_COLORS.V, tension: 0.3 }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { ticks: { color: '#94a3b8' } }, x: { ticks: { color: '#94a3b8' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { ticks: { color: '#65738E' } }, x: { ticks: { color: '#65738E' } } } }
             });
 
             // TENDENCIA EFICIENCIA TOTAL
@@ -7875,7 +7909,7 @@
                         { label: '% P ➔ V (Cierre)', data: entries.map(e => e.totales.P > 0 ? (e.totales.V / e.totales.P * 100).toFixed(1) : 0), borderColor: CHART_COLORS.V, tension: 0.3 }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { beginAtZero: true, ticks: { color: '#94a3b8', callback: v => v + '%' } }, x: { ticks: { color: '#94a3b8' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { beginAtZero: true, ticks: { color: '#65738E', callback: v => v + '%' } }, x: { ticks: { color: '#65738E' } } } }
             });
         }
 

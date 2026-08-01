@@ -4,8 +4,8 @@
     "description": "Bitácora profesional del agente — embudo PECVS$ y reporte diario",
     "start_url": "./index.html",
     "display": "standalone",
-    "background_color": "#020617",
-    "theme_color": "#d4af37",
+    "background_color": "#E9EEF5",
+    "theme_color": "#20559A",
     "icons": [
         {
             "src": "icon-192.png",
