@@ -161,12 +161,12 @@
         }
         .brand-title h1 {
             font-size: 17px;
-            font-weight: 800;
-            color: #fff;
+            font-weight: 900;
+            color: var(--white);
             letter-spacing: -0.2px;
             white-space: nowrap;
             background: none;
-            -webkit-text-fill-color: #fff;
+            -webkit-text-fill-color: var(--white);
             margin: 0;
         }
         .version-tag {
@@ -213,7 +213,7 @@
             width: 36px;
             height: 36px;
             border-radius: 9px;
-            background: linear-gradient(135deg, var(--gold-l) 0%, var(--gold) 50%, #a08015 100%);
+            background: linear-gradient(135deg, var(--azul-cobalto) 0%, var(--azul-oxford) 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -227,7 +227,7 @@
         }
         .header-left h1 {
             font-family: 'Source Sans Pro', sans-serif;
-            font-weight: 800;
+            font-weight: 900;
             font-size: 19px;
             margin: 0;
             color: var(--white);
@@ -316,10 +316,10 @@
             height: 18px;
             padding: 0 5px;
             background: #C0392B;
-            color: #fff;
+            color: var(--on-brand);
             border-radius: 9px;
             font-size: 10px;
-            font-weight: 800;
+            font-weight: 900;
             display: none;
             align-items: center;
             justify-content: center;
@@ -377,7 +377,7 @@
             }
             .btn-green:hover {
                 background: var(--green);
-                color: #fff;
+                color: var(--on-brand);
             }
         }
 
@@ -502,7 +502,7 @@
             text-transform: uppercase;
             letter-spacing: 2px;
             color: var(--gold);
-            font-weight: 800;
+            font-weight: 900;
             margin: 0 0 15px;
         }
 
@@ -654,7 +654,7 @@
             padding: 4px 10px;
             border-radius: 20px;
             font-size: 10px;
-            font-weight: 800;
+            font-weight: 900;
             letter-spacing: 1px;
         }
         .m-today-grid {
@@ -1272,12 +1272,12 @@
         .foro-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 7px; border: 1px solid rgba(7, 29, 73, 0.12); }
         .foro-thumb button {
             position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%;
-            background: var(--red); color: #fff; border: none; font-size: 12px; line-height: 1; cursor: pointer;
+            background: var(--red); color: var(--on-brand); border: none; font-size: 12px; line-height: 1; cursor: pointer;
             display: flex; align-items: center; justify-content: center; padding: 0;
         }
         .foro-btn-primary {
             width: 100%; background: var(--gold); color: var(--on-brand); border: none; border-radius: 8px;
-            padding: 12px; font-size: 13px; font-weight: 800; cursor: pointer; font-family: inherit;
+            padding: 12px; font-size: 13px; font-weight: 900; cursor: pointer; font-family: inherit;
         }
         .foro-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
         .foro-empty {
@@ -1458,7 +1458,7 @@
         .mrec-ico { font-size: 15px; line-height: 1.3; }
         .mrec-k { font-size: 12px; font-weight: 700; color: var(--white); }
         .mrec-v { font-size: 11.5px; color: var(--slate); margin-top: 2px; line-height: 1.45; }
-        .mrec-n { font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .mrec-n { font-size: 13px; font-weight: 900; font-variant-numeric: tabular-nums; white-space: nowrap; }
         /* ── Tarjeta invitación del multiplicador (solo hasta el primer tap) ──
            Verde a propósito: es el mismo color del badge que van a ver cuando
            lo ganen, así asocian las dos cosas sin que nadie se lo explique. */
@@ -1481,12 +1481,12 @@
             padding: 3px 8px; border-radius: 20px;
             text-transform: uppercase; white-space: nowrap;
         }
-        .cov-invite-claim { font-size: 12.5px; font-weight: 800; color: #2E7D4F; }
+        .cov-invite-claim { font-size: 12.5px; font-weight: 900; color: #2E7D4F; }
         .cov-invite-btn {
             display: block; width: 100%; margin-top: 12px;
             background: rgba(46, 125, 79,0.9); color: #04231a;
             border: none; border-radius: 8px; padding: 11px;
-            font-size: 12.5px; font-weight: 800; cursor: pointer;
+            font-size: 12.5px; font-weight: 900; cursor: pointer;
             font-family: inherit;
         }
         .cov-invite-btn:active { transform: scale(0.98); }
@@ -1503,7 +1503,7 @@
         .cov-fill {
             height: 100%;
             border-radius: 5px;
-            background: linear-gradient(90deg, var(--gold), #20559A);
+            background: linear-gradient(90deg, #20559A, #071D49);
             transition: width .4s ease;
         }
         /* Barra de 3 tramos: lo ganado, lo perdido y lo que todavía se puede.
@@ -1512,7 +1512,7 @@
         .cov-split { display: flex; height: 9px; border-radius: 5px; overflow: hidden;
                      background: rgba(7, 29, 73, 0.09); margin: 8px 0 7px; }
         .cov-seg { height: 100%; transition: width .4s ease; }
-        .cov-seg-ok    { background: linear-gradient(90deg, var(--gold), #20559A); }
+        .cov-seg-ok    { background: linear-gradient(90deg, #20559A, #071D49); }
         .cov-seg-lost  { background: repeating-linear-gradient(45deg,
                             rgba(192, 57, 43,0.38) 0 4px, rgba(192, 57, 43,0.16) 4px 8px); }
         .cov-seg-open  { background: rgba(7, 29, 73, 0.07); }
@@ -1650,7 +1650,7 @@
         #karma-badge .star { font-size: 20px; }
         #karma-badge .karma-num {
             color: var(--gold);
-            font-weight: 800;
+            font-weight: 900;
             font-size: 22px;
             letter-spacing: 1px;
             line-height: 1;
@@ -1748,7 +1748,7 @@
         .login-card h2 {
             color: var(--white);
             font-family: 'Source Sans Pro', sans-serif;
-            font-weight: 800;
+            font-weight: 900;
             font-size: 28px;
             margin: 0;
             letter-spacing: -0.5px;
@@ -1859,7 +1859,7 @@
         }
         #ios-install-modal h3 {
             font-family: 'Source Sans Pro', sans-serif;
-            font-weight: 800;
+            font-weight: 900;
             font-size: 18px;
             color: var(--white);
             margin: 0 0 14px;
@@ -2085,7 +2085,7 @@
                     <div id="cov-block" style="margin-top:12px; padding-top:12px; border-top:1px dashed rgba(32, 85, 154, 0.35);"></div>
                     <div style="margin-top:12px; padding-top:12px; border-top:1px dashed rgba(32, 85, 154, 0.35); display:flex; justify-content:center;">
                         <button onclick="openMyCalendar()" title="Ver todos tus días reportados del mes en un calendario"
-                            style="background:var(--gold); border:none; color: var(--on-brand); border-radius:8px; padding:10px 18px; font-size:12px; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow:0 2px 8px rgba(32, 85, 154, 0.25);">
+                            style="background:var(--gold); border:none; color: var(--on-brand); border-radius:8px; padding:10px 18px; font-size:12px; font-weight: 900; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow:0 2px 8px rgba(32, 85, 154, 0.25);">
                             <i class="fa fa-calendar-check"></i> Tu calendario de reportes
                         </button>
                     </div>
@@ -2118,7 +2118,7 @@
                                 <td></td>
                             </tr>
                             <tr style="background:rgba(32, 85, 154, 0.05);">
-                                <td style="color:var(--gold); font-weight:800;">TOTAL MES <span id="mt-month-suffix" style="font-weight:500; font-size:9px; opacity:0.75; text-transform:none; letter-spacing:0;"></span></td>
+                                <td style="color:var(--gold); font-weight: 900;">TOTAL MES <span id="mt-month-suffix" style="font-weight:500; font-size:9px; opacity:0.75; text-transform:none; letter-spacing:0;"></span></td>
                                 <td id="mt-P" style="text-align:center; font-weight:700;">0</td>
                                 <td id="mt-E" style="text-align:center; font-weight:700;">0</td>
                                 <td id="mt-C" style="text-align:center; font-weight:700;">0</td>
@@ -2287,10 +2287,10 @@
                             REGLA: P ≥ E ≥ C ≥ V
                         </div>
                         <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; max-width: 250px; margin: 0 auto; width:100%;">
-                            <div style="width: 100%; height: 45px; background: #20559A; clip-path: polygon(0% 0%, 100% 0%, 95% 100%, 5% 100%); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; color:white;">P - Contactos</div>
-                            <div style="width: 100%; height: 45px; background: #7999C2; clip-path: polygon(5% 0%, 95% 0%, 90% 100%, 10% 100%); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; color:white;">E - Entrevistas</div>
-                            <div style="width: 100%; height: 45px; background: #7999C2; clip-path: polygon(10% 0%, 90% 0%, 85% 100%, 15% 100%); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; color:white;">C - Cotizaciones</div>
-                            <div style="width: 100%; height: 50px; background: #2E7D4F; clip-path: polygon(15% 0%, 85% 0%, 80% 100%, 20% 100%); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; color:white;">V - Cierres</div>
+                            <div style="width: 100%; height: 45px; background: #20559A; clip-path: polygon(0% 0%, 100% 0%, 95% 100%, 5% 100%); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; color:white;">P - Contactos</div>
+                            <div style="width: 100%; height: 45px; background: #7999C2; clip-path: polygon(5% 0%, 95% 0%, 90% 100%, 10% 100%); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; color:white;">E - Entrevistas</div>
+                            <div style="width: 100%; height: 45px; background: #C8C8C8; clip-path: polygon(10% 0%, 90% 0%, 85% 100%, 15% 100%); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; color:white;">C - Cotizaciones</div>
+                            <div style="width: 100%; height: 50px; background: #001D4B; clip-path: polygon(15% 0%, 85% 0%, 80% 100%, 20% 100%); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; color:white;">V - Cierres</div>
                         </div>
                         <p style="font-size:13px; color:var(--slate); margin-top:35px; line-height:1.6; text-align:justify; border-top: 1px solid rgba(7, 29, 73, 0.1); padding-top:20px;">
                             En sentido estricto el número debe ir de mayor a menor (o como máximo igual) en cada etapa del proceso. Es decir: <strong>nunca puede haber más entrevistas que prospectos contactados</strong>, ni más cotizaciones que entrevistas realizadas, ni más ventas concretadas que cotizaciones.
@@ -2419,7 +2419,7 @@
     <div class="modal-overlay" id="update-available-modal">
         <div class="modal-box" style="max-width:340px;text-align:center;">
             <div style="font-size:48px;margin-bottom:8px;">🚀</div>
-            <h2 style="font-family:'Source Sans Pro',sans-serif;font-weight:800;color:var(--white);margin:0 0 8px;font-size:18px;">Nueva versión disponible</h2>
+            <h2 style="font-family:'Source Sans Pro',sans-serif;font-weight: 900;color:var(--white);margin:0 0 8px;font-size:18px;">Nueva versión disponible</h2>
             <p style="color:var(--slate);font-size:13px;margin:0 0 20px;line-height:1.5;">Recargá la app para obtener las últimas mejoras y arreglos.</p>
             <div style="display:flex;gap:10px;">
                 <button class="btn btn-sm" style="flex:1;" onclick="dismissUpdate()">Después</button>
@@ -2432,7 +2432,7 @@
     <div class="modal-overlay" id="logout-confirm-modal" onclick="if(event.target===this)cancelLogout()">
         <div class="modal-box" style="max-width:340px;text-align:center;">
             <div style="font-size:42px;margin-bottom:8px;">👋</div>
-            <h2 style="font-family:'Source Sans Pro',sans-serif;font-weight:800;color:var(--white);margin:0 0 8px;font-size:18px;">¿Cerrar sesión?</h2>
+            <h2 style="font-family:'Source Sans Pro',sans-serif;font-weight: 900;color:var(--white);margin:0 0 8px;font-size:18px;">¿Cerrar sesión?</h2>
             <p style="color:var(--slate);font-size:13px;margin:0 0 20px;">Tendrás que volver a entrar con Google la próxima vez.</p>
             <div style="display:flex;gap:10px;">
                 <button class="btn btn-sm" style="flex:1;" onclick="cancelLogout()">Cancelar</button>
@@ -2493,14 +2493,14 @@
     <div class="modal-overlay" id="canje-confirm-modal" onclick="if(event.target===this)cancelCanje()">
         <div class="modal-box" style="max-width:380px;text-align:center;">
             <div style="font-size:42px;margin-bottom:8px;">🛒</div>
-            <h2 style="font-family:'Source Sans Pro',sans-serif;font-weight:800;color:var(--white);margin:0 0 12px;font-size:18px;">Confirmar canje</h2>
+            <h2 style="font-family:'Source Sans Pro',sans-serif;font-weight: 900;color:var(--white);margin:0 0 12px;font-size:18px;">Confirmar canje</h2>
             <p id="canje-confirm-text" style="color:var(--slate);font-size:13px;margin:0 0 16px;line-height:1.5;"></p>
 
             <!-- Selector de cantidad: − [N] + -->
             <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin:0 0 14px;">
                 <span style="color:var(--slate);font-size:12px;">Cantidad:</span>
                 <button id="canje-qty-dec" type="button" onclick="changeCanjeQty(-1)" style="width:34px;height:34px;border-radius:50%;border:1px solid var(--gold);background:rgba(255, 255, 255,0.8);color:var(--gold-l);font-size:18px;font-weight:700;cursor:pointer;padding:0;">−</button>
-                <span id="canje-qty-display" style="font-size:20px;font-weight:800;color:var(--white);min-width:40px;display:inline-block;">1</span>
+                <span id="canje-qty-display" style="font-size:20px;font-weight: 900;color:var(--white);min-width:40px;display:inline-block;">1</span>
                 <button id="canje-qty-inc" type="button" onclick="changeCanjeQty(1)" style="width:34px;height:34px;border-radius:50%;border:1px solid var(--gold);background:rgba(255, 255, 255,0.8);color:var(--gold-l);font-size:18px;font-weight:700;cursor:pointer;padding:0;">+</button>
             </div>
 
@@ -2527,19 +2527,19 @@
             <div style="display:flex; flex-direction:column; gap:12px;">
                 <div style="background:rgba(32, 85, 154, 0.07); border:1px solid rgba(32, 85, 154, 0.2); border-radius:10px; padding:12px 14px;">
                     <label style="font-size:10px; color:var(--slate); font-weight:700; display:block; margin-bottom:6px;">MI NOMBRE COMPLETO</label>
-                    <span id="disp-myname" style="font-size:16px; font-weight:700; color:#fff;">—</span>
+                    <span id="disp-myname" style="font-size:16px; font-weight:700; color: var(--white);">—</span>
                 </div>
                 <div style="background:rgba(32, 85, 154, 0.07); border:1px solid rgba(32, 85, 154, 0.2); border-radius:10px; padding:12px 14px;">
                     <label style="font-size:10px; color:var(--slate); font-weight:700; display:block; margin-bottom:6px;">MI CORREO</label>
-                    <span id="disp-myemail" style="font-size:13px; font-weight:600; color:#fff; word-break:break-all;">—</span>
+                    <span id="disp-myemail" style="font-size:13px; font-weight:600; color: var(--white); word-break:break-all;">—</span>
                 </div>
                 <div style="background:rgba(32, 85, 154, 0.07); border:1px solid rgba(32, 85, 154, 0.2); border-radius:10px; padding:12px 14px;">
                     <label style="font-size:10px; color:var(--slate); font-weight:700; display:block; margin-bottom:6px;">MI CLAVE DE AGENTE</label>
-                    <span id="disp-mycode" style="font-size:22px; font-weight:800; color:var(--gold); letter-spacing:6px;">—</span>
+                    <span id="disp-mycode" style="font-size:22px; font-weight: 900; color:var(--gold); letter-spacing:6px;">—</span>
                 </div>
                 <div style="background:rgba(32, 85, 154, 0.07); border:1px solid rgba(32, 85, 154, 0.2); border-radius:10px; padding:12px 14px;">
                     <label style="font-size:10px; color:var(--slate); font-weight:700; display:block; margin-bottom:6px;">MI REGIÓN</label>
-                    <span id="disp-myregion" style="font-size:16px; font-weight:700; color:#fff;">—</span>
+                    <span id="disp-myregion" style="font-size:16px; font-weight:700; color: var(--white);">—</span>
                 </div>
 
                 <button class="btn btn-sm"
@@ -2556,13 +2556,13 @@
 
             <label id="notif-master-row" style="display:none; align-items:center; justify-content:space-between; padding:14px 16px; background:rgba(7, 29, 73, 0.04); border:1px solid rgba(7, 29, 73, 0.1); border-radius:10px; margin-bottom:12px; cursor:pointer; gap:12px;">
                 <div style="flex:1; min-width:0;">
-                    <div id="notif-master-title" style="font-size:15px; color:#fff; font-weight:700;">Notificaciones</div>
+                    <div id="notif-master-title" style="font-size:15px; color: var(--white); font-weight:700;">Notificaciones</div>
                     <div id="notif-master-sub" style="font-size:12px; color:var(--slate); margin-top:3px;">Cargando…</div>
                 </div>
                 <input type="checkbox" id="notif-master-toggle" onchange="onMasterToggle()" style="width:26px; height:26px; accent-color:var(--gold); cursor:pointer; flex-shrink:0;">
             </label>
 
-            <div id="notif-status" style="display:none; font-size:13px; font-weight:600; color:#fff; margin-bottom:12px; line-height:1.4; padding:12px 14px; background:rgba(7, 29, 73, 0.04); border-radius:10px;">Cargando…</div>
+            <div id="notif-status" style="display:none; font-size:13px; font-weight:600; color: var(--white); margin-bottom:12px; line-height:1.4; padding:12px 14px; background:rgba(7, 29, 73, 0.04); border-radius:10px;">Cargando…</div>
             <button id="notif-action-btn" class="btn btn-sm" style="display:none; width:100%; margin-bottom:10px;" onclick="onNotifActionClick()">Activar notificaciones</button>
 
             <div id="notif-prefs" style="display:none; margin-top:8px; padding-top:14px; border-top:1px solid rgba(7, 29, 73, 0.08);">
@@ -2570,7 +2570,7 @@
 
                 <label class="notif-toggle-row" style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(7, 29, 73, 0.05); cursor:pointer;">
                     <div style="flex:1; min-width:0;">
-                        <div style="font-size:14px; color:#fff; font-weight:600;">📢 Anuncios de la dirección</div>
+                        <div style="font-size:14px; color: var(--white); font-weight:600;">📢 Anuncios de la dirección</div>
                         <div style="font-size:11px; color:var(--slate); margin-top:2px;">Broadcasts importantes del director, promotor y coach.</div>
                     </div>
                     <input type="checkbox" id="notif-pref-anuncios" onchange="saveNotifPrefs()" style="width:22px; height:22px; accent-color:var(--gold); cursor:pointer; flex-shrink:0;" checked>
@@ -2578,7 +2578,7 @@
 
                 <label class="notif-toggle-row" style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(7, 29, 73, 0.05); cursor:pointer;">
                     <div style="flex:1; min-width:0;">
-                        <div style="font-size:14px; color:#fff; font-weight:600;">🏆 Reconocimientos</div>
+                        <div style="font-size:14px; color: var(--white); font-weight:600;">🏆 Reconocimientos</div>
                         <div style="font-size:11px; color:var(--slate); margin-top:2px;">Cuando ganas totopos o desbloqueas logros.</div>
                     </div>
                     <input type="checkbox" id="notif-pref-reconocimientos" onchange="saveNotifPrefs()" style="width:22px; height:22px; accent-color:var(--gold); cursor:pointer; flex-shrink:0;" checked>
@@ -2587,14 +2587,14 @@
                 <div style="padding:12px 0;">
                     <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
                         <div style="flex:1; min-width:0;">
-                            <div style="font-size:14px; color:#fff; font-weight:600;">⏰ Recordatorio diario</div>
+                            <div style="font-size:14px; color: var(--white); font-weight:600;">⏰ Recordatorio diario</div>
                             <div style="font-size:11px; color:var(--slate); margin-top:2px;">Te avisamos si no reportaste actividad.</div>
                         </div>
                         <input type="checkbox" id="notif-pref-recordatorio" onchange="onRecordatorioToggle()" style="width:22px; height:22px; accent-color:var(--gold); cursor:pointer; flex-shrink:0;">
                     </label>
                     <div id="notif-recordatorio-time-row" style="display:none; margin-top:10px; padding:8px 10px; background:rgba(0,0,0,0.2); border-radius:6px; align-items:center; gap:10px;">
                         <span style="font-size:12px; color:rgba(7, 29, 73, 0.7); font-weight:600;">Hora:</span>
-                        <input type="time" id="notif-pref-recordatorio-time" onchange="saveNotifPrefs()" value="19:00" style="flex:1; background:rgba(7, 29, 73, 0.08); color:#fff; border:1px solid rgba(7, 29, 73, 0.15); border-radius:6px; padding:6px 8px; font-size:14px; font-family:inherit;">
+                        <input type="time" id="notif-pref-recordatorio-time" onchange="saveNotifPrefs()" value="19:00" style="flex:1; background:rgba(7, 29, 73, 0.08); color: var(--white); border:1px solid rgba(7, 29, 73, 0.15); border-radius:6px; padding:6px 8px; font-size:14px; font-family:inherit;">
                     </div>
                 </div>
 
@@ -2786,7 +2786,7 @@
                 </div>
                 <div>
                     <label style="font-size:11px; color:var(--slate); font-weight:700; display:block; margin-bottom:6px;">TU REGIÓN</label>
-                    <select id="reg-region" style="width:100%; padding:10px; background:var(--panel); color:#fff; border:1px solid rgba(7, 29, 73, 0.15); border-radius:8px; font-size:14px;">
+                    <select id="reg-region" style="width:100%; padding:10px; background:var(--panel); color: var(--white); border:1px solid rgba(7, 29, 73, 0.15); border-radius:8px; font-size:14px;">
                         <option value="">Cargando regiones...</option>
                     </select>
                 </div>
@@ -2794,7 +2794,7 @@
             <div style="background:rgba(32, 85, 154, 0.1); border:1px solid rgba(32, 85, 154, 0.3); border-radius:8px; padding:12px; font-size:12px; color:var(--gold-l); margin-bottom:20px; text-align:left; line-height:1.6;">
                 <i class="fa fa-circle-info"></i> Tu solicitud será revisada por el director, quien te asignará tu rol y equipo.
             </div>
-            <button id="reg-submit-btn" onclick="submitRegistration()" style="width:100%; padding:13px; border-radius:10px; background:var(--green); color:#fff; border:none; font-size:14px; font-weight:700; cursor:pointer;">
+            <button id="reg-submit-btn" onclick="submitRegistration()" style="width:100%; padding:13px; border-radius:10px; background:var(--green); color:var(--on-brand); border:none; font-size:14px; font-weight:700; cursor:pointer;">
                 <i class="fa fa-paper-plane"></i> Enviar Solicitud de Acceso
             </button>
             <button onclick="doSignOut()" style="width:100%; margin-top:10px; padding:10px; border-radius:10px; background:none; border:1px solid rgba(7, 29, 73, 0.15); color:var(--slate); font-size:13px; cursor:pointer;">Salir</button>
@@ -2823,10 +2823,10 @@
 
     <!-- KARMA CELEBRATION MODAL -->
     <!-- Push notification permission banner (compacto, sin copy extra) -->
-    <div id="push-banner" style="display:none; position:fixed; top:0; left:0; right:0; z-index:9999; background:linear-gradient(135deg,#1e3a8a,#FFFFFF); padding:12px 16px; border-bottom:1px solid rgba(32, 85, 154, 0.3); box-shadow:0 4px 16px rgba(0,0,0,0.4); align-items:center; gap:10px;">
+    <div id="push-banner" style="display:none; position:fixed; top:0; left:0; right:0; z-index:9999; background:linear-gradient(135deg,#20559A,#071D49); padding:12px 16px; border-bottom:1px solid rgba(32, 85, 154, 0.3); box-shadow:0 4px 16px rgba(0,0,0,0.4); align-items:center; gap:10px;">
         <div style="font-size:22px; flex-shrink:0;">🔔</div>
-        <div style="flex:1; color:#fff; font-size:15px; font-weight:700;">¿Activar notificaciones?</div>
-        <button onclick="requestPushPermission()" style="padding:8px 14px; background:var(--gold,#20559A); color: var(--on-brand); border:none; border-radius:8px; font-weight:800; font-size:13px; cursor:pointer; white-space:nowrap;">Aceptar</button>
+        <div style="flex:1; color: var(--white); font-size:15px; font-weight:700;">¿Activar notificaciones?</div>
+        <button onclick="requestPushPermission()" style="padding:8px 14px; background:var(--gold,#20559A); color: var(--on-brand); border:none; border-radius:8px; font-weight: 900; font-size:13px; cursor:pointer; white-space:nowrap;">Aceptar</button>
         <button onclick="dismissPushBanner()" style="padding:8px 12px; background:rgba(7, 29, 73, 0.08); color:rgba(7, 29, 73, 0.85); border:1px solid rgba(7, 29, 73, 0.15); border-radius:8px; font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap;">Rechazar</button>
     </div>
     <style>
@@ -2842,8 +2842,8 @@
             transition:transform 0.3s ease-out;
         }
         .in-app-toast.show { transform:translate(-50%,0); }
-        .in-app-toast .toast-title { color:var(--gold,#20559A); font-weight:800; font-size:15px; margin-bottom:3px; }
-        .in-app-toast .toast-body { color:#fff; font-size:13px; line-height:1.4; }
+        .in-app-toast .toast-title { color:var(--gold,#20559A); font-weight: 900; font-size:15px; margin-bottom:3px; }
+        .in-app-toast .toast-body { color: var(--white); font-size:13px; line-height:1.4; }
 
         @keyframes bellPulseGold {
             0%   { box-shadow: 0 0 0 0 rgba(32, 85, 154, 0.7); transform: scale(1); }
@@ -2869,7 +2869,7 @@
             <div style="color:var(--gold-l);font-size:16px;font-weight:700;letter-spacing:4px;text-transform:uppercase;margin-bottom:6px;">Totopos <svg class="totopo-icon"><use href="#totopo"/></svg></div>
             <div id="celebrate-reason" style="color:rgba(7, 29, 73, 0.85); font-size:13px; margin: 0 0 10px; line-height:1.4; max-width:280px; margin-left:auto; margin-right:auto;"></div>
             <div id="celebrate-total" style="color:var(--slate);font-size:13px;margin-bottom:28px;">Saldo total: 0 totopos</div>
-            <button onclick="dismissKarmaCelebration()" style="padding:14px 48px;background:linear-gradient(135deg,var(--gold),#f0c040);color: var(--on-brand);border:none;border-radius:30px;font-size:16px;font-weight:800;cursor:pointer;letter-spacing:1px;box-shadow:0 4px 20px rgba(32, 85, 154, 0.4);">¡GENIAL! 🎉</button>
+            <button onclick="dismissKarmaCelebration()" style="padding:14px 48px;background:linear-gradient(135deg,var(--gold),#f0c040);color: var(--on-brand);border:none;border-radius:30px;font-size:16px;font-weight: 900;cursor:pointer;letter-spacing:1px;box-shadow:0 4px 20px rgba(32, 85, 154, 0.4);">¡GENIAL! 🎉</button>
         </div>
     </div>
 
@@ -2882,7 +2882,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.0.0';
+        window.APP_HTML_VERSION = 'v4.0.1';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -3026,7 +3026,10 @@
         const DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
         const COLS = ['P', 'E', 'C', 'V', 'S'];
         const MONTHS_ES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-        const CHART_COLORS = { P: '#20559A', E: '#7999C2', C: '#7999C2', V: '#2E7D4F', S: '#8A5B00' };
+        // Paleta de datos del sistema Promessa: cobalto, azul medio, gris, marino,
+        // amarillo. El verde y el ambar de antes eran colores de ESTADO usados como
+        // color de dato, cosa que la paleta corporativa no contempla.
+        const CHART_COLORS = { P: '#20559A', E: '#7999C2', C: '#C8C8C8', V: '#001D4B', S: '#FFC72C' };
 
         // notifPrefs por defecto: anuncios+reconocimientos ON, recordatorio OFF a las 19:00.
         // subscribed=true por defecto (first-time = enabled si acepta el banner).
@@ -3916,7 +3919,7 @@
                     ${puedeOcultar ? `<button class="foro-link" style="margin-left:auto; color:var(--red);"
                         onclick="foroOcultar('${esHilo ? 'hilo' : 'resp'}','${escapeHtml(d.id || '')}')">Eliminar</button>` : ''}
                 </div>
-                ${esHilo ? `<div style="font-size:15px; font-weight:800; color:var(--white); margin-top:7px;">${escapeHtml(d.titulo || '')}</div>` : ''}
+                ${esHilo ? `<div style="font-size:15px; font-weight: 900; color:var(--white); margin-top:7px;">${escapeHtml(d.titulo || '')}</div>` : ''}
                 <div class="foro-texto">${escapeHtml(d.texto || '')}</div>
                 ${imgs ? `<div class="foro-imgs">${imgs}</div>` : ''}
             </div>`;
@@ -4458,7 +4461,7 @@
                             style="position:absolute; top:8px; right:8px; width:24px; height:24px; padding:0; background:transparent; color:rgba(7, 29, 73, 0.4); border:none; font-size:18px; line-height:1; cursor:pointer; border-radius:50%; display:flex; align-items:center; justify-content:center;">&times;</button>
                         <div style="cursor:pointer;" data-mark-read>
                             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:6px; padding-right:8px;">
-                                <div style="font-weight:700; color:${isUnread ? 'var(--gold-l)' : '#fff'}; font-size:14px; line-height:1.3;">
+                                <div style="font-weight:700; color:${isUnread ? 'var(--gold-l)' : '#071D49'}; font-size:14px; line-height:1.3;">
                                     ${isUnread ? '<span style="color:#C0392B; margin-right:4px;">●</span>' : ''}${escapeHtml(a.title || '')}
                                 </div>
                                 <div style="font-size:11px; color:var(--slate); white-space:nowrap; flex-shrink:0;">${dt}</div>
@@ -5020,16 +5023,16 @@
             banner = document.createElement('div');
             banner.id = 'load-error-banner';
             banner.style.cssText = `position:fixed; top:0; left:0; right:0; z-index:99999;
-                background:linear-gradient(135deg,#8A5B00,#450a0a); color:#fff;
+                background:linear-gradient(135deg,#20559A,#071D49); color:var(--on-brand);
                 padding:14px 18px; box-shadow:0 4px 16px rgba(0,0,0,0.4);
                 display:flex; align-items:center; gap:12px; font-family:Inter,sans-serif;`;
             banner.innerHTML = `
                 <div style="font-size:24px;">⚠️</div>
                 <div style="flex:1; font-size:14px; line-height:1.4;">
-                    <div style="font-weight:800; margin-bottom:2px;">No pudimos cargar tu información</div>
+                    <div style="font-weight: 900; margin-bottom:2px;">No pudimos cargar tu información</div>
                     <div style="opacity:0.85; font-size:12px;">Para no perder datos, refrescá la app antes de seguir reportando.</div>
                 </div>
-                <button onclick="location.reload()" style="padding:8px 14px; background:#fff; color:#8A5B00; border:none; border-radius:8px; font-weight:800; font-size:13px; cursor:pointer; white-space:nowrap;">Refrescar</button>
+                <button onclick="location.reload()" style="padding:8px 14px; background:#fff; color:#8A5B00; border:none; border-radius:8px; font-weight: 900; font-size:13px; cursor:pointer; white-space:nowrap;">Refrescar</button>
             `;
             document.body.appendChild(banner);
         }
@@ -5620,10 +5623,10 @@
                 const base = (pointsConfig && pointsConfig.agentDailyPoints) || 10;
                 const val = Math.round(base * (1 + (Number(mx.bonusPct) || 0) / 100));
                 badge.className = 'mult-on';
-                badge.innerHTML = `<i class="fa fa-bolt"></i> tu día vale <b>${val}</b>`;
+                badge.innerHTML = `<i class="fa fa-bolt" style="color:#FFC72C"></i> tu día vale <b>${val}</b>`;
             } else {
                 badge.className = 'mult-off';
-                badge.innerHTML = `<i class="fa fa-bolt"></i> sin multiplicador`;
+                badge.innerHTML = `<i class="fa fa-bolt" style="color:#FFC72C"></i> sin multiplicador`;
             }
         }
 
@@ -5651,7 +5654,7 @@
             return `
                 <div class="mult-demo-wrap">
                     <span class="karma-chip-demo"><svg class="totopo-icon"><use href="#totopo"/></svg> <b>1,240</b> totopos</span>
-                    <span class="mult-chip-demo"><i class="fa fa-bolt"></i> tu día vale <b>${val}</b></span>
+                    <span class="mult-chip-demo"><i class="fa fa-bolt" style="color:#FFC72C"></i> tu día vale <b>${val}</b></span>
                 </div>
                 <div style="font-size:11.5px; color:var(--slate); text-align:center; line-height:1.5; margin-bottom:4px;">
                     Así se verá justo al lado de tu balance de totopos cuando tengas
@@ -5855,7 +5858,7 @@
                   <div class="cov-invite" id="cov-invite-card" role="button" tabindex="0"
                        aria-label="Ver cómo funciona el multiplicador de totopos">
                     <div class="cov-invite-head">
-                        <span class="cov-chip-nuevo"><i class="fa fa-bolt"></i> Nuevo</span>
+                        <span class="cov-chip-nuevo"><i class="fa fa-bolt" style="color:#FFC72C"></i> Nuevo</span>
                         <span class="cov-invite-claim">Tus totopos pueden valer ${cuanto}</span>
                     </div>
                     <div style="font-size:11px; color:var(--slate); text-transform:uppercase; letter-spacing:1px;">
@@ -6085,7 +6088,7 @@
                 </div>
 
                 <div style="display:flex; align-items:center; gap:8px; margin:16px 0 6px; flex-wrap:wrap;">
-                    <span style="background:rgba(7, 29, 73, 0.10); color:var(--slate); font-size:9px; font-weight:800; letter-spacing:1px; text-transform:uppercase; padding:3px 8px; border-radius:4px;">Ejemplos</span>
+                    <span style="background:rgba(7, 29, 73, 0.10); color:var(--slate); font-size:9px; font-weight: 900; letter-spacing:1px; text-transform:uppercase; padding:3px 8px; border-radius:4px;">Ejemplos</span>
                     <span style="font-size:11px; color:var(--gold); text-transform:uppercase; letter-spacing:1px; font-weight:700;">
                         Lo que valdría cada día de ${mesSig}
                     </span>
@@ -6094,7 +6097,7 @@
                 <table style="width:100%; border-collapse:collapse;">
                     <thead><tr style="border-bottom:1px solid rgba(7, 29, 73, 0.14);">
                         <th style="text-align:left; font-size:9.5px; color:var(--slate); text-transform:uppercase; letter-spacing:0.8px; font-weight:500; padding-bottom:7px;">Si cierras ${mesAct} con…</th>
-                        <th style="text-align:right; font-size:8.5px; color:var(--gold); text-transform:uppercase; letter-spacing:0.2px; font-weight:800; padding-bottom:7px; padding-left:8px; line-height:1.3;">Reportando<br>todos los días<br>del mes</th>
+                        <th style="text-align:right; font-size:8.5px; color:var(--gold); text-transform:uppercase; letter-spacing:0.2px; font-weight: 900; padding-bottom:7px; padding-left:8px; line-height:1.3;">Reportando<br>todos los días<br>del mes</th>
                         <th style="text-align:right; font-size:8.5px; color:rgba(192, 57, 43,0.85); text-transform:uppercase; letter-spacing:0.2px; font-weight:700; padding-bottom:7px; padding-left:10px; line-height:1.3;">Habiendo<br>reportado la mitad<br>de los días</th>
                     </tr></thead>
                     <tbody>${filas}</tbody>
@@ -6120,7 +6123,7 @@
 
                 <div style="margin-top:18px; border-top:1px solid rgba(7, 29, 73, 0.10); padding-top:14px; display:flex; flex-direction:column; gap:10px;">
                     <div style="background:rgba(46, 125, 79,0.08); border-left:3px solid var(--green); border-radius:0 6px 6px 0; padding:10px 12px;">
-                        <div style="font-size:10.5px; color:#2E7D4F; text-transform:uppercase; letter-spacing:1px; font-weight:800; margin-bottom:6px;">✓ Días que sí cuentan</div>
+                        <div style="font-size:10.5px; color:#2E7D4F; text-transform:uppercase; letter-spacing:1px; font-weight: 900; margin-bottom:6px;">✓ Días que sí cuentan</div>
                         <div style="font-size:12px; color:var(--slate); line-height:1.85;">
                             💪 &nbsp;Actividad con cierre<br>
                             🌱 &nbsp;Actividad sin cierre<br>
@@ -6128,7 +6131,7 @@
                         </div>
                     </div>
                     <div style="background:rgba(192, 57, 43,0.07); border-left:3px solid var(--red); border-radius:0 6px 6px 0; padding:10px 12px;">
-                        <div style="font-size:10.5px; color:#C0392B; text-transform:uppercase; letter-spacing:1px; font-weight:800; margin-bottom:6px;">✗ Días que no cuentan</div>
+                        <div style="font-size:10.5px; color:#C0392B; text-transform:uppercase; letter-spacing:1px; font-weight: 900; margin-bottom:6px;">✗ Días que no cuentan</div>
                         <div style="font-size:12px; color:var(--slate); line-height:1.85;">
                             ⚪ &nbsp;No reportó<br>
                             🔴 &nbsp;Con errores en el embudo
@@ -6392,7 +6395,7 @@
                         ${visualHtml}
                         <div style="font-weight:700;font-size:14px;text-align:center;">${eNombre}</div>
                         <div style="font-size:12px;color:var(--slate);text-align:center;">${eDesc}</div>
-                        <div style="text-align:center;font-weight:800;color:var(--gold);"><svg class="totopo-icon"><use href="#totopo"/></svg> ${costoNum} totopos</div>
+                        <div style="text-align:center;font-weight: 900;color:var(--gold);"><svg class="totopo-icon"><use href="#totopo"/></svg> ${costoNum} totopos</div>
                         ${item.stock >= 0 ? `<div style="text-align:center;font-size:11px;color:var(--slate);">Stock: ${Number(item.stock)||0}</div>` : ''}
                         <button class="btn btn-sm ${(!disabled)?'btn-green':''}" ${disabled?'disabled':''} onclick="solicitarCanje('${eId}','${eNombre}',${costoNum},'${eEmoji}','${eCatalog}',${item.stock >= 0 ? Number(item.stock) : -1})" style="${sinStock?'opacity:0.5':''}">
                             ${btnLabel}
@@ -6576,7 +6579,7 @@
                             const dt = _relativeTimeEs(r.fechaResolucion || r.fechaSolicitud);
                             const isMine = r.emailSolicitante === user.email;
                             return `<div style="padding:10px 12px; background:${isMine ? 'rgba(32, 85, 154, 0.10)' : 'var(--panel)'}; border-radius:8px; ${isMine ? 'border:1px solid rgba(32, 85, 154, 0.35);' : ''}">
-                                <div style="font-weight:700; font-size:13px; color:${isMine ? 'var(--gold-l)' : '#fff'};">👤 ${eName}${isMine ? ' (tú)' : ''}</div>
+                                <div style="font-weight:700; font-size:13px; color:${isMine ? 'var(--gold-l)' : '#071D49'};">👤 ${eName}${isMine ? ' (tú)' : ''}</div>
                                 <div style="font-size:12px; color:rgba(7, 29, 73, 0.75); margin-top:3px;">${eEmoji} ${eItem}${cantStr} · <span style="color:var(--gold); font-weight:700;"><svg class="totopo-icon"><use href="#totopo"/></svg> ${costoTotal}</span> · <span style="color:var(--slate);">${dt}</span></div>
                             </div>`;
                         }).join('')
@@ -7539,15 +7542,15 @@
                     <td style="padding:6px 0; text-align:right; font-size:11.5px; color:var(--slate); border-bottom:1px solid rgba(7, 29, 73, 0.05); font-variant-numeric:tabular-nums; white-space:nowrap;">hasta +${t.pct}%</td>
                     <td style="padding:6px 0 6px 12px; text-align:right; border-bottom:1px solid rgba(7, 29, 73, 0.05); white-space:nowrap;">
                         <span style="font-size:10px; color:var(--slate);">hasta</span>
-                        <span style="font-size:15px; font-weight:800; color:var(--gold); font-variant-numeric:tabular-nums;">${Math.round(base * (1 + t.pct / 100))}</span>
+                        <span style="font-size:15px; font-weight: 900; color:var(--gold); font-variant-numeric:tabular-nums;">${Math.round(base * (1 + t.pct / 100))}</span>
                     </td>
                 </tr>`;
             }).join('');
 
             el.innerHTML = `
                 <div style="background:rgba(46, 125, 79,0.08); border:1px solid rgba(46, 125, 79,0.32); border-radius:10px; padding:14px 16px; margin-top:16px;">
-                    <div style="font-size:12px; color:#2E7D4F; text-transform:uppercase; letter-spacing:1.2px; font-weight:800; margin-bottom:8px;">
-                        <i class="fa fa-bolt"></i> El multiplicador
+                    <div style="font-size:12px; color:#2E7D4F; text-transform:uppercase; letter-spacing:1.2px; font-weight: 900; margin-bottom:8px;">
+                        <i class="fa fa-bolt" style="color:#FFC72C"></i> El multiplicador
                     </div>
                     <p style="margin:0 0 10px; font-size:12.5px; line-height:1.6;">
                         Tus días pueden valer <strong>hasta ${_cuantoMas()}</strong>. Al cerrar el mes comparamos
@@ -7567,7 +7570,7 @@
                             <tr style="opacity:0.55;">
                                 <td style="padding:6px 0; font-size:12px; border-bottom:1px solid rgba(7, 29, 73, 0.05);">menos de ${_money(piso.min)}</td>
                                 <td style="padding:6px 0; text-align:right; font-size:11.5px; color:var(--slate); border-bottom:1px solid rgba(7, 29, 73, 0.05);">—</td>
-                                <td style="padding:6px 0 6px 12px; text-align:right; font-size:15px; font-weight:800; color:var(--slate); border-bottom:1px solid rgba(7, 29, 73, 0.05); font-variant-numeric:tabular-nums;">${base}</td>
+                                <td style="padding:6px 0 6px 12px; text-align:right; font-size:15px; font-weight: 900; color:var(--slate); border-bottom:1px solid rgba(7, 29, 73, 0.05); font-variant-numeric:tabular-nums;">${base}</td>
                             </tr>
                             ${filas}
                         </tbody>
@@ -7720,8 +7723,8 @@
                 options: {
                     responsive: true, maintainAspectRatio: false,
                     plugins: {
-                        title: { display: true, text: `Efectividad: ${kTotals.P > 0 ? (kTotals.V / kTotals.P * 100).toFixed(1) : 0}%`, color: '#fff' },
-                        legend: { position: 'top', align: 'center', labels: { boxWidth: 12, padding: 15, color: '#fff', font: { weight: 'bold' } } }
+                        title: { display: true, text: `Efectividad: ${kTotals.P > 0 ? (kTotals.V / kTotals.P * 100).toFixed(1) : 0}%`, color: '#071D49' },
+                        legend: { position: 'top', align: 'center', labels: { boxWidth: 12, padding: 15, color: '#071D49', font: { weight: 'bold' } } }
                     },
                     cutout: '70%'
                 }
@@ -7861,14 +7864,14 @@
             charts['lineV'] = new Chart(document.getElementById('chartVolume'), {
                 type: 'line',
                 data: { labels, datasets: COLS.map(c => ({ label: c, data: entries.map(e => e.totales[c]), borderColor: CHART_COLORS[c], tension: 0.3, pointRadius: 4 })) },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#65738E' } }, y: { ticks: { color: '#65738E' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#071D49' } } }, scales: { x: { ticks: { color: '#65738E' } }, y: { ticks: { color: '#65738E' } } } }
             });
 
             destroyChart('lineP');
             charts['lineP'] = new Chart(document.getElementById('chartPrima'), {
                 type: 'line',
                 data: { labels, datasets: [{ label: 'Prima Bruta', data: entries.map(e => e.totales.prima), borderColor: 'rgba(32, 85, 154, .8)', backgroundColor: 'rgba(32, 85, 154, .2)', fill: true, tension: 0.3 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#65738E' } }, y: { ticks: { color: '#65738E' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#071D49' } } }, scales: { x: { ticks: { color: '#65738E' } }, y: { ticks: { color: '#65738E' } } } }
             });
 
             // TENDENCIA EFICIENCIA
@@ -7883,7 +7886,7 @@
                         { label: 'C ➔ V', data: entries.map(e => e.totales.C > 0 ? (e.totales.V / e.totales.C * 100).toFixed(1) : 0), borderColor: CHART_COLORS.V, tension: 0.3 }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { ticks: { color: '#65738E', callback: v => v + '%' } }, x: { ticks: { color: '#65738E' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#071D49' } } }, scales: { y: { ticks: { color: '#65738E', callback: v => v + '%' } }, x: { ticks: { color: '#65738E' } } } }
             });
 
             // TENDENCIA PRIMA PROMEDIO
@@ -7896,7 +7899,7 @@
                         { label: '$/Vta', data: entries.map(e => e.totales.V > 0 ? (e.totales.prima / e.totales.V).toFixed(0) : 0), borderColor: CHART_COLORS.V, tension: 0.3 }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { ticks: { color: '#65738E' } }, x: { ticks: { color: '#65738E' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#071D49' } } }, scales: { y: { ticks: { color: '#65738E' } }, x: { ticks: { color: '#65738E' } } } }
             });
 
             // TENDENCIA EFICIENCIA TOTAL
@@ -7909,7 +7912,7 @@
                         { label: '% P ➔ V (Cierre)', data: entries.map(e => e.totales.P > 0 ? (e.totales.V / e.totales.P * 100).toFixed(1) : 0), borderColor: CHART_COLORS.V, tension: 0.3 }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { beginAtZero: true, ticks: { color: '#65738E', callback: v => v + '%' } }, x: { ticks: { color: '#65738E' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#071D49' } } }, scales: { y: { beginAtZero: true, ticks: { color: '#65738E', callback: v => v + '%' } }, x: { ticks: { color: '#65738E' } } } }
             });
         }
 
