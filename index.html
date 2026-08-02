@@ -1123,6 +1123,17 @@
             font-size: 12.5px;
         }
 
+        /* El foro NO es un cuadro de dialogo flotante: es una superficie de pantalla
+   completa. .modal-overlay deja pasar el fondo al 45% a proposito, para que
+   los modales chicos se sientan como dialogos encima de la app. Detras del
+   foro ese mismo velo se lee como si el foro se transparentara — donde la
+   caja no llega (los bordes, en pantallas de 768px o mas, donde se limita a
+   760px de ancho) la app de atras se ve entera. Aqui el velo va solido.
+
+   Va scopeado a #foro-modal, como el resto de los ajustes del foro: subirle
+   la opacidad a .modal-overlay afectaria a los otros 14 modales, que si
+   quieren dejar ver el fondo. */
+        #foro-modal { background: var(--bg); backdrop-filter: none; }
         /* ═══ FORO ═══════════════════════════════════════════════════════════ */
         .foro-box {
             background: var(--panel);
@@ -3048,7 +3059,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.16.0';
+        window.APP_HTML_VERSION = 'v4.17.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
