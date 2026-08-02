@@ -3153,6 +3153,94 @@
         #foro-resp-txt { color: var(--white) !important; background: var(--bg) !important; border-color: var(--white) !important; }
         #foro-body button.foro-hilo-item div.foro-meta span.rol-badge { color: var(--white) !important; background: var(--bg) !important; }
         #cov-info-body div:nth-child(9) div:nth-child(5) { color: var(--white) !important; border-color: var(--green) !important; }
+    
+        /* ═══ AJUSTES DEL TEMA CLARO ══════════════════════════════════════
+           Elegidos elemento por elemento con el pincel (?editar=1) y pegados
+           TAL CUAL salieron de la herramienta, sin retocar ni un valor: lo que
+           se aprobo en pantalla es exactamente lo que quedo aca.
+
+           Cada regla lleva su tema en el selector, asi que las de claro no
+           tocan el oscuro y viceversa. Las siete que empiezan con
+           :root:not([data-tema="claro"]) son ajustes al tema OSCURO hechos en
+           la misma sesion.
+
+           Van al final de la hoja a proposito: asi ganan por cascada. Los
+           !important tampoco son descuido — la app tiene cientos de estilos
+           escritos dentro del HTML (style="...") y un estilo inline le gana a
+           cualquier regla de hoja que no los lleve. */
+
+        :root:not([data-tema="claro"]) #mobile-week div.m-day-today div.m-today-header div.m-today-badge { color: #ffffff !important; background: #20559a !important; border-color: #5654d9 !important; }
+        :root:not([data-tema="claro"]) #tab-bitacora div.card div:nth-child(2) { border-color: #9c9c9c !important; }
+        :root:not([data-tema="claro"]) #karma-badge { border-color: #ffc736 !important; }
+        :root:not([data-tema="claro"]) #mult-badge { border-color: #2e7d36 !important; }
+        :root:not([data-tema="claro"]) #cov-invite-card div.cov-invite-head span.cov-invite-claim { color: #ffc736 !important; }
+        :root:not([data-tema="claro"]) #cov-invite-card { color: #cfcfcf !important; border-color: #ffffff !important; }
+        :root:not([data-tema="claro"]) nav.bottom-nav { background: #22487c !important; }
+        :root[data-tema="claro"] #update-available-modal div.modal-box { background: #D4DEEA !important; }
+        :root[data-tema="claro"] #update-available-modal div.modal-box div:nth-child(4) button.btn.btn-sm { color: #0b2075 !important; border-color: #171716 !important; }
+        :root[data-tema="claro"] div.app div.header div.row-menu button.btn.btn-sm { color: #edf2f8 !important; background: #32518f !important; border-color: #d4deea !important; }
+        :root[data-tema="claro"] div.app div.header div.row-info { background: #D4DEEA !important; }
+        :root[data-tema="claro"] div.app div.header div.row-brand { background: #D4DEEA !important; }
+        :root[data-tema="claro"] div.app div.header { background: #D4DEEA !important; }
+        :root[data-tema="claro"] div.row-brand div.brand-block div.brand-title span.version-tag { color: #f4f7fb !important; background: #20559a !important; border-color: #d4deea !important; }
+        :root[data-tema="claro"] #notif-bell-btn { color: #dfe7f0 !important; background: #12366e !important; border-color: #d4deea !important; }
+        :root[data-tema="claro"] #anuncios-btn { color: #DFE7F0 !important; background: #12366E !important; border-color: #D4DEEA !important; }
+        :root[data-tema="claro"] #karma-badge { color: #31518f !important; background: #32518f !important; border-color: #32518f !important; }
+        :root[data-tema="claro"] #karma-value { color: #e6ecf4 !important; }
+        :root[data-tema="claro"] #karma-badge span.karma-lbl { color: #ffc72c !important; }
+        :root[data-tema="claro"] #mult-badge { color: #f4f7fb !important; background: #32518f !important; border-color: #d4deea !important; }
+        :root[data-tema="claro"] #mult-badge i.fa.fa-bolt { color: #ffc72c !important; }
+        :root[data-tema="claro"] #mult-badge b:nth-child(2) { color: #ffc72c !important; }
+        :root[data-tema="claro"] #karma-badge span.karma-info-i { color: #f4f7fb !important; border-color: #f4f7fb !important; }
+        :root[data-tema="claro"] #cov-invite-btn { color: #f4f7fb !important; }
+        :root[data-tema="claro"] #cov-invite-card div:nth-child(2) { color: #071d49 !important; }
+        :root[data-tema="claro"] #cov-invite-card div.cov-invite-head span.cov-invite-claim { color: #20559a !important; }
+        :root[data-tema="claro"] #cov-invite-card div.cov-invite-head span.cov-chip-nuevo { color: #f4f7fb !important; background: #071d49 !important; border-color: #20559a !important; }
+        :root[data-tema="claro"] #cov-invite-card div.cov-invite-head span.cov-chip-nuevo i.fa.fa-bolt { color: #ffc72c !important; border-color: #ffc72c !important; }
+        :root[data-tema="claro"] #mobile-week div.m-day-today { background: #d8e0e9 !important; border-color: #071d49 !important; }
+        :root[data-tema="claro"] #mobile-week div.m-day-today div.m-today-header div.m-today-day { color: #071d49 !important; background: #d8e0e9 !important; }
+        :root[data-tema="claro"] #status-msg-Domingo { color: #20559a !important; }
+        :root[data-tema="claro"] #mobile-week div.m-day-today div.m-today-header div.m-today-badge { color: #f4f7fb !important; background: #20559a !important; }
+        :root[data-tema="claro"] #active-view-Domingo div.m-today-grid div.m-field input.m-prima-input { color: #061837 !important; }
+        :root[data-tema="claro"] #btn-noact-Domingo { color: #d8e0e9 !important; background: #071d49 !important; }
+        :root[data-tema="claro"] #mobile-week div.m-day-compact { color: #ffffff !important; background: #d8e0e9 !important; border-color: #071d49 !important; }
+        :root[data-tema="claro"] #m-summary-Sábado span:nth-child(1) { color: #071d49 !important; }
+        :root[data-tema="claro"] #m-summary-Sábado span:nth-child(2) { color: #071D49 !important; }
+        :root[data-tema="claro"] #m-summary-Sábado span:nth-child(4) { color: #071D49 !important; }
+        :root[data-tema="claro"] #m-summary-Sábado span:nth-child(5) { color: #071D49 !important; }
+        :root[data-tema="claro"] #m-summary-Sábado span.m-prima { color: #071D49 !important; }
+        :root[data-tema="claro"] #mobile-week div.m-day-compact div.m-day-label { color: #071D49 !important; }
+        :root[data-tema="claro"] #mobile-week div.m-day-compact div.m-day-label small:nth-child(1) { color: #071D49 !important; }
+        :root[data-tema="claro"] #tab-bitacora div.card div.m-totals div.m-total-card.m-total-month { background: #20559a !important; }
+        :root[data-tema="claro"] div.card div.m-totals div.m-total-card.m-total-month div.m-total-label { color: #f4f7fb !important; }
+        :root[data-tema="claro"] #m-mt-\$ { color: #f4f7fb !important; }
+        :root[data-tema="claro"] #tab-bitacora div.card div.m-totals div.m-total-card { background: #20559a !important; }
+        :root[data-tema="claro"] #m-tt-\$ { color: #f4f7fb !important; border-color: #f4f7fb !important; }
+        :root[data-tema="claro"] div.card div.m-totals div.m-total-card div.m-total-label { color: #f4f7fb !important; }
+        :root[data-tema="claro"] nav.bottom-nav { background: #dde5ef !important; }
+        :root[data-tema="claro"] nav.bottom-nav button.bn-btn.active { color: #20559a !important; border-color: #20559a !important; }
+        :root[data-tema="claro"] nav.bottom-nav button.bn-btn.active i.fa.fa-book-open { color: #071d49 !important; }
+        :root[data-tema="claro"] nav.bottom-nav button.bn-btn i.fa.fa-lightbulb { color: #071D49 !important; }
+        :root[data-tema="claro"] nav.bottom-nav button.bn-btn span:nth-child(2) { color: #071D49 !important; }
+        :root[data-tema="claro"] nav.bottom-nav button.bn-btn i.fa.fa-chart-column { color: #071D49 !important; }
+        :root[data-tema="claro"] nav.bottom-nav button.bn-btn i.fa.fa-chart-area { color: #071D49 !important; }
+        :root[data-tema="claro"] nav.bottom-nav button.bn-btn i.fa.fa-store { color: #071D49 !important; }
+        :root[data-tema="claro"] nav.bottom-nav button.bn-btn i.fa.fa-comments { color: #071D49 !important; }
+        :root[data-tema="claro"] nav.bottom-nav button.bn-btn span:nth-child(3) { color: #071D49 !important; }
+        :root[data-tema="claro"] #tab-conceptos div.card { background: #dfe6ee !important; }
+        :root[data-tema="claro"] div.conceptos-grid div.conceptos-visual div:nth-child(3) div:nth-child(3) { background: #666f7a !important; }
+        :root[data-tema="claro"] div.conceptos-grid div.conceptos-visual div:nth-child(3) div:nth-child(2) { background: #7999c2 !important; }
+        :root[data-tema="claro"] #kpiEfectividad { background: #dde5ef !important; }
+        :root[data-tema="claro"] #ts-btn-comprar { color: #061837 !important; background: #dce4ee !important; }
+        :root[data-tema="claro"] #ts-view-comprar div.card { background: #dde5ef !important; }
+        :root[data-tema="claro"] nav.bottom-nav button.bn-btn i.fa.fa-book-open { color: #071d49 !important; }
+        :root[data-tema="claro"] #tab-charts div.card { background: #dde5ef !important; }
+        :root[data-tema="claro"] #foro-body { background: #dde5ef !important; }
+        :root[data-tema="claro"] #foro-tabs { background: #dde5ef !important; }
+        :root[data-tema="claro"] #foro-modal div.foro-box div.foro-head { background: #d6dfea !important; }
+        :root[data-tema="claro"] nav.bottom-nav button.bn-btn { color: #071D49 !important; }
+        :root[data-tema="claro"] div.card div.conceptos-grid div.conceptos-visual p:nth-child(4) { color: #143a66 !important; }
+
     </style>
 
     <div id="karma-celebration">
@@ -3179,7 +3267,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.24.0';
+        window.APP_HTML_VERSION = 'v4.25.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
