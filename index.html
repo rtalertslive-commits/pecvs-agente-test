@@ -22,8 +22,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Actividad">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon-v2.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32-v2.png">
     <style>
         /* ═══ SISTEMA DE DISEÑO PROMESSA ═══════════════════════════════════════
            Paleta corporativa. La app pasa de tema oscuro (marino + dorado) a
@@ -1894,7 +1894,8 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.14);
         }
         .login-logo img {
-            height: 34px;
+            /* 34px se veia timido para ser lo primero que se ve al abrir. */
+            height: 52px;
             width: auto;
             max-width: 78%;
             /* Sin filtros ni sombras: el manual prohibe agregarle efectos. */
@@ -3076,7 +3077,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.20.0';
+        window.APP_HTML_VERSION = 'v4.21.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
