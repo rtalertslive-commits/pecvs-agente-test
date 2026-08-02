@@ -3179,7 +3179,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.23.0';
+        window.APP_HTML_VERSION = 'v4.24.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -8674,7 +8674,12 @@
             '.pincel-btns{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}',
             '.pincel-btns button{flex:1;min-width:78px;padding:8px;border-radius:6px;border:1px solid rgba(var(--vk), .25);',
             '  background:rgba(var(--vk), .1);color: var(--white);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}',
-            '.pincel-marcado{outline:2px dashed #FFC72C !important;outline-offset:1px !important}',
+            '.pincel-tema{display:flex;align-items:center;gap:8px;font-size:10.5px;margin-bottom:8px;',
+    '  padding:5px 8px;border-radius:4px;background:rgba(var(--vk), .08)}',
+    '.pincel-tema b{text-transform:uppercase;letter-spacing:.6px;color:var(--gold-l)}',
+    '.pincel-tema button{margin-left:auto;padding:3px 9px;border-radius:4px;cursor:pointer;',
+    '  border:1px solid rgba(var(--vk), .3);background:none;color:var(--white);font:inherit;font-size:10px}',
+    '.pincel-marcado{outline:2px dashed #FFC72C !important;outline-offset:1px !important}',
             'body.pincel-on{cursor:crosshair}'
         ].join('');
         document.head.appendChild(css);
@@ -8707,6 +8712,18 @@
             return partes.join(' ');
         }
 
+        // El tema en el que se pinto queda GUARDADO con cada regla, y al
+        // generar el CSS se antepone el selector del tema. Sin eso, un color
+        // elegido en claro se aplicaria tambien en oscuro y romperia el tema
+        // que ya funciona — el tipo de daño colateral que no se nota hasta
+        // que alguien se queja.
+        function _temaActual() {
+            return document.documentElement.getAttribute('data-tema') === 'claro' ? 'claro' : 'oscuro';
+        }
+        function _prefijoTema(t) {
+            return t === 'claro' ? ':root[data-tema="claro"] ' : ':root:not([data-tema="claro"]) ';
+        }
+
         function pintarHoja() {
             hoja.textContent = Object.keys(reglas).map(function (s2) {
                 var d = reglas[s2];
@@ -8714,7 +8731,11 @@
                 if (d.color)       props.push('color: ' + d.color + ' !important');
                 if (d.background)  props.push('background: ' + d.background + ' !important');
                 if (d.borderColor) props.push('border-color: ' + d.borderColor + ' !important');
-                return props.length ? s2 + ' { ' + props.join('; ') + '; }' : '';
+                if (!props.length) return '';
+                var par  = s2.split('||');            // clave: "claro||selector"
+                var tema = par.length > 1 ? par[0] : 'oscuro';
+                var sel  = par.length > 1 ? par[1] : s2;
+                return _prefijoTema(tema) + sel + ' { ' + props.join('; ') + '; }';
             }).filter(Boolean).join('\n');
             try { localStorage.setItem(LLAVE, JSON.stringify(reglas)); } catch (e) {}
             var n = Object.keys(reglas).length;
@@ -8736,6 +8757,7 @@
         caja.innerHTML =
             '<h4><span>Pincel · arrastra para mover</span><span id="pincel-total">sin cambios</span></h4>' +
             '<div class="pincel-cuerpo">' +
+            '<div class="pincel-tema">Pintando en <b id="pincel-tema-txt">oscuro</b>' + '<button id="pincel-tema-btn">cambiar</button></div>' +
             '<div id="pincel-sel">Nada seleccionado</div>' +
             '<div id="pincel-controles" style="display:none;">' +
               '<div class="pincel-fila"><span>Texto</span><input type="text" id="pincel-color-hex" placeholder="#20559A">' +
@@ -8784,10 +8806,13 @@
 
         function set(prop, valor) {
             if (!sel) return;
-            reglas[sel] = reglas[sel] || {};
-            if (valor === null) delete reglas[sel][prop];
-            else reglas[sel][prop] = valor;
-            if (!Object.keys(reglas[sel]).length) delete reglas[sel];
+            // La clave lleva el tema, asi el mismo elemento puede tener un
+            // color en oscuro y otro en claro sin pisarse.
+            var k = _temaActual() + '||' + sel;
+            reglas[k] = reglas[k] || {};
+            if (valor === null) delete reglas[k][prop];
+            else reglas[k][prop] = valor;
+            if (!Object.keys(reglas[k]).length) delete reglas[k];
             pintarHoja();
         }
         [['color','pincel-color'],['background','pincel-bg'],['borderColor','pincel-bd']]
@@ -8808,6 +8833,19 @@
         caja.querySelectorAll('.pincel-fila button').forEach(function (b) {
             b.onclick = function () { set(b.dataset.q, null); };
         });
+
+        // Cambiar de tema sin salir del pincel: las reglas se guardan por
+        // tema, asi que hay que poder ir y venir para pintar los dos.
+        function _pincelSyncTema() {
+            var t = document.getElementById('pincel-tema-txt');
+            if (t) t.textContent = _temaActual();
+        }
+        _pincelSyncTema();
+        document.getElementById('pincel-tema-btn').onclick = function () {
+            if (typeof window.alternarTema === 'function') window.alternarTema();
+            _pincelSyncTema();
+            pintarHoja();
+        };
 
         document.getElementById('pincel-modo').onclick = function () {
             pintando = !pintando;
