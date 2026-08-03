@@ -25,7 +25,7 @@
            pantalla arrancara oscura y saltara a clara a la vista del agente. */
         (function () {
             var t;
-            try { t = localStorage.getItem('pecvsTema'); } catch (e) {}
+            try { t = localStorage.getItem('pecvsTemaActivo'); } catch (e) {}
             if (t === 'claro') {
                 document.documentElement.setAttribute('data-tema', 'claro');
                 var m = document.querySelector('meta[name="theme-color"]');
@@ -3299,7 +3299,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.26.0';
+        window.APP_HTML_VERSION = 'v4.27.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -4088,7 +4088,7 @@
             const raiz = document.documentElement;
             if (t === 'claro') raiz.setAttribute('data-tema', 'claro');
             else raiz.removeAttribute('data-tema');
-            try { localStorage.setItem('pecvsTema', t); } catch (e) {}
+            try { localStorage.setItem('pecvsTemaActivo', t); } catch (e) {}
 
             // La barra del sistema operativo tiene que seguir al cromo, o en
             // claro queda una franja Oxford arriba que no pertenece a nada.
@@ -8759,6 +8759,14 @@
         if (new URLSearchParams(location.search).get('editar') !== '1') return;
 
         var LLAVE = 'pecvsPincel';
+        // ?limpio=1 arranca sin nada guardado. Sin esto cada sesion hereda las
+        // reglas de la anterior y "Copiar CSS" devuelve todo junto otra vez —
+        // imposible ver que se cambio esta vez. Las reglas viejas ya estan en
+        // la hoja del archivo, asi que la app se sigue viendo igual: lo que
+        // arranca vacio es el cuaderno del pincel, no los colores.
+        if (/[?&]limpio=1/.test(location.search)) {
+            try { localStorage.removeItem(LLAVE); } catch (e) {}
+        }
         var reglas = {};                       // selector -> { color, background, borderColor }
         try { reglas = JSON.parse(localStorage.getItem(LLAVE) || '{}'); } catch (e) {}
         var sel = null, elActual = null;
@@ -8797,6 +8805,8 @@
             '.pincel-tema{display:flex;align-items:center;gap:8px;font-size:10.5px;margin-bottom:8px;',
     '  padding:5px 8px;border-radius:4px;background:rgba(var(--vk), .08)}',
     '.pincel-tema b{text-transform:uppercase;letter-spacing:.6px;color:var(--gold-l)}',
+    '.pincel-limpio{font-size:8.5px;font-weight:900;letter-spacing:.7px;text-transform:uppercase;',
+    '  padding:2px 6px;border-radius:20px;background:#2E7D4F;color:#fff}',
     '.pincel-tema button{margin-left:auto;padding:3px 9px;border-radius:4px;cursor:pointer;',
     '  border:1px solid rgba(var(--vk), .3);background:none;color:var(--white);font:inherit;font-size:10px}',
     '.pincel-marcado{outline:2px dashed #FFC72C !important;outline-offset:1px !important}',
@@ -8877,7 +8887,7 @@
         caja.innerHTML =
             '<h4><span>Pincel · arrastra para mover</span><span id="pincel-total">sin cambios</span></h4>' +
             '<div class="pincel-cuerpo">' +
-            '<div class="pincel-tema">Pintando en <b id="pincel-tema-txt">oscuro</b>' + '<button id="pincel-tema-btn">cambiar</button></div>' +
+            '<div class="pincel-tema">Pintando en <b id="pincel-tema-txt">oscuro</b>' + (/[?&]limpio=1/.test(location.search) ? '<span class="pincel-limpio">tanda nueva</span>' : '') + '<button id="pincel-tema-btn">cambiar</button></div>' +
             '<div id="pincel-sel">Nada seleccionado</div>' +
             '<div id="pincel-controles" style="display:none;">' +
               '<div class="pincel-fila"><span>Texto</span><input type="text" id="pincel-color-hex" placeholder="#20559A">' +
