@@ -3352,18 +3352,25 @@
            La solucion es al reves: en vez de cambiar la pelotita, se oscurece
            SU celda con el azul Oxford.
 
-           SOBRE LA OPACIDAD. La transparencia sobre un fondo claro no atenua
-           el color: lo lava. Oxford al 65% se compone en #556584, que ya no es
-           azul sino un gris azulado. Medido como distancia al Oxford puro:
+           SOBRE LA OPACIDAD, Y POR QUE EL COLOR NO ES #071D49. La
+           transparencia sobre un fondo claro no atenua el color: lo lava.
+           Poner Oxford al 65% se compone en #556584, un gris azulado. Al 90%
+           todavia da #182D56.
 
-               0.65 -> #556584   lejos, se ve gris
-               0.80 -> #33466B   todavia aguado
-               0.92 -> #182D56   casi
-               0.95 -> #122751   se lee Oxford
+           Se queria las dos cosas —translucido Y Oxford— asi que el color se
+           PRE-COMPENSA: se parte de uno mas oscuro para que, ya mezclado con
+           el papel, aterrice en Oxford. Despejando
 
-           Se usa 0.95: conserva un rastro de transparencia —el borde de la
-           celda se sigue intuyendo— sin perder el color. Al blanco le deja
-           14.6:1.
+               origen = (objetivo - papel x (1 - alfa)) / alfa
+
+           para objetivo #071D49, papel #E6ECF4 y alfa 0.90, sale #000636.
+           Mezclado da #171D49, a 16 unidades del Oxford puro: indistinguible
+           a simple vista, y con un 10% del fondo asomando.
+
+           OJO: ese #000636 depende del color del panel. Si --panel cambia en
+           el tema claro, hay que volver a despejarlo o el resultado se corre.
+
+           Al ⚪ blanco le deja 16.1:1.
 
            El numero del dia pasa a blanco, o se perderia en el fondo nuevo.
 
@@ -3371,8 +3378,8 @@
            pelotita: los dias futuros salen con .future y sin emoji, y los
            otros estados tienen sus propias reglas. */
         :root[data-tema="claro"] .cal-cell.none {
-            background: rgba(7, 29, 73, 0.95) !important;
-            border-color: rgba(7, 29, 73, 0.95) !important;
+            background: rgba(0, 6, 54, 0.90) !important;
+            border-color: rgba(0, 6, 54, 0.90) !important;
         }
         :root[data-tema="claro"] .cal-cell.none .cal-num { color: #FFFFFF !important; }
 
@@ -3380,7 +3387,7 @@
            Lleva clase propia y no :last-child a proposito: un selector por
            posicion se rompe al agregar o mover un estado. */
         :root[data-tema="claro"] .cal-legend-dot.cal-dot-none {
-            background: rgba(7, 29, 73, 0.95) !important;
+            background: rgba(0, 6, 54, 0.90) !important;
         }
 
     </style>
@@ -3409,7 +3416,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.32.0';
+        window.APP_HTML_VERSION = 'v4.33.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
