@@ -2947,7 +2947,7 @@
                 <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(46, 125, 79,0.5)"></span> 🌱 Actividad sin cierre</div>
                 <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(138, 91, 0,0.5)"></span> 🌙 Sin intento</div>
                 <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(192, 57, 43,0.5)"></span> 🔴 Con errores</div>
-                <div class="cal-legend-item"><span class="cal-legend-dot" style="background:rgba(var(--vk), 0.1)"></span> ⚪ Sin reporte</div>
+                <div class="cal-legend-item"><span class="cal-legend-dot cal-dot-none" style="background:rgba(var(--vk), 0.1)"></span> ⚪ Sin reporte</div>
             </div>
             <div class="cal-day-detail" id="my-cal-day-detail"><span class="cal-detail-empty">Toca un día para ver detalles.</span></div>
             <!-- Conecta los ⚪ que el agente está viendo con lo que le cuestan -->
@@ -3342,6 +3342,36 @@
         :root[data-tema="claro"] .cal-cell.red { color: #96271B !important; }
         :root[data-tema="claro"] .cal-cell.sin-actividad { color: #6B4700 !important; }
 
+    
+        /* ── DIAS SIN REPORTE EN TEMA CLARO ────────────────────────────────
+           El ⚪ es un emoji: su color no se puede cambiar desde CSS. Sobre el
+           papel claro quedaba blanco sobre gris claro, casi invisible — los
+           otros cuatro estados no tienen el problema porque cada uno tiñe su
+           celda de su color.
+
+           La solucion es al reves: en vez de cambiar la pelotita, se oscurece
+           SU celda. Oxford al 65% sobre el panel da #556584, que le deja al
+           blanco 5.9:1. Menos alfa no alcanzaba: a 0.55 son 4.3:1 y a 0.45 se
+           cae a 3.3:1.
+
+           El numero del dia pasa a blanco, o se perderia en el fondo nuevo.
+
+           Solo afecta a .cal-cell.none, que son exactamente las celdas con
+           pelotita: los dias futuros salen con .future y sin emoji, y los
+           otros estados tienen sus propias reglas. */
+        :root[data-tema="claro"] .cal-cell.none {
+            background: rgba(7, 29, 73, 0.65) !important;
+            border-color: rgba(7, 29, 73, 0.55) !important;
+        }
+        :root[data-tema="claro"] .cal-cell.none .cal-num { color: #FFFFFF !important; }
+
+        /* El punto de la leyenda tiene que decir la verdad sobre la celda.
+           Lleva clase propia y no :last-child a proposito: un selector por
+           posicion se rompe al agregar o mover un estado. */
+        :root[data-tema="claro"] .cal-legend-dot.cal-dot-none {
+            background: rgba(7, 29, 73, 0.65) !important;
+        }
+
     </style>
 
     <div id="karma-celebration">
@@ -3368,7 +3398,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.30.0';
+        window.APP_HTML_VERSION = 'v4.31.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
