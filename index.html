@@ -3317,6 +3317,31 @@
         :root[data-tema="claro"] #m-mt-\$ { color: #071D49 !important; }
         :root[data-tema="claro"] #m-tt-\$ { color: #F4F7FB !important; }
 
+    
+        /* ── CONTRASTE: SEMANA COMPACTA, CALENDARIO Y GRAFICAS ─────────────
+           Correcciones pedidas. Se toca SOLO el color del texto; los fondos
+           elegidos con el pincel quedan intactos.
+
+           1. La semana compacta tenia `color: #ffffff` sobre `#d8e0e9`: 1.3:1,
+              practicamente invisible. El azul oscuro ya estaba elegido —las
+              reglas de #m-summary-Sábado usan #071D49— pero atadas al sabado,
+              asi que los otros seis dias se quedaban en blanco. Aqui se aplica
+              a todos: [id^="m-summary-"] vale para cualquier dia, y sigue
+              valiendo cuando cambie la fecha.
+              #071D49 sobre #d8e0e9 -> 12.3:1
+
+           2. Dos estados del calendario quedaban justo por debajo del minimo:
+              rojo 3.5:1 y sin-actividad 3.9:1. Se oscurecen un punto. Los
+              emojis no se tocan. */
+        :root[data-tema="claro"] #mobile-week div.m-day-compact { color: #071D49 !important; }
+        :root[data-tema="claro"] #mobile-week div.m-day-compact [id^="m-summary-"] span { color: #071D49 !important; }
+        :root[data-tema="claro"] #mobile-week div.m-day-compact [id^="m-summary-"] span.m-prima { color: #071D49 !important; }
+        :root[data-tema="claro"] #mobile-week div.m-day-compact div.m-day-label,
+        :root[data-tema="claro"] #mobile-week div.m-day-compact div.m-day-label small { color: #071D49 !important; }
+
+        :root[data-tema="claro"] .cal-cell.red { color: #96271B !important; }
+        :root[data-tema="claro"] .cal-cell.sin-actividad { color: #6B4700 !important; }
+
     </style>
 
     <div id="karma-celebration">
@@ -3343,7 +3368,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.29.0';
+        window.APP_HTML_VERSION = 'v4.30.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -3519,6 +3544,19 @@
         // canvas no resuelve variables CSS — hay que darle colores literales. Por
         // eso esta funcion elige a mano segun el tema, y por eso hay que volver a
         // llamarla cuando el tema cambia (lo hace _ponerTema).
+        // Colores para lo que se dibuja DENTRO del canvas. Chart.js no lee CSS,
+        // asi que estos valores tienen que venir ya resueltos. Todo lo que
+        // estaba clavado en #FFFFFF o #A9BFD9 quedaba ilegible en tema claro:
+        // blanco sobre tarjeta clara da 1.2:1 y el gris azulado 1.6:1.
+        function _chartTinta() {
+            const claro = document.documentElement.getAttribute('data-tema') === 'claro';
+            return {
+                texto:  claro ? '#143A66' : '#FFFFFF',   // leyendas y titulos
+                suave:  claro ? '#465C7B' : '#A9BFD9',   // etiquetas de eje / radar
+                rejilla: claro ? 'rgba(7, 29, 73, 0.16)' : '#A9BFD9'
+            };
+        }
+
         function _chartDefaults() {
             if (typeof Chart === 'undefined') return;
             const claro = document.documentElement.getAttribute('data-tema') === 'claro';
@@ -8340,8 +8378,8 @@
                 options: {
                     responsive: true, maintainAspectRatio: false,
                     plugins: {
-                        title: { display: true, text: `Efectividad: ${kTotals.P > 0 ? (kTotals.V / kTotals.P * 100).toFixed(1) : 0}%`, color: '#FFFFFF' },
-                        legend: { position: 'top', align: 'center', labels: { boxWidth: 12, padding: 15, color: '#FFFFFF', font: { weight: 'bold' } } }
+                        title: { display: true, text: `Efectividad: ${kTotals.P > 0 ? (kTotals.V / kTotals.P * 100).toFixed(1) : 0}%`, color: _chartTinta().texto },
+                        legend: { position: 'top', align: 'center', labels: { boxWidth: 12, padding: 15, color: _chartTinta().texto, font: { weight: 'bold' } } }
                     },
                     cutout: '70%'
                 }
@@ -8366,7 +8404,7 @@
                             kTotals.E > 0 ? kTotals.C / kTotals.E : 0,
                             kTotals.C > 0 ? kTotals.V / kTotals.C : 0
                         ],
-                        borderColor: '#A9BFD9',
+                        borderColor: _chartTinta().rejilla,
                         backgroundColor: 'rgba(122, 153, 194, .28)',
                         borderWidth: 3,
                         pointBackgroundColor: '#FFC72C',
@@ -8390,7 +8428,7 @@
                         r: {
                             grid: { color: 'rgba(var(--vk), 0.1)' },
                             angleLines: { color: 'rgba(var(--vk), 0.1)' },
-                            pointLabels: { color: '#A9BFD9', font: { size: 11, weight: 'bold' } },
+                            pointLabels: { color: _chartTinta().suave, font: { size: 11, weight: 'bold' } },
                             ticks: { display: false },
                             suggestedMin: 0,
                             suggestedMax: 1
@@ -8487,7 +8525,7 @@
             charts['lineV'] = new Chart(document.getElementById('chartVolume'), {
                 type: 'line',
                 data: { labels, datasets: COLS.map(c => ({ label: c, data: entries.map(e => e.totales[c]), borderColor: CHART_COLORS[c], tension: 0.3, pointRadius: 4 })) },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#FFFFFF' } } }, scales: { x: { ticks: { color: '#A9BFD9' } }, y: { ticks: { color: '#A9BFD9' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: _chartTinta().texto } } }, scales: { x: { ticks: { color: _chartTinta().suave } }, y: { ticks: { color: _chartTinta().suave } } } }
             });
 
             destroyChart('lineP');
@@ -8495,7 +8533,7 @@
             charts['lineP'] = new Chart(document.getElementById('chartPrima'), {
                 type: 'line',
                 data: { labels, datasets: [{ label: 'Prima Bruta', data: entries.map(e => e.totales.prima), borderColor: '#FFC72C', backgroundColor: 'rgba(255, 199, 44, .16)', borderWidth: 3, pointBackgroundColor: '#FFC72C', pointBorderColor: '#071D49', pointBorderWidth: 2, pointRadius: 4, pointHitRadius: 24, fill: true, tension: 0.3 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#FFFFFF' } } }, scales: { x: { ticks: { color: '#A9BFD9' } }, y: { ticks: { color: '#A9BFD9' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: _chartTinta().texto } } }, scales: { x: { ticks: { color: _chartTinta().suave } }, y: { ticks: { color: _chartTinta().suave } } } }
             });
 
             // TENDENCIA EFICIENCIA
@@ -8511,7 +8549,7 @@
                         { label: 'C ➔ V', data: entries.map(e => e.totales.C > 0 ? (e.totales.V / e.totales.C * 100).toFixed(1) : 0), borderColor: CHART_COLORS.V, tension: 0.3 }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#FFFFFF' } } }, scales: { y: { ticks: { color: '#A9BFD9', callback: v => v + '%' } }, x: { ticks: { color: '#A9BFD9' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: _chartTinta().texto } } }, scales: { y: { ticks: { color: _chartTinta().suave, callback: v => v + '%' } }, x: { ticks: { color: _chartTinta().suave } } } }
             });
 
             // TENDENCIA PRIMA PROMEDIO
@@ -8525,7 +8563,7 @@
                         { label: '$/Vta', data: entries.map(e => e.totales.V > 0 ? (e.totales.prima / e.totales.V).toFixed(0) : 0), borderColor: CHART_COLORS.V, tension: 0.3 }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#FFFFFF' } } }, scales: { y: { ticks: { color: '#A9BFD9' } }, x: { ticks: { color: '#A9BFD9' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: _chartTinta().texto } } }, scales: { y: { ticks: { color: _chartTinta().suave } }, x: { ticks: { color: _chartTinta().suave } } } }
             });
 
             // TENDENCIA EFICIENCIA TOTAL
@@ -8539,7 +8577,7 @@
                         { label: '% P ➔ V (Cierre)', data: entries.map(e => e.totales.P > 0 ? (e.totales.V / e.totales.P * 100).toFixed(1) : 0), borderColor: CHART_COLORS.V, tension: 0.3 }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#FFFFFF' } } }, scales: { y: { beginAtZero: true, ticks: { color: '#A9BFD9', callback: v => v + '%' } }, x: { ticks: { color: '#A9BFD9' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: _chartTinta().texto } } }, scales: { y: { beginAtZero: true, ticks: { color: _chartTinta().suave, callback: v => v + '%' } }, x: { ticks: { color: _chartTinta().suave } } } }
             });
         }
 
