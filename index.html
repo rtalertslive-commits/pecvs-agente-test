@@ -1983,6 +1983,13 @@
             margin-bottom: 22px;
             border-bottom: 1px solid rgba(var(--vk), 0.14);
         }
+        /* Solo uno de los dos se muestra. El blanco es para el fondo oscuro;
+           el de tinta Oxford, para el claro — sobre un papel al 72% del blanco
+           el logotipo blanco desaparece salvo por el punto amarillo. */
+        .login-logo .logo-claro { display: none; }
+        :root[data-tema="claro"] .login-logo .logo-oscuro { display: none; }
+        :root[data-tema="claro"] .login-logo .logo-claro { display: block; }
+
         .login-logo img {
             /* 34px se veia timido para ser lo primero que se ve al abrir. */
             height: 52px;
@@ -2177,8 +2184,13 @@
     <div id="login-overlay">
         <div class="login-card">
             <div class="login-logo">
-                <img src="./promessa-logo.png" alt="Promessa"
-                     onerror="this.parentElement.style.display='none'">
+                <!-- Dos archivos, no un filtro CSS: el manual prohibe agregarle
+                     efectos al logo, y un invert() le cambiaria tambien el amarillo
+                     del punto. Cada tema muestra el suyo. -->
+                <img class="logo-oscuro" src="./promessa-logo.png" alt="Promessa"
+                     onerror="this.style.display='none'">
+                <img class="logo-claro" src="./promessa-logo-claro.png" alt="Promessa"
+                     onerror="this.style.display='none'">
             </div>
             <div class="login-brand">
                 <div class="brand-mono">A</div>
@@ -3273,6 +3285,38 @@
         :root[data-tema="claro"] #tema-lbl { color: #32518f !important; }
         :root[data-tema="claro"] #mobile-week div.m-section-divider { color: #071d49 !important; }
 
+            :root[data-tema="claro"] #login-overlay { background: #133971 !important; }
+        :root[data-tema="claro"] #login-btn { color: #f0f0f0 !important; }
+        :root[data-tema="claro"] #install-btn span:nth-child(2) { color: #9c8307 !important; border-color: #cccccc !important; }
+        :root[data-tema="claro"] #install-btn { color: #000000 !important; }
+        :root[data-tema="claro"] #login-overlay div.login-card { color: #ffc2c2 !important; }
+        :root[data-tema="claro"] #m-tt-\$ { color: #2f5291 !important; }
+        :root[data-tema="claro"] #rules-mult-block div:nth-child(1) div.mult-demo-wrap { background: #32518f !important; }
+        :root[data-tema="claro"] div:nth-child(1) div.mult-demo-wrap span.mult-chip-demo i.fa.fa-bolt { color: #e0ae52 !important; }
+        :root[data-tema="claro"] div:nth-child(1) div.mult-demo-wrap span.mult-chip-demo b:nth-child(2) { color: #061837 !important; }
+
+        /* ── CONTRASTE DE PRIMA SEMANA / PRIMA MES ─────────────────────────
+           Lo unico de esta hoja que NO salio del pincel. Se pidio arreglar el
+           contraste de esas dos tarjetas y los numeros no daban:
+
+             prima mes   fondo #8F98A3 + texto #c4c4c4 -> 1.7:1
+                                       + etiqueta #f4f7fb -> 2.7:1
+             prima semana fondo #20559A + cifra #2f5291  -> 1.0:1 (invisible)
+
+           Oscurecer el gris hasta que aguantara texto claro lo acercaba al
+           cobalto de la otra tarjeta y se perdia la distincion entre las dos.
+           Se hace al reves: el gris se queda TAL CUAL y el texto se invierte a
+           Oxford. Asi las dos tarjetas se distinguen por inversion —una clara
+           con tinta oscura, otra oscura con tinta clara— en vez de por matiz,
+           y las dos pasan holgado:
+
+             prima mes    #071D49 sobre #8F98A3 -> 5.6:1
+             prima semana #F4F7FB sobre #20559A -> 6.9:1  */
+        :root[data-tema="claro"] #tab-bitacora div.card div.m-totals div.m-total-card.m-total-month { color: #071D49 !important; }
+        :root[data-tema="claro"] div.card div.m-totals div.m-total-card.m-total-month div.m-total-label { color: #071D49 !important; }
+        :root[data-tema="claro"] #m-mt-\$ { color: #071D49 !important; }
+        :root[data-tema="claro"] #m-tt-\$ { color: #F4F7FB !important; }
+
     </style>
 
     <div id="karma-celebration">
@@ -3299,7 +3343,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.28.0';
+        window.APP_HTML_VERSION = 'v4.29.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
