@@ -3345,49 +3345,48 @@
     
         /* ── DIAS SIN REPORTE EN TEMA CLARO ────────────────────────────────
            El ⚪ es un emoji: su color no se puede cambiar desde CSS. Sobre el
-           papel claro quedaba blanco sobre gris claro, casi invisible — los
-           otros cuatro estados no tienen el problema porque cada uno tiñe su
-           celda de su color.
+           papel claro quedaba blanco sobre gris claro, casi invisible.
 
-           La solucion es al reves: en vez de cambiar la pelotita, se oscurece
-           SU celda con el azul Oxford.
+           Los dos primeros intentos fueron por el mismo camino equivocado:
+           oscurecer LA CELDA ENTERA. Y ahi hay una contradiccion que no se
+           puede resolver — sobre fondo claro un navy translucido se lava y se
+           ve gris; para que se vea Oxford hay que subirlo tanto que la celda
+           queda como un bloque solido, mucho mas pesada que sus vecinas, que
+           son tintes suaves.
 
-           SOBRE LA OPACIDAD, Y POR QUE EL COLOR NO ES #071D49. La
-           transparencia sobre un fondo claro no atenua el color: lo lava.
-           Poner Oxford al 65% se compone en #556584, un gris azulado. Al 90%
-           todavia da #182D56.
+           La salida es no elegir: la celda lleva el MISMO tinte suave de
+           Oxford que sus vecinas —translucida de verdad, 16% — y el fondo
+           oscuro va solo en el disco DETRAS DEL EMOJI, que es lo unico que de
+           verdad lo necesita. La celda se mezcla con el papel y la pelotita se
+           lee, sin que una cosa le cueste a la otra.
 
-           Se queria las dos cosas —translucido Y Oxford— asi que el color se
-           PRE-COMPENSA: se parte de uno mas oscuro para que, ya mezclado con
-           el papel, aterrice en Oxford. Despejando
-
-               origen = (objetivo - papel x (1 - alfa)) / alfa
-
-           para objetivo #071D49, papel #E6ECF4 y alfa 0.90, sale #000636.
-           Mezclado da #171D49, a 16 unidades del Oxford puro: indistinguible
-           a simple vista, y con un 10% del fondo asomando.
-
-           OJO: ese #000636 depende del color del panel. Si --panel cambia en
-           el tema claro, hay que volver a despejarlo o el resultado se corre.
-
-           Al ⚪ blanco le deja 16.1:1.
-
-           El numero del dia pasa a blanco, o se perderia en el fondo nuevo.
-
-           Solo afecta a .cal-cell.none, que son exactamente las celdas con
-           pelotita: los dias futuros salen con .future y sin emoji, y los
-           otros estados tienen sus propias reglas. */
+           El numero del dia vuelve a ser oscuro, porque la celda vuelve a ser
+           clara. */
         :root[data-tema="claro"] .cal-cell.none {
-            background: rgba(0, 6, 54, 0.90) !important;
-            border-color: rgba(0, 6, 54, 0.90) !important;
+            background: rgba(7, 29, 73, 0.16) !important;
+            border-color: rgba(7, 29, 73, 0.30) !important;
         }
-        :root[data-tema="claro"] .cal-cell.none .cal-num { color: #FFFFFF !important; }
+        :root[data-tema="claro"] .cal-cell.none .cal-num { color: #071D49 !important; }
 
-        /* El punto de la leyenda tiene que decir la verdad sobre la celda.
-           Lleva clase propia y no :last-child a proposito: un selector por
-           posicion se rompe al agregar o mover un estado. */
+        /* El disco: sale del ancho del emoji con padding y se redondea. El
+           Oxford va SOLIDO —aqui no molesta, es un punto de 16px— y le deja al
+           blanco 16.4:1. */
+        :root[data-tema="claro"] .cal-cell.none .cal-icon {
+            background: #071D49;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+        }
+
+        /* El punto de la leyenda muestra el tinte de la celda, no el del
+           disco. Clase propia y no :last-child, para que no se rompa si se
+           agrega o se mueve un estado. */
         :root[data-tema="claro"] .cal-legend-dot.cal-dot-none {
-            background: rgba(0, 6, 54, 0.90) !important;
+            background: rgba(7, 29, 73, 0.16) !important;
         }
 
     </style>
@@ -3416,7 +3415,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.33.0';
+        window.APP_HTML_VERSION = 'v4.34.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
