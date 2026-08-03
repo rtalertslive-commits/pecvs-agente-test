@@ -3299,7 +3299,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.27.0';
+        window.APP_HTML_VERSION = 'v4.28.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -8773,7 +8773,24 @@
 
         var hoja = document.createElement('style');
         hoja.id = 'pincel-hoja';
-        document.head.appendChild(hoja);
+        // AL FINAL DEL BODY, no en el head. Las reglas ya aplicadas viven en el
+        // segundo <style>, que esta en el BODY: con la misma especificidad y
+        // ambos con !important, gana el que va DESPUES en el documento. Con la
+        // hoja en el head, todo lo ya pintado quedaba inmodificable — cambiabas
+        // el color y no pasaba nada, sin ningun error que lo delatara.
+        //
+        // Puesta al final del body queda despues de ese bloque, que es el mismo
+        // lugar donde terminan las reglas al pegarlas: lo que se ve mientras se
+        // pinta es lo que va a quedar.
+        (document.body || document.documentElement).appendChild(hoja);
+
+        // Si algo agrega un <style> despues (Chart.js, alguna libreria), la
+        // hoja del pincel dejaria de ser la ultima. Reasegurarla en cada
+        // repintado cuesta nada y evita perseguir un fantasma.
+        function _hojaAlFinal() {
+            var padre = document.body || document.documentElement;
+            if (padre.lastElementChild !== hoja) padre.appendChild(hoja);
+        }
 
         var css = document.createElement('style');
         css.textContent = [
@@ -8855,6 +8872,7 @@
         }
 
         function pintarHoja() {
+            _hojaAlFinal();
             hoja.textContent = Object.keys(reglas).map(function (s2) {
                 var d = reglas[s2];
                 var props = [];
