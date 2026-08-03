@@ -3160,15 +3160,13 @@
            se aprobo en pantalla es exactamente lo que quedo aca.
 
            Cada regla lleva su tema en el selector, asi que las de claro no
-           tocan el oscuro y viceversa. Las siete que empiezan con
-           :root:not([data-tema="claro"]) son ajustes al tema OSCURO hechos en
-           la misma sesion.
+           tocan el oscuro y viceversa. Las que empiezan con
+           :root:not([data-tema="claro"]) son ajustes al tema OSCURO.
 
            Van al final de la hoja a proposito: asi ganan por cascada. Los
            !important tampoco son descuido — la app tiene cientos de estilos
            escritos dentro del HTML (style="...") y un estilo inline le gana a
            cualquier regla de hoja que no los lleve. */
-
         :root:not([data-tema="claro"]) #mobile-week div.m-day-today div.m-today-header div.m-today-badge { color: #ffffff !important; background: #20559a !important; border-color: #5654d9 !important; }
         :root:not([data-tema="claro"]) #tab-bitacora div.card div:nth-child(2) { border-color: #9c9c9c !important; }
         :root:not([data-tema="claro"]) #karma-badge { border-color: #ffc736 !important; }
@@ -3176,8 +3174,8 @@
         :root:not([data-tema="claro"]) #cov-invite-card div.cov-invite-head span.cov-invite-claim { color: #ffc736 !important; }
         :root:not([data-tema="claro"]) #cov-invite-card { color: #cfcfcf !important; border-color: #ffffff !important; }
         :root:not([data-tema="claro"]) nav.bottom-nav { background: #22487c !important; }
-        :root[data-tema="claro"] #update-available-modal div.modal-box { background: #D4DEEA !important; }
-        :root[data-tema="claro"] #update-available-modal div.modal-box div:nth-child(4) button.btn.btn-sm { color: #0b2075 !important; border-color: #171716 !important; }
+        :root[data-tema="claro"] #update-available-modal div.modal-box { color: #e6ecf4 !important; background: #143a66 !important; }
+        :root[data-tema="claro"] #update-available-modal div.modal-box div:nth-child(4) button.btn.btn-sm { color: #143a66 !important; background: #d4deea !important; border-color: #143a66 !important; }
         :root[data-tema="claro"] div.app div.header div.row-menu button.btn.btn-sm { color: #edf2f8 !important; background: #32518f !important; border-color: #d4deea !important; }
         :root[data-tema="claro"] div.app div.header div.row-info { background: #D4DEEA !important; }
         :root[data-tema="claro"] div.app div.header div.row-brand { background: #D4DEEA !important; }
@@ -3199,7 +3197,7 @@
         :root[data-tema="claro"] #cov-invite-card div.cov-invite-head span.cov-chip-nuevo i.fa.fa-bolt { color: #ffc72c !important; border-color: #ffc72c !important; }
         :root[data-tema="claro"] #mobile-week div.m-day-today { background: #d8e0e9 !important; border-color: #071d49 !important; }
         :root[data-tema="claro"] #mobile-week div.m-day-today div.m-today-header div.m-today-day { color: #071d49 !important; background: #d8e0e9 !important; }
-        :root[data-tema="claro"] #status-msg-Domingo { color: #20559a !important; }
+        :root[data-tema="claro"] #status-msg-Domingo { color: #20559a !important; background: #d8e0e9 !important; }
         :root[data-tema="claro"] #mobile-week div.m-day-today div.m-today-header div.m-today-badge { color: #f4f7fb !important; background: #20559a !important; }
         :root[data-tema="claro"] #active-view-Domingo div.m-today-grid div.m-field input.m-prima-input { color: #061837 !important; }
         :root[data-tema="claro"] #btn-noact-Domingo { color: #d8e0e9 !important; background: #071d49 !important; }
@@ -3211,7 +3209,7 @@
         :root[data-tema="claro"] #m-summary-Sábado span.m-prima { color: #071D49 !important; }
         :root[data-tema="claro"] #mobile-week div.m-day-compact div.m-day-label { color: #071D49 !important; }
         :root[data-tema="claro"] #mobile-week div.m-day-compact div.m-day-label small:nth-child(1) { color: #071D49 !important; }
-        :root[data-tema="claro"] #tab-bitacora div.card div.m-totals div.m-total-card.m-total-month { background: #20559a !important; }
+        :root[data-tema="claro"] #tab-bitacora div.card div.m-totals div.m-total-card.m-total-month { color: #c4c4c4 !important; background: #8f98a3 !important; border-color: #8995a4 !important; }
         :root[data-tema="claro"] div.card div.m-totals div.m-total-card.m-total-month div.m-total-label { color: #f4f7fb !important; }
         :root[data-tema="claro"] #m-mt-\$ { color: #f4f7fb !important; }
         :root[data-tema="claro"] #tab-bitacora div.card div.m-totals div.m-total-card { background: #20559a !important; }
@@ -3240,6 +3238,40 @@
         :root[data-tema="claro"] #foro-modal div.foro-box div.foro-head { background: #d6dfea !important; }
         :root[data-tema="claro"] nav.bottom-nav button.bn-btn { color: #071D49 !important; }
         :root[data-tema="claro"] div.card div.conceptos-grid div.conceptos-visual p:nth-child(4) { color: #143a66 !important; }
+        :root[data-tema="claro"] #update-available-modal div.modal-box h2:nth-child(2) { color: #e6ecf4 !important; }
+        :root[data-tema="claro"] #update-available-modal div.modal-box p:nth-child(3) { color: #e6ecf4 !important; }
+        :root[data-tema="claro"] #active-view-Domingo div.m-today-status { background: #d8e0e9 !important; }
+        :root[data-tema="claro"] #tab-bitacora div.card { background: #d8e0e9 !important; }
+        :root[data-tema="claro"] #cov-info-modal div.modal-box div.modal-x-bar { background: #103266 !important; }
+        :root[data-tema="claro"] #cov-info-modal div.modal-box { background: #d0d7e2 !important; }
+        :root[data-tema="claro"] #cov-info-body { background: #d0d7e2 !important; }
+        :root[data-tema="claro"] #cov-info-body div.mult-demo-wrap { color: #03245c !important; background: #103266 !important; }
+        :root[data-tema="claro"] #cov-info-body div.mult-demo-wrap span.karma-chip-demo b:nth-child(2) { color: #000000 !important; }
+        :root[data-tema="claro"] #cov-info-body div.mult-demo-wrap span.karma-chip-demo { color: #14376e !important; background: #dde5ef !important; border-color: #ffb62e !important; }
+        :root[data-tema="claro"] #cov-info-body div.mult-demo-wrap span.mult-chip-demo b:nth-child(2) { color: #ffa600 !important; }
+        :root[data-tema="claro"] #cov-info-body div.mult-demo-wrap span.mult-chip-demo i.fa.fa-bolt { color: #ffa600 !important; }
+        :root[data-tema="claro"] table:nth-child(1) thead:nth-child(1) tr:nth-child(1) th:nth-child(3) { color: #ff0000 !important; border-color: #484033 !important; }
+        :root[data-tema="claro"] tbody:nth-child(2) tr:nth-child(2) td:nth-child(3) span:nth-child(1) { color: #ff0000 !important; background: #d0d7e2 !important; }
+        :root[data-tema="claro"] tbody:nth-child(2) tr:nth-child(3) td:nth-child(3) span:nth-child(1) { color: #ff0000 !important; border-color: #ff0000 !important; }
+        :root[data-tema="claro"] tbody:nth-child(2) tr:nth-child(4) td:nth-child(3) span:nth-child(1) { color: #ff0000 !important; border-color: #ff0000 !important; }
+        :root[data-tema="claro"] #cov-info-modal div.modal-box div.modal-x-bar button:nth-child(1) { color: #ffffff !important; background: #103266 !important; border-color: #384d70 !important; }
+        :root[data-tema="claro"] tbody:nth-child(2) tr:nth-child(4) td:nth-child(1) span:nth-child(2) { color: #20559a !important; border-color: #20559a !important; }
+        :root[data-tema="claro"] tbody:nth-child(2) tr:nth-child(3) td:nth-child(1) span:nth-child(2) { color: #20559a !important; }
+        :root[data-tema="claro"] tbody:nth-child(2) tr:nth-child(2) td:nth-child(1) span:nth-child(2) { color: #20559a !important; }
+        :root[data-tema="claro"] #cov-info-body div:nth-child(10) { color: #98b7eb !important; background: #20559a !important; border-color: #e5efff !important; }
+        :root[data-tema="claro"] #cov-info-body div:nth-child(10) span:nth-child(2) { color: #d4deea !important; border-color: #d4deea !important; }
+        :root[data-tema="claro"] #cov-info-body div:nth-child(10) span:nth-child(1) { color: #d4deea !important; background: #7d8997 !important; border-color: #48cbcb !important; }
+        :root[data-tema="claro"] #rules-modal div.rules-modal-box { background: #d4deea !important; }
+        :root[data-tema="claro"] #rules-modal div.rules-modal-box div.rules-modal-header { color: #d4deea !important; background: #d4deea !important; }
+        :root[data-tema="claro"] #mult-receipt-body div:nth-child(6) div:nth-child(2) { color: #32518f !important; border-color: #12366e !important; }
+        :root[data-tema="claro"] #mult-receipt-modal div.modal-box { background: #d4deea !important; }
+        :root[data-tema="claro"] #mult-receipt-modal div.modal-box div.modal-x-bar { color: #d4deea !important; background: #d2dbe7 !important; }
+        :root[data-tema="claro"] #mult-receipt-body div:nth-child(6) { border-color: #071d49 !important; }
+        :root[data-tema="claro"] #mult-receipt-body div:nth-child(7) b:nth-child(1) { color: #ff0000 !important; background: #d4deea !important; }
+        :root[data-tema="claro"] #mult-receipt-body div.mrec-row div.mrec-n { color: #32518f !important; }
+        :root[data-tema="claro"] #tab-bitacora div.card div:nth-child(2) { color: #32518f !important; }
+        :root[data-tema="claro"] #tema-lbl { color: #32518f !important; }
+        :root[data-tema="claro"] #mobile-week div.m-section-divider { color: #071d49 !important; }
 
     </style>
 
@@ -3267,7 +3299,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.25.0';
+        window.APP_HTML_VERSION = 'v4.26.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
