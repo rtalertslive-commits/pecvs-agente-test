@@ -3396,6 +3396,24 @@
             background: rgba(7, 29, 73, 0.16) !important;
         }
 
+    
+        /* ── Tanda del pincel: modales de cobertura, recibo, escalones y
+           anuncios. Van al final para ganar por cascada sobre las anteriores;
+           varias corrigen valores de tandas previas (la barra de la X del
+           modal de cobertura pasa de #103266 a #d0d7e2, por ejemplo). */
+        :root[data-tema="claro"] #cov-info-modal div.modal-box div.modal-x-bar { background: #d0d7e2 !important; }
+        :root[data-tema="claro"] #cov-info-modal div.modal-box div.modal-x-bar button:nth-child(1) { color: #103266 !important; background: #d0d7e2 !important; }
+        :root[data-tema="claro"] #cov-info-body div:nth-child(10) { background: #d0d7e2 !important; }
+        :root[data-tema="claro"] #cov-info-body div:nth-child(10) span:nth-child(2) { color: #143a66 !important; }
+        :root[data-tema="claro"] #mult-receipt-body div.mrec-row div.mrec-n { color: #32518f !important; }
+        :root[data-tema="claro"] #mult-receipt-body div.mrec-row div:nth-child(2) div.mrec-k { color: #32518f !important; background: #d4deea !important; }
+        :root[data-tema="claro"] #mult-receipt-body div:nth-child(6) { background: #c9ccf3 !important; }
+        :root[data-tema="claro"] #rules-mult-block div:nth-child(1) { background: #C9CCF3 !important; }
+        :root[data-tema="claro"] #rules-mult-block div:nth-child(1) div:nth-child(1) { color: #000000 !important; }
+        :root[data-tema="claro"] #rules-mult-block div:nth-child(1) div:nth-child(1) i.fa.fa-bolt { color: #d6a739 !important; border-color: #ffaf1a !important; }
+        :root[data-tema="claro"] #anuncios-modal div.modal-box { background: #D4DEEA !important; }
+        :root[data-tema="claro"] #anuncios-modal div.modal-box div.modal-x-bar { background: #D4DEEA !important; }
+
     </style>
 
     <div id="karma-celebration">
@@ -3422,7 +3440,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.36.0';
+        window.APP_HTML_VERSION = 'v4.37.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -8974,9 +8992,20 @@
         // cae a la posicion dentro del padre.
         function selectorDe(el) {
             if (el.id) return '#' + CSS.escape(el.id);
+
+            // Se sube SIEMPRE hasta encontrar un ancestro con id. Antes se
+            // cortaba a los 4 niveles con un break, y dentro de un modal los
+            // elementos estan mas profundos que eso: el recorrido se detenia
+            // antes de llegar al id y salia un selector sin ancla —
+            // "tbody:nth-child(2) tr:nth-child(3) td span"— que alcanza a
+            // cualquier tabla de la app o a ninguna. Se sentia como que la
+            // herramienta no dejaba editar ahi: seleccionabas, ponias color y
+            // no pasaba nada.
             var partes = [];
-            while (el && el.nodeType === 1 && el !== document.body) {
-                if (el.id) { partes.unshift('#' + CSS.escape(el.id)); break; }
+            var ancla = null;
+            var n = 0;
+            while (el && el.nodeType === 1 && el !== document.body && n < 40) {
+                if (el.id) { ancla = '#' + CSS.escape(el.id); break; }
                 var t = el.tagName.toLowerCase();
                 var cls = (typeof el.className === 'string' ? el.className : '')
                     .trim().split(/\s+/)
@@ -8990,8 +9019,15 @@
                 }
                 partes.unshift(t);
                 el = el.parentElement;
-                if (partes.length >= 4) break;
+                n++;
             }
+
+            // El selector no necesita la cadena completa: el combinador de
+            // descendencia se salta los niveles de en medio. Con el ancla mas
+            // los tres tramos mas cercanos al elemento alcanza, y queda corto
+            // y legible.
+            if (partes.length > 3) partes = partes.slice(-3);
+            if (ancla) partes.unshift(ancla);
             return partes.join(' ');
         }
 
