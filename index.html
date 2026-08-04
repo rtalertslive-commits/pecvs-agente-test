@@ -3373,11 +3373,10 @@
            queda como un bloque solido, mucho mas pesada que sus vecinas, que
            son tintes suaves.
 
-           La salida es no elegir: la celda lleva el MISMO tinte suave de
-           Oxford que sus vecinas —translucida de verdad, 16%— y lo unico que
-           se oscurece es el CONTORNO de la pelotita, con drop-shadow. La celda
-           se mezcla con el papel y el ⚪ se recorta contra el, sin que una
-           cosa le cueste a la otra.
+           La salida es la celda: lleva el MISMO tinte suave de Oxford que sus
+           vecinas —translucida de verdad, 16%— que se mezcla con el papel pero
+           queda bastante mas oscura que el, y contra ese tinte la pelotita
+           blanca se lee sola. Al emoji no se le toca nada (ver abajo).
 
            El numero del dia vuelve a ser oscuro, porque la celda vuelve a ser
            clara. */
@@ -3387,23 +3386,22 @@
         }
         :root[data-tema="claro"] .cal-cell.none .cal-num { color: #071D49 !important; }
 
-        /* CONTORNO, NO DISCO. El intento anterior ponia un circulo oscuro
-           DETRAS del emoji, y como el ⚪ no llena ese circulo, lo que se veia
-           era un aro duro rodeandolo — un artefacto, no un indicador.
+        /* SIN CONTORNO. Aqui hubo tres intentos y los tres eran el mismo
+           error con distinta forma: darle al ⚪ algo oscuro pegado al borde
+           para que se recortara. Primero un disco detras, luego un
+           drop-shadow apilado tres veces. Da igual como se dibuje — cualquier
+           oscurecimiento ceñido al contorno de un circulo SE VE COMO UN ARO,
+           porque un aro es exactamente eso. No es que estuviera mal calibrado;
+           no habia calibracion posible.
 
-           drop-shadow trabaja sobre el canal alfa del glifo, asi que la sombra
-           sigue el CONTORNO REAL de la pelotita en vez de dibujar una caja
-           detras. Apilado tres veces, el halo cierra alrededor del borde y la
-           deja recortada contra el papel claro sin agregarle ninguna forma.
+           Lo que hacia falta ya estaba resuelto en la regla de arriba: la
+           celda lleva su tinte de Oxford al 16%, bastante mas oscura que el
+           papel, y contra ese tinte la pelotita blanca se lee sola. El
+           drop-shadow venia de cuando la celda todavia era clara y sobraba
+           desde entonces. Se quita y no se reemplaza por nada.
 
-           Va en filter y no en text-shadow porque text-shadow no aplica a
-           emojis de color en varios navegadores: son imagenes, no glifos de
-           texto pintados con el color actual. */
-        :root[data-tema="claro"] .cal-cell.none .cal-icon {
-            filter: drop-shadow(0 0 0.5px #071D49)
-                    drop-shadow(0 0 1px #071D49)
-                    drop-shadow(0 0 1px #071D49);
-        }
+           Si algun dia la pelotita se ve floja, lo que se sube es el tinte de
+           la CELDA, nunca un halo alrededor del emoji. */
 
         /* El punto de la leyenda muestra el tinte de la celda, no el del
            disco. Clase propia y no :last-child, para que no se rompa si se
@@ -3505,7 +3503,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.42.0';
+        window.APP_HTML_VERSION = 'v4.43.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
