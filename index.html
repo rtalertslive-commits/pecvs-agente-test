@@ -3355,10 +3355,10 @@
            son tintes suaves.
 
            La salida es no elegir: la celda lleva el MISMO tinte suave de
-           Oxford que sus vecinas —translucida de verdad, 16% — y el fondo
-           oscuro va solo en el disco DETRAS DEL EMOJI, que es lo unico que de
-           verdad lo necesita. La celda se mezcla con el papel y la pelotita se
-           lee, sin que una cosa le cueste a la otra.
+           Oxford que sus vecinas —translucida de verdad, 16%— y lo unico que
+           se oscurece es el CONTORNO de la pelotita, con drop-shadow. La celda
+           se mezcla con el papel y el ⚪ se recorta contra el, sin que una
+           cosa le cueste a la otra.
 
            El numero del dia vuelve a ser oscuro, porque la celda vuelve a ser
            clara. */
@@ -3368,18 +3368,22 @@
         }
         :root[data-tema="claro"] .cal-cell.none .cal-num { color: #071D49 !important; }
 
-        /* El disco: sale del ancho del emoji con padding y se redondea. El
-           Oxford va SOLIDO —aqui no molesta, es un punto de 16px— y le deja al
-           blanco 16.4:1. */
+        /* CONTORNO, NO DISCO. El intento anterior ponia un circulo oscuro
+           DETRAS del emoji, y como el ⚪ no llena ese circulo, lo que se veia
+           era un aro duro rodeandolo — un artefacto, no un indicador.
+
+           drop-shadow trabaja sobre el canal alfa del glifo, asi que la sombra
+           sigue el CONTORNO REAL de la pelotita en vez de dibujar una caja
+           detras. Apilado tres veces, el halo cierra alrededor del borde y la
+           deja recortada contra el papel claro sin agregarle ninguna forma.
+
+           Va en filter y no en text-shadow porque text-shadow no aplica a
+           emojis de color en varios navegadores: son imagenes, no glifos de
+           texto pintados con el color actual. */
         :root[data-tema="claro"] .cal-cell.none .cal-icon {
-            background: #071D49;
-            border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
+            filter: drop-shadow(0 0 0.5px #071D49)
+                    drop-shadow(0 0 1px #071D49)
+                    drop-shadow(0 0 1px #071D49);
         }
 
         /* El punto de la leyenda muestra el tinte de la celda, no el del
@@ -3415,7 +3419,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.34.0';
+        window.APP_HTML_VERSION = 'v4.35.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
