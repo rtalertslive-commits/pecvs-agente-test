@@ -3419,6 +3419,18 @@
         :root[data-tema="claro"] #anuncios-modal div.modal-box { background: #D4DEEA !important; }
         :root[data-tema="claro"] #anuncios-modal div.modal-box div.modal-x-bar { background: #D4DEEA !important; }
 
+    
+        /* ── Tanda del pincel: las dos tarjetas de prima ───────────────────
+           Las dos que llevan `html:root[...]` salieron con el prefijo escalado
+           de la herramienta. No es adorno: sin el empatan en peso con las
+           reglas de mas arriba y el resultado depende del orden. Se dejan tal
+           cual salieron, que es lo que se verifico en pantalla. */
+        html:root[data-tema="claro"] #m-tt-\$ { color: #ffffff !important; }
+        :root[data-tema="claro"] #tab-bitacora div.card div.m-totals div.m-total-card { background: #304e8a !important; }
+        :root[data-tema="claro"] #tab-bitacora div.m-totals div.m-total-card.m-total-month div.m-total-label { color: #001b52 !important; }
+        html:root[data-tema="claro"] #m-mt-\$ { color: #001B52 !important; }
+        :root[data-tema="claro"] #tab-bitacora div.card div.m-totals div.m-total-card.m-total-month { background: #bfc6cf !important; }
+
     </style>
 
     <div id="karma-celebration">
@@ -3445,7 +3457,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.39.0';
+        window.APP_HTML_VERSION = 'v4.40.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
