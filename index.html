@@ -3223,9 +3223,9 @@
         :root[data-tema="claro"] #mobile-week div.m-day-compact div.m-day-label small:nth-child(1) { color: #071D49 !important; }
         :root[data-tema="claro"] #tab-bitacora div.card div.m-totals div.m-total-card.m-total-month { color: #c4c4c4 !important; background: #8f98a3 !important; border-color: #8995a4 !important; }
         :root[data-tema="claro"] div.card div.m-totals div.m-total-card.m-total-month div.m-total-label { color: #f4f7fb !important; }
-        :root[data-tema="claro"] #m-mt-\$ { color: #f4f7fb !important; }
+        :root[data-tema="claro"] .m-total-card.m-total-month .m-total-value { color: #f4f7fb !important; }
         :root[data-tema="claro"] #tab-bitacora div.card div.m-totals div.m-total-card { background: #20559a !important; }
-        :root[data-tema="claro"] #m-tt-\$ { color: #f4f7fb !important; border-color: #f4f7fb !important; }
+        :root[data-tema="claro"] .m-total-card:not(.m-total-month) .m-total-value { color: #f4f7fb !important; border-color: #f4f7fb !important; }
         :root[data-tema="claro"] div.card div.m-totals div.m-total-card div.m-total-label { color: #f4f7fb !important; }
         :root[data-tema="claro"] nav.bottom-nav { background: #dde5ef !important; }
         :root[data-tema="claro"] nav.bottom-nav button.bn-btn.active { color: #20559a !important; border-color: #20559a !important; }
@@ -3317,8 +3317,13 @@
              prima semana #F4F7FB sobre #20559A -> 6.9:1  */
         :root[data-tema="claro"] #tab-bitacora div.card div.m-totals div.m-total-card.m-total-month { color: #071D49 !important; }
         :root[data-tema="claro"] div.card div.m-totals div.m-total-card.m-total-month div.m-total-label { color: #071D49 !important; }
-        :root[data-tema="claro"] #m-mt-\$ { color: #071D49 !important; }
-        :root[data-tema="claro"] #m-tt-\$ { color: #F4F7FB !important; }
+        /* Por CLASE y no por id. Una regla de id con !important empata en peso
+           con lo que genera el pincel, y entonces gana la que quede despues —
+           que es la horneada. El resultado era que la herramienta no podia
+           editar justo estas dos cifras. Con selector de clase el pincel siempre
+           tiene mas peso y puede sobrescribirlas. */
+        :root[data-tema="claro"] .m-total-card.m-total-month .m-total-value { color: #071D49 !important; }
+        :root[data-tema="claro"] .m-total-card:not(.m-total-month) .m-total-value { color: #F4F7FB !important; }
 
     
         /* ── CONTRASTE: SEMANA COMPACTA, CALENDARIO Y GRAFICAS ─────────────
@@ -3440,7 +3445,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.38.0';
+        window.APP_HTML_VERSION = 'v4.39.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -9047,6 +9052,7 @@
         // `html`, que suma un selector de tipo y desempata sin tener que
         // inventar un selector distinto.
         var _escalados = {};
+        var _inline = {};   // reglas que ademas necesitaron estilo inline para verse
         function _prefijoTema(t, clave) {
             var base = t === 'claro' ? ':root[data-tema="claro"] ' : ':root:not([data-tema="claro"]) ';
             return (clave && _escalados[clave]) ? 'html' + base : base;
@@ -9143,7 +9149,13 @@
             // color en oscuro y otro en claro sin pisarse.
             var k = _temaActual() + '||' + sel;
             reglas[k] = reglas[k] || {};
-            if (valor === null) delete reglas[k][prop];
+            if (valor === null) {
+                delete reglas[k][prop];
+                // si se habia pintado inline, tambien hay que soltarlo
+                var nom = ({ color: 'color', background: 'background-color',
+                             borderColor: 'border-color' })[prop];
+                if (elActual && nom) { try { elActual.style.removeProperty(nom); } catch (e) {} }
+            }
             else reglas[k][prop] = valor;
             if (!Object.keys(reglas[k]).length) delete reglas[k];
             pintarHoja();
@@ -9159,16 +9171,43 @@
             if (!elActual) return;
             var css = _propCss[prop];
             var aviso = document.getElementById('pincel-aviso');
-            var logrado = aHex(getComputedStyle(elActual)[css]) === aHex(valor);
+            var mira = function () { return aHex(getComputedStyle(elActual)[css]) === aHex(valor); };
+            var logrado = mira();
+
+            // Paso 2: mas especificidad.
             if (!logrado && !_escalados[clave]) {
-                _escalados[clave] = true;      // segundo intento, con mas peso
+                _escalados[clave] = true;
                 pintarHoja();
-                logrado = aHex(getComputedStyle(elActual)[css]) === aHex(valor);
+                logrado = mira();
             }
+
+            // Paso 3: estilo inline con !important. Le gana a CUALQUIER regla
+            // de hoja, sin importar especificidad ni orden — es el unico
+            // recurso que no puede perder. Se usa solo para la VISTA PREVIA;
+            // el CSS que se copia sigue siendo la regla, que al pegarla al
+            // final del archivo si gana. Sin esto la herramienta simplemente
+            // no servia en los elementos que ya tienen regla propia con
+            // !important, y no habia forma de trabajar ahi.
+            if (!logrado) {
+                var nombre = ({ color: 'color', background: 'background-color',
+                                borderColor: 'border-color' })[prop];
+                try { elActual.style.setProperty(nombre, valor, 'important'); } catch (e) {}
+                logrado = mira();
+                if (logrado) _inline[clave] = true;
+            }
+
             if (!aviso) return;
-            if (logrado) { aviso.style.display = 'none'; return; }
-            aviso.style.display = '';
-            aviso.textContent = 'La regla se escribio pero el elemento no cambio: algo con mas prioridad lo esta pisando.';
+            if (!logrado) {
+                aviso.style.display = '';
+                aviso.style.background = 'rgba(224,22,0,.18)';
+                aviso.textContent = 'No se pudo cambiar este elemento ni con estilo inline. Avisa que paso aca.';
+            } else if (_inline[clave]) {
+                aviso.style.display = '';
+                aviso.style.background = 'rgba(255,199,44,.16)';
+                aviso.textContent = 'Este elemento tiene una regla propia con !important en el archivo. Se pinto por encima para que lo veas; al pegar el CSS al final queda igual.';
+            } else {
+                aviso.style.display = 'none';
+            }
         }
         [['color','pincel-color'],['background','pincel-bg'],['borderColor','pincel-bd']]
         .forEach(function (par) {
