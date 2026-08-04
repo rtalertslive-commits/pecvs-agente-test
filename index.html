@@ -62,6 +62,10 @@
             --azul-cobalto: #20559A;
             --azul-oxford:  #071D49;
             --amarillo:     #FFC72C;
+            /* Mismo amarillo en canal RGB, para los velos rgba(). Un hex no
+               sirve dentro de rgba(), y hay velos amarillos escritos a mano
+               en el JS que tienen que poder voltear con el tema. */
+            --amarillo-rgb: 255, 199, 44;
             --azul-medio:   #7999C2;
             --azul-claro:   #D2DDEB;
             --azul-palido:  #E9EEF5;
@@ -3438,6 +3442,43 @@
         html:root[data-tema="claro"] #m-mt-\$ { color: #001B52 !important; }
         :root[data-tema="claro"] #tab-bitacora div.card div.m-totals div.m-total-card.m-total-month { background: #bfc6cf !important; }
 
+
+        /* ── TIENDA · ACTIVIDAD, TEMA CLARO ────────────────────────────────
+           Fuera el blanco y fuera el dorado de esta pestaña: los paneles se
+           van al papel #D4DEEA y todo el acento amarillo pasa a Oxford.
+
+           No se hace regla por regla sino REDEFINIENDO LOS TOKENS sobre el
+           subarbol. Casi todo lo que se ve aqui se pinta desde el JS con
+           estilos en linea (`background:var(--panel)`, `color:var(--gold-l)`),
+           y un estilo en linea le gana a cualquier hoja que no traiga
+           !important. Redefinir la variable esquiva esa pelea entera: el
+           navegador resuelve var() en el contexto del elemento, asi que el
+           mismo `var(--panel)` que ya estaba escrito devuelve otro color aqui
+           dentro y el de siempre en el resto de la app. De paso no toca ni
+           Comprar ni Mis solicitudes, que comparten esos tokens.
+
+           --panel         fondo de las tarjetas y de cada fila del feed y del top
+           --gold          titulos de seccion y las cifras de totopos
+           --gold-l        los realces de "(tú)"
+           --amarillo      las plecas de arriba de cada titulo
+           --amarillo-rgb  el velo y el borde de tu fila en el top 10 */
+        :root[data-tema="claro"] #ts-view-actividad {
+            --panel: #D4DEEA;
+            --gold: #071D49;
+            --gold-l: #071D49;
+            --amarillo: #071D49;
+            --amarillo-rgb: 7, 29, 73;
+        }
+
+        /* Con el panel en #D4DEEA las filas quedan del mismo tono que la
+           tarjeta que las contiene y la lista se leia como un solo bloque.
+           El hairline que ya usa el resto de la app les devuelve el corte sin
+           meter ningun color nuevo. Las filas propias traen su borde azul en
+           linea y ese gana, que es lo que se quiere. */
+        :root[data-tema="claro"] #tienda-feed > div:not(.empty-state),
+        :root[data-tema="claro"] #tienda-leaderboard > div:not(.empty-state) {
+            border: 1px solid var(--border);
+        }
     </style>
 
     <div id="karma-celebration">
@@ -3464,7 +3505,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.41.0';
+        window.APP_HTML_VERSION = 'v4.42.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -4237,8 +4278,8 @@
                     const soyYo = d.id === yo;
                     return `
                     <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;
-                                background:${soyYo ? 'rgba(255,199,44,0.12)' : 'rgba(var(--vk), 0.04)'};
-                                border:1px solid ${soyYo ? 'rgba(255,199,44,0.45)' : 'var(--border)'};">
+                                background:${soyYo ? 'rgba(var(--amarillo-rgb), 0.12)' : 'rgba(var(--vk), 0.04)'};
+                                border:1px solid ${soyYo ? 'rgba(var(--amarillo-rgb), 0.45)' : 'var(--border)'};">
                         <span style="width:26px;text-align:center;font-size:13px;font-weight:800;color:var(--slate);">${medalla(i)}</span>
                         <span style="flex:1;font-size:12.5px;font-weight:${soyYo ? '900' : '600'};color:${soyYo ? 'var(--gold-l)' : 'var(--white)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                             ${escapeHtml(x.agentName || d.id)}${soyYo ? ' <span style="font-size:10px;">(tú)</span>' : ''}
@@ -7283,7 +7324,7 @@
                 active.style.color = 'var(--gold-l)';
                 active.style.fontWeight = '700';
                 inactive.style.background = 'transparent';
-                inactive.style.color = 'rgba(7, 29, 73, 0.6)';
+                inactive.style.color = 'rgba(var(--vk), 0.6)';
                 inactive.style.fontWeight = '600';
             }
             if (label) label.textContent = period === 'month' ? 'Top del mes' : 'Top del año';
@@ -7329,7 +7370,7 @@
                             const dt = _relativeTimeEs(r.fechaResolucion || r.fechaSolicitud);
                             const isMine = r.emailSolicitante === user.email;
                             return `<div style="padding:10px 12px; background:${isMine ? 'rgba(32, 85, 154, 0.10)' : 'var(--panel)'}; border-radius:8px; ${isMine ? 'border:1px solid rgba(32, 85, 154, 0.35);' : ''}">
-                                <div style="font-weight:700; font-size:13px; color:${isMine ? 'var(--gold-l)' : '#071D49'};">👤 ${eName}${isMine ? ' (tú)' : ''}</div>
+                                <div style="font-weight:700; font-size:13px; color:${isMine ? 'var(--gold-l)' : 'var(--white)'};">👤 ${eName}${isMine ? ' (tú)' : ''}</div>
                                 <div style="font-size:12px; color:rgba(var(--vk), 0.75); margin-top:3px;">${eEmoji} ${eItem}${cantStr} · <span style="color:var(--gold); font-weight:700;"><svg class="totopo-icon"><use href="#totopo"/></svg> ${costoTotal}</span> · <span style="color:var(--slate);">${dt}</span></div>
                             </div>`;
                         }).join('')
