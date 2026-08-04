@@ -3440,7 +3440,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.37.0';
+        window.APP_HTML_VERSION = 'v4.38.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -8980,6 +8980,8 @@
     '  padding:2px 6px;border-radius:20px;background:#2E7D4F;color:#fff}',
     '.pincel-tema button{margin-left:auto;padding:3px 9px;border-radius:4px;cursor:pointer;',
     '  border:1px solid rgba(var(--vk), .3);background:none;color:var(--white);font:inherit;font-size:10px}',
+    '#pincel-aviso{font-size:10px;line-height:1.4;margin:-4px 0 8px;padding:5px 7px;border-radius:4px;',
+    '  background:rgba(224,22,0,.18);border:1px solid rgba(224,22,0,.5)}',
     '.pincel-marcado{outline:2px dashed #FFC72C !important;outline-offset:1px !important}',
             'body.pincel-on{cursor:crosshair}'
         ].join('');
@@ -9039,8 +9041,15 @@
         function _temaActual() {
             return document.documentElement.getAttribute('data-tema') === 'claro' ? 'claro' : 'oscuro';
         }
-        function _prefijoTema(t) {
-            return t === 'claro' ? ':root[data-tema="claro"] ' : ':root:not([data-tema="claro"]) ';
+        // El prefijo puede escalar. Si la regla que sale con el prefijo normal
+        // no logra cambiar el elemento —porque algo horneado en la hoja del
+        // archivo tiene la misma especificidad y quedo despues— se antepone
+        // `html`, que suma un selector de tipo y desempata sin tener que
+        // inventar un selector distinto.
+        var _escalados = {};
+        function _prefijoTema(t, clave) {
+            var base = t === 'claro' ? ':root[data-tema="claro"] ' : ':root:not([data-tema="claro"]) ';
+            return (clave && _escalados[clave]) ? 'html' + base : base;
         }
 
         function pintarHoja() {
@@ -9055,7 +9064,7 @@
                 var par  = s2.split('||');            // clave: "claro||selector"
                 var tema = par.length > 1 ? par[0] : 'oscuro';
                 var sel  = par.length > 1 ? par[1] : s2;
-                return _prefijoTema(tema) + sel + ' { ' + props.join('; ') + '; }';
+                return _prefijoTema(tema, s2) + sel + ' { ' + props.join('; ') + '; }';
             }).filter(Boolean).join('\n');
             try { localStorage.setItem(LLAVE, JSON.stringify(reglas)); } catch (e) {}
             var n = Object.keys(reglas).length;
@@ -9079,6 +9088,7 @@
             '<div class="pincel-cuerpo">' +
             '<div class="pincel-tema">Pintando en <b id="pincel-tema-txt">oscuro</b>' + (/[?&]limpio=1/.test(location.search) ? '<span class="pincel-limpio">tanda nueva</span>' : '') + '<button id="pincel-tema-btn">cambiar</button></div>' +
             '<div id="pincel-sel">Nada seleccionado</div>' +
+            '<div id="pincel-aviso" style="display:none"></div>' +
             '<div id="pincel-controles" style="display:none;">' +
               '<div class="pincel-fila"><span>Texto</span><input type="text" id="pincel-color-hex" placeholder="#20559A">' +
                 '<input type="color" id="pincel-color"><button data-q="color">quitar</button></div>' +
@@ -9124,6 +9134,9 @@
             seleccionar(ev.target);
         }, true);
 
+        // Traduce la propiedad del panel al nombre que devuelve getComputedStyle.
+        var _propCss = { color: 'color', background: 'backgroundColor', borderColor: 'borderTopColor' };
+
         function set(prop, valor) {
             if (!sel) return;
             // La clave lleva el tema, asi el mismo elemento puede tener un
@@ -9134,6 +9147,28 @@
             else reglas[k][prop] = valor;
             if (!Object.keys(reglas[k]).length) delete reglas[k];
             pintarHoja();
+            if (valor !== null) _verificar(k, prop, valor);
+        }
+
+        // Escribir la regla no garantiza que el elemento cambie: puede haber
+        // algo con la misma especificidad mas abajo en la hoja del archivo. En
+        // vez de dejar al usuario adivinando por que "no sirve ahi", se
+        // comprueba el estilo YA CALCULADO y, si no cambio, se escala el
+        // prefijo y se reintenta una vez.
+        function _verificar(clave, prop, valor) {
+            if (!elActual) return;
+            var css = _propCss[prop];
+            var aviso = document.getElementById('pincel-aviso');
+            var logrado = aHex(getComputedStyle(elActual)[css]) === aHex(valor);
+            if (!logrado && !_escalados[clave]) {
+                _escalados[clave] = true;      // segundo intento, con mas peso
+                pintarHoja();
+                logrado = aHex(getComputedStyle(elActual)[css]) === aHex(valor);
+            }
+            if (!aviso) return;
+            if (logrado) { aviso.style.display = 'none'; return; }
+            aviso.style.display = '';
+            aviso.textContent = 'La regla se escribio pero el elemento no cambio: algo con mas prioridad lo esta pisando.';
         }
         [['color','pincel-color'],['background','pincel-bg'],['borderColor','pincel-bd']]
         .forEach(function (par) {
