@@ -3290,7 +3290,10 @@
         :root[data-tema="claro"] #install-btn span:nth-child(2) { color: #9c8307 !important; border-color: #cccccc !important; }
         :root[data-tema="claro"] #install-btn { color: #000000 !important; }
         :root[data-tema="claro"] #login-overlay div.login-card { color: #ffc2c2 !important; }
-        :root[data-tema="claro"] #m-tt-\$ { color: #2f5291 !important; }
+        /* Aqui habia una regla que ponia #m-tt-$ en #2f5291 — azul oscuro sobre
+           la tarjeta cobalto, 1.0:1. Se retira porque contradice lo pedido
+           despues: que la cifra vaya del mismo blanco que su etiqueta. Estaba
+           inerte de todos modos, sobrescrita mas abajo. */
         :root[data-tema="claro"] #rules-mult-block div:nth-child(1) div.mult-demo-wrap { background: #32518f !important; }
         :root[data-tema="claro"] div:nth-child(1) div.mult-demo-wrap span.mult-chip-demo i.fa.fa-bolt { color: #e0ae52 !important; }
         :root[data-tema="claro"] div:nth-child(1) div.mult-demo-wrap span.mult-chip-demo b:nth-child(2) { color: #061837 !important; }
@@ -3419,7 +3422,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.35.0';
+        window.APP_HTML_VERSION = 'v4.36.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
