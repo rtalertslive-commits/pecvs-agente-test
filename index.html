@@ -3281,7 +3281,14 @@
         :root[data-tema="claro"] #mult-receipt-body div:nth-child(6) { border-color: #071d49 !important; }
         :root[data-tema="claro"] #mult-receipt-body div:nth-child(7) b:nth-child(1) { color: #ff0000 !important; background: #d4deea !important; }
         :root[data-tema="claro"] #mult-receipt-body div.mrec-row div.mrec-n { color: #32518f !important; }
-        :root[data-tema="claro"] #tab-bitacora div.card div:nth-child(2) { color: #32518f !important; }
+        :root[data-tema="claro"] #tab-bitacora div.card div:nth-child(2):not(.m-total-value) { color: #32518f !important; }
+        /* El :not() se agrego despues. Este selector es POSICIONAL: alcanza a
+           cualquier div que sea el segundo hijo de su padre, a cualquier
+           profundidad dentro de una tarjeta de Bitacora. La cifra de prima es
+           justamente el segundo hijo de .m-total-card, asi que la pintaba de
+           #32518f — azul oscuro sobre azul— y con peso (1,4,2) le ganaba a
+           todo lo que se intentara despues, incluso al pincel. Se excluye solo
+           esa clase; el resto de lo que la regla hacia sigue igual. */
         :root[data-tema="claro"] #tema-lbl { color: #32518f !important; }
         :root[data-tema="claro"] #mobile-week div.m-section-divider { color: #071d49 !important; }
 
@@ -3457,7 +3464,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.40.0';
+        window.APP_HTML_VERSION = 'v4.41.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
