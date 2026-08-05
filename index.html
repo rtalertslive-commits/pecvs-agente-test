@@ -1390,6 +1390,16 @@
             vertical-align: middle; white-space: nowrap;
         }
 
+        /* Un color por rol, en CSS y no en el JS. Antes iban como estilo en
+           linea desde FORO_ROLES, y un estilo en linea no se puede voltear con
+           el tema sin pelearse a !important con cada regla. Con clase, el tema
+           claro los redefine abajo por especificidad y ya. */
+        .rol-badge.rol-agente        { background: rgba(126, 173, 247, 0.18); color: #7EADF7; }
+        .rol-badge.rol-coach         { background: rgba(111, 215, 155, 0.18); color: #6FD79B; }
+        .rol-badge.rol-promotor      { background: rgba(255, 199, 44, 0.18);  color: #FFC72C; }
+        .rol-badge.rol-director      { background: rgba(240, 138, 128, 0.18); color: #F08A80; }
+        .rol-badge.rol-superdirector { background: rgba(197, 160, 233, 0.18); color: #C5A0E9; }
+
         /* ── Lista de hilos ── */
         .foro-hilo-item {
             width: 100%; text-align: left; background: rgba(var(--vk), 0.03);
@@ -3477,6 +3487,29 @@
         :root[data-tema="claro"] #tienda-leaderboard > div:not(.empty-state) {
             border: 1px solid var(--border);
         }
+
+
+        /* ── BADGES DE ROL DEL FORO, TEMA CLARO ────────────────────────────
+           Los tonos de arriba estan pensados para leerse sobre panel oscuro:
+           son claros. Sobre el papel claro pasan dos cosas a la vez y las dos
+           en contra — la letra clara se acerca al fondo, y el velo al 18% se
+           lava hasta casi desaparecer. El COACH quedaba en 1.4:1.
+
+           Se baja el tono de cada rol conservando el matiz, para que el rol se
+           siga reconociendo por color, y se sube el velo de 18% a 20% con ese
+           mismo tono ya oscuro: el chip se despega del papel y la letra se
+           recorta contra el chip.
+
+           Medidos contra su propio chip sobre el panel #E6ECF4:
+             agente         5.3:1     director        4.6:1
+             coach          4.8:1     superdirector   5.3:1
+             promotor       5.1:1
+           Todos por encima del 4.5:1 de la norma. */
+        :root[data-tema="claro"] .rol-badge.rol-agente        { background: rgba(20, 73, 143, 0.20);  color: #14498F; }
+        :root[data-tema="claro"] .rol-badge.rol-coach         { background: rgba(27, 94, 58, 0.20);   color: #1B5E3A; }
+        :root[data-tema="claro"] .rol-badge.rol-promotor      { background: rgba(110, 71, 0, 0.20);   color: #6E4700; }
+        :root[data-tema="claro"] .rol-badge.rol-director      { background: rgba(154, 43, 34, 0.20);  color: #9A2B22; }
+        :root[data-tema="claro"] .rol-badge.rol-superdirector { background: rgba(91, 58, 140, 0.20);  color: #5B3A8C; }
     </style>
 
     <div id="karma-celebration">
@@ -3503,7 +3536,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.43.0';
+        window.APP_HTML_VERSION = 'v4.44.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -4148,12 +4181,15 @@
             { id: 'totopos',     label: 'Totopos' },
             { id: 'sugerencias', label: 'Sugerencias' }
         ];
+        // Solo la etiqueta. El color de cada rol vive en el CSS, en
+        // `.rol-badge.rol-<id>`, porque tiene que cambiar con el tema y un
+        // estilo en linea no cambia con nada.
         const FORO_ROLES = {
-            agente:        { label: 'Agente',        bg: 'rgba(126, 173, 247,0.18)', fg: '#7EADF7' },
-            coach:         { label: 'Coach',         bg: 'rgba(111, 215, 155,0.18)', fg: '#6FD79B' },
-            promotor:      { label: 'Promotor',      bg: 'rgba(255, 199, 44,0.18)',  fg: '#FFC72C' },
-            director:      { label: 'Director',      bg: 'rgba(240, 138, 128,0.18)', fg: '#F08A80' },
-            superdirector: { label: 'Superdirector', bg: 'rgba(197, 160, 233,0.18)', fg: '#C5A0E9' }
+            agente:        { label: 'Agente' },
+            coach:         { label: 'Coach' },
+            promotor:      { label: 'Promotor' },
+            director:      { label: 'Director' },
+            superdirector: { label: 'Superdirector' }
         };
         // Este archivo es la app del AGENTE, asi que el rol propio es fijo.
         const FORO_MI_ROL = 'agente';
@@ -4215,8 +4251,11 @@
         function _foroDC() { return state.directorCode || ''; }
 
         function _foroBadge(rol) {
-            const r = FORO_ROLES[rol] || FORO_ROLES.agente;
-            return `<span class="rol-badge" style="background:${r.bg}; color:${r.fg};">${r.label}</span>`;
+            // La clave resuelta, no `rol` a secas: si llega un rol que no
+            // conocemos la etiqueta cae en Agente y la clase tiene que caer
+            // con ella, o el badge sale sin color.
+            const clave = FORO_ROLES[rol] ? rol : 'agente';
+            return `<span class="rol-badge rol-${clave}">${FORO_ROLES[clave].label}</span>`;
         }
         function _foroFecha(ts) {
             if (!ts) return '';
