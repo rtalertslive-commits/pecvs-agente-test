@@ -3704,6 +3704,27 @@
         // amarillo. El verde y el ambar de antes eran colores de ESTADO usados como
         // color de dato, cosa que la paleta corporativa no contempla.
         const CHART_COLORS = { P: '#3E7AC4', E: '#7999C2', C: '#A9BFD9', V: '#FFC72C', S: '#E8EFF7' };
+
+        // Las barras de VOLUMEN y las de PRIMA PROMEDIO llevan paleta propia en
+        // tema claro. Va aparte de CHART_COLORS a proposito: esa constante la
+        // comparten la dona y las cuatro graficas de linea, y ahi los colores
+        // de hoy funcionan en los dos temas.
+        //
+        // El motivo es el mismo de siempre — el canvas no resuelve var() — pero
+        // hay una razon de fondo: en oscuro la barra S iba en #E8EFF7, casi
+        // blanco, que sobre navy se lee perfecto y sobre papel claro desaparece.
+        // Y al reves, el Oxford que se pidio para P sobre el panel oscuro
+        // (#0E2A5C) seria invisible. No hay un juego que sirva para los dos.
+        function _barrasVolumen() {
+            return document.documentElement.getAttribute('data-tema') === 'claro'
+                ? ['#071D49', '#3E7AC4', '#3E7AC4', '#3E7AC4', '#3E7AC4']
+                : [CHART_COLORS.P, CHART_COLORS.E, CHART_COLORS.C, CHART_COLORS.V, CHART_COLORS.S];
+        }
+        function _barrasPrima() {
+            return document.documentElement.getAttribute('data-tema') === 'claro'
+                ? [CHART_COLORS.V, '#071D49']
+                : [CHART_COLORS.V, CHART_COLORS.S];
+        }
         // Contorno claro para TODAS las series. No es decoracion: el Oxford de
         // Cotizaciones da 1.16:1 contra el fondo de la tarjeta y sin contorno la
         // barra desaparece. En el embudo no hace falta porque cada bloque esta
@@ -8574,7 +8595,7 @@
             _chartDefaults();
             charts['kpiVol'] = new Chart(document.getElementById('kpiVolumeFull'), {
                 type: 'bar',
-                data: { labels: ['P', 'E', 'C', 'V', 'S'], datasets: [{ label: 'Volumen', data: [kTotals.P, kTotals.E, kTotals.C, kTotals.V, kTotals.S], backgroundColor: [CHART_COLORS.P, CHART_COLORS.E, CHART_COLORS.C, CHART_COLORS.V, CHART_COLORS.S] }] },
+                data: { labels: ['P', 'E', 'C', 'V', 'S'], datasets: [{ label: 'Volumen', data: [kTotals.P, kTotals.E, kTotals.C, kTotals.V, kTotals.S], backgroundColor: _barrasVolumen() }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
             destroyChart('kpiRat');
@@ -8634,7 +8655,7 @@
             _chartDefaults();
             charts['kpiPri'] = new Chart(document.getElementById('kpiPrimaAvg'), {
                 type: 'bar',
-                data: { labels: ['$/V', '$/S'], datasets: [{ data: [kTotals.V > 0 ? kTotals.prima / kTotals.V : 0, kTotals.S > 0 ? kTotals.prima / kTotals.S : 0], backgroundColor: [CHART_COLORS.V, CHART_COLORS.S] }] },
+                data: { labels: ['$/V', '$/S'], datasets: [{ data: [kTotals.V > 0 ? kTotals.prima / kTotals.V : 0, kTotals.S > 0 ? kTotals.prima / kTotals.S : 0], backgroundColor: _barrasPrima() }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
         }
