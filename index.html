@@ -3543,7 +3543,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.45.0';
+        window.APP_HTML_VERSION = 'v4.46.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -3726,9 +3726,14 @@
         function _chartTinta() {
             const claro = document.documentElement.getAttribute('data-tema') === 'claro';
             return {
-                texto:  claro ? '#143A66' : '#FFFFFF',   // leyendas y titulos
-                suave:  claro ? '#465C7B' : '#A9BFD9',   // etiquetas de eje / radar
-                rejilla: claro ? 'rgba(7, 29, 73, 0.16)' : '#A9BFD9'
+                texto:   claro ? '#143A66' : '#FFFFFF',   // leyendas y titulos
+                suave:   claro ? '#465C7B' : '#A9BFD9',   // etiquetas de eje / radar
+                rejilla: claro ? 'rgba(7, 29, 73, 0.16)' : '#A9BFD9',
+                // La telaraña del radar: los aros y los radios que dibujan el
+                // triangulo. Iban al 10% y encima con var(), que el canvas no
+                // resuelve, asi que no se dibujaban. Al 22/28% se ven sin
+                // competirle a la serie.
+                malla:   claro ? 'rgba(7, 29, 73, 0.28)' : 'rgba(255, 255, 255, 0.22)'
             };
         }
 
@@ -8607,8 +8612,8 @@
                     interaction: { mode: 'nearest', intersect: false },
                     scales: {
                         r: {
-                            grid: { color: 'rgba(var(--vk), 0.1)' },
-                            angleLines: { color: 'rgba(var(--vk), 0.1)' },
+                            grid: { color: _chartTinta().malla },
+                            angleLines: { color: _chartTinta().malla },
                             pointLabels: { color: _chartTinta().suave, font: { size: 11, weight: 'bold' } },
                             ticks: { display: false },
                             suggestedMin: 0,
