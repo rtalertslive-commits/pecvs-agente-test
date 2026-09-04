@@ -2337,8 +2337,8 @@
                 KPIs</button>
             <button class="tab-btn" data-tab="charts" onclick="switchTab('charts',this)"><i class="fa fa-chart-area"></i>
                 Tendencias</button>
-            <button class="tab-btn" data-tab="tienda" onclick="switchTab('tienda',this)"><i class="fa fa-store"></i> Tienda</button>
             <button class="tab-btn" data-tab="rankings" onclick="switchTab('rankings',this)"><i class="fa fa-ranking-star"></i> Rankings</button>
+            <button class="tab-btn" data-tab="tienda" onclick="switchTab('tienda',this)"><i class="fa fa-store"></i> Tienda</button>
         </div>
 
         <!-- TAB: BITACORA -->
@@ -2633,11 +2633,19 @@
 
 
         <!-- ═══════════════════ TAB: RANKINGS ═══════════════════
-             Los tres rankings de la region. Las listas NO se cortan en 10: cada
-             una trae su propio scroll y se puede recorrer entera. La fila del
-             propio agente se resalta y se anota su lugar, que es lo unico que
-             la mayoria viene a buscar. -->
+             Los cuatro rankings de la region, en el orden pedido. Las listas NO
+             se cortan en 10: cada una trae su propio scroll y se puede recorrer
+             entera. La fila del propio agente se resalta y, si no cae en lo que
+             se pinta de entrada, se ancla al final con su lugar. -->
         <div id="tab-rankings" class="tab-panel">
+            <div class="card" style="margin-bottom:16px;">
+                <p class="card-title" style="margin:0 0 4px;"><i class="fa fa-bolt"></i> <span id="mult-top-titulo">Multiplicadores activos</span></p>
+                <p style="font-size:11px;color:var(--slate);margin:0 0 12px;">Los que más multiplican su día este mes en tu región.</p>
+                <div id="mult-top10" class="rk-lista">
+                    <div class="empty-state"><i class="fa fa-spinner fa-spin"></i> Cargando...</div>
+                </div>
+            </div>
+
             <div class="card" style="margin-bottom:16px;">
                 <p class="card-title" style="margin:0 0 4px;"><i class="fa fa-calendar-check"></i> Los más constantes</p>
                 <p style="font-size:11px;color:var(--slate);margin:0 0 12px;">
@@ -2650,22 +2658,28 @@
             </div>
 
             <div class="card" style="margin-bottom:16px;">
-                <p class="card-title" style="margin:0 0 4px;"><i class="fa fa-bolt"></i> <span id="mult-top-titulo">Multiplicadores activos</span></p>
-                <p style="font-size:11px;color:var(--slate);margin:0 0 12px;">Los que más multiplican su día este mes en tu región.</p>
-                <div id="mult-top10" class="rk-lista">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
+                    <p class="card-title" style="margin:0;"><svg class="totopo-icon"><use href="#totopo"/></svg> <span id="rk-gan-label">Los que más han ganado — mes</span></p>
+                    <div style="display:flex; gap:4px; background:rgba(var(--vk), 0.04); border: 1px solid var(--border); border-radius:8px; padding:3px;">
+                        <button id="rk-gan-mes" onclick="switchGanadosPeriod('month')" style="padding:5px 14px; background:rgba(32, 85, 154, 0.18); border:none; border-radius:8px; color:var(--gold-l); font-weight:700; font-size:12px; cursor:pointer;">Mes</button>
+                        <button id="rk-gan-anio" onclick="switchGanadosPeriod('year')" style="padding:5px 14px; background:transparent; border:none; border-radius:8px; color:rgba(var(--vk), 0.6); font-weight:600; font-size:12px; cursor:pointer;">Año</button>
+                    </div>
+                </div>
+                <p style="font-size:11px;color:var(--slate);margin:0 0 12px;">Totopos ganados en tu región: por reportar, por multiplicador y por regalos del director.</p>
+                <div id="rk-ganados" class="rk-lista">
                     <div class="empty-state"><i class="fa fa-spinner fa-spin"></i> Cargando...</div>
                 </div>
             </div>
 
             <div class="card">
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
-                    <p class="card-title" style="margin:0;">🏆 <span id="lb-period-label">Top del mes</span></p>
+                    <p class="card-title" style="margin:0;">🏆 <span id="lb-period-label">Los que más han gastado — mes</span></p>
                     <div id="lb-period-toggle" style="display:flex; gap:4px; background:rgba(var(--vk), 0.04); border: 1px solid var(--border); border-radius:8px; padding:3px;">
                         <button id="lb-btn-month" onclick="switchLeaderboardPeriod('month')" style="padding:5px 14px; background:rgba(32, 85, 154, 0.18); border:none; border-radius:8px; color:var(--gold-l); font-weight:700; font-size:12px; cursor:pointer;">Mes</button>
                         <button id="lb-btn-year" onclick="switchLeaderboardPeriod('year')" style="padding:5px 14px; background:transparent; border:none; border-radius:8px; color:rgba(var(--vk), 0.6); font-weight:600; font-size:12px; cursor:pointer;">Año</button>
                     </div>
                 </div>
-                <p style="font-size:11px;color:var(--slate);margin:0 0 12px;">Los agentes que más gastaron en tu región.</p>
+                <p style="font-size:11px;color:var(--slate);margin:0 0 12px;">Los agentes que más canjearon en tu región.</p>
                 <div id="tienda-leaderboard" class="rk-lista">
                     <div class="empty-state"><i class="fa fa-spinner fa-spin"></i> Cargando...</div>
                 </div>
@@ -2735,13 +2749,13 @@
             <i class="fa fa-chart-area"></i>
             <span>Tend.</span>
         </button>
-        <button class="bn-btn" data-tab="tienda" onclick="switchTab('tienda',this)">
-            <i class="fa fa-store"></i>
-            <span>Tienda</span>
-        </button>
         <button class="bn-btn" data-tab="rankings" onclick="switchTab('rankings',this)">
             <i class="fa fa-ranking-star"></i>
             <span>Ranking</span>
+        </button>
+        <button class="bn-btn" data-tab="tienda" onclick="switchTab('tienda',this)">
+            <i class="fa fa-store"></i>
+            <span>Tienda</span>
         </button>
         <!-- El Foro es un MODAL, no una pestaña: por eso llama a openForo() y no
              a switchTab(), y va sin data-tab. Al no tener data-tab nunca recibe
@@ -3601,7 +3615,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.50.0';
+        window.APP_HTML_VERSION = 'v4.51.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -7482,7 +7496,7 @@
                 inactive.style.color = 'rgba(var(--vk), 0.6)';
                 inactive.style.fontWeight = '600';
             }
-            if (label) label.textContent = period === 'month' ? 'Top del mes' : 'Top del año';
+            if (label) label.textContent = 'Los que más han gastado — ' + (period === 'month' ? 'mes' : 'año');
             if (_actividadCache) _renderLeaderboardFromCache();
         };
 
@@ -7546,6 +7560,17 @@
         // cachea por sesion para no repetirlo al volver a entrar a la pestaña.
         let _rkConstanciaCache = null;
 
+        // Una sola lectura de la region para los dos rankings que la necesitan.
+        // Se cachea por sesion: son ~258 docs y 1.5 MB, y no cambia entre una
+        // tarjeta y la otra.
+        async function _rkCargarAgentes(dc) {
+            if (_rkConstanciaCache) return _rkConstanciaCache;
+            const snap = await getDocs(query(collection(db, 'users'),
+                where('directorCode', '==', dc)));
+            _rkConstanciaCache = snap.docs.map(d => ({ id: d.id, x: d.data() }));
+            return _rkConstanciaCache;
+        }
+
         async function renderConstancia() {
             const cont = document.getElementById('rk-constancia');
             if (!cont) return;
@@ -7562,11 +7587,7 @@
             const transcurridos = hoy.getDate();
 
             try {
-                if (!_rkConstanciaCache) {
-                    const snap = await getDocs(query(collection(db, 'users'),
-                        where('directorCode', '==', dc)));
-                    _rkConstanciaCache = snap.docs.map(d => ({ id: d.id, x: d.data() }));
-                }
+                await _rkCargarAgentes(dc);
                 const cal = getMonthCalendar(anio, mesNum);
                 const filas = [];
                 _rkConstanciaCache.forEach(({ id, x }) => {
@@ -7601,9 +7622,84 @@
             }
         }
 
+        // Totopos GANADOS en el periodo. Sale del mismo cache de agentes que la
+        // constancia, asi que no cuesta una lectura mas.
+        //
+        // Dos detalles del karmaLog: los cierres de dia guardan `date`
+        // ('2026-09-03') y los movimientos del director guardan `fecha` (ISO
+        // completo), asi que hay que mirar los dos campos. Y solo cuentan los
+        // POSITIVOS: los canjes dejan entradas negativas y restarlas convertiria
+        // este ranking en uno de saldo, que ya es el de mas abajo.
+        let _rkGanPeriodo = 'month';
+
+        window.switchGanadosPeriod = function (periodo) {
+            _rkGanPeriodo = periodo;
+            const mes = document.getElementById('rk-gan-mes');
+            const anio = document.getElementById('rk-gan-anio');
+            if (mes && anio) {
+                const on = periodo === 'month' ? mes : anio;
+                const off = periodo === 'month' ? anio : mes;
+                on.style.background = 'rgba(32, 85, 154, 0.18)';
+                on.style.color = 'var(--gold-l)';
+                on.style.fontWeight = '700';
+                off.style.background = 'transparent';
+                off.style.color = 'rgba(var(--vk), 0.6)';
+                off.style.fontWeight = '600';
+            }
+            renderGanados();
+        };
+
+        async function renderGanados() {
+            const cont = document.getElementById('rk-ganados');
+            if (!cont) return;
+            const dc = state.directorCode || '';
+            if (!dc) { cont.innerHTML = '<div class="empty-state"><i class="fa fa-circle-info"></i> Sin región configurada.</div>'; return; }
+
+            const hoy = serverNow || new Date();
+            const prefijo = _rkGanPeriodo === 'year'
+                ? String(hoy.getFullYear())
+                : hoy.getFullYear() + '-' + String(hoy.getMonth() + 1).padStart(2, '0');
+            const lbl = document.getElementById('rk-gan-label');
+            if (lbl) lbl.textContent = 'Los que más han ganado — ' +
+                (_rkGanPeriodo === 'year' ? String(hoy.getFullYear()) : MONTHS_ES[hoy.getMonth()].toLowerCase());
+
+            try {
+                await _rkCargarAgentes(dc);
+                const fechaDe = k => (typeof k.date === 'string' && k.date) ||
+                                     (typeof k.fecha === 'string' ? k.fecha.slice(0, 10) : '');
+                const filas = [];
+                _rkConstanciaCache.forEach(({ id, x }) => {
+                    if (!x.agentName || x.status === 'inactive') return;
+                    let total = 0;
+                    (x.karmaLog || []).forEach(k => {
+                        const pts = Number(k.points) || 0;
+                        if (pts <= 0) return;
+                        const f = fechaDe(k);
+                        if (f && f.startsWith(prefijo)) total += pts;
+                    });
+                    if (total > 0) filas.push({ email: id, nombre: x.agentName, total });
+                });
+                if (!filas.length) {
+                    cont.innerHTML = '<div class="empty-state"><i class="fa fa-circle-info"></i> Sin totopos ganados en el período.</div>';
+                    return;
+                }
+                filas.sort((a, b) => b.total - a.total ||
+                    a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
+                filas.forEach((f, i) => { f.pos = i + 1; });
+                const yo = (auth.currentUser && auth.currentUser.email) || '';
+                cont.innerHTML = _rkPintar(filas, yo, f =>
+                    '<span class="rk-val" style="color:var(--gold);"><svg class="totopo-icon"><use href="#totopo"/></svg> ' +
+                    f.total.toLocaleString('es-MX') + '</span>');
+            } catch (e) {
+                console.warn('[rank] ganados:', e && e.message);
+                cont.innerHTML = '<div class="empty-state"><i class="fa fa-circle-info"></i> No se pudo cargar.</div>';
+            }
+        }
+
         window.renderRankings = function () {
-            renderConstancia();
             renderMultTop10();
+            renderConstancia();
+            renderGanados();
             renderGastadores();
         };
 
