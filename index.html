@@ -556,7 +556,7 @@
 
         @media (max-width: 767px) {
             .tab-nav { display: none; }
-            body { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+            body { padding-bottom: calc(66px + max(10px, env(safe-area-inset-bottom, 0px))); }
         /* SIN backdrop-filter aqui. Sobre un fondo opaco el desenfoque no se
            ve —esta difuminando algo que ya esta tapado— pero fuerza a la
            barra a su propia capa de composicion, y eso es justo lo que
@@ -571,7 +571,7 @@
                 right: 0;
                 background: var(--nav);
                 border-top: 1px solid var(--border);
-                padding: 8px 4px calc(10px + env(safe-area-inset-bottom, 0px));
+                padding: 8px 4px max(10px, env(safe-area-inset-bottom, 0px));
                 z-index: 100;
             }
         }
@@ -1314,8 +1314,8 @@
                 /* dvh evita el salto al aparecer/ocultarse la barra del browser.
                    El 76px + safe-area es exactamente el alto del bottom nav, el
                    mismo valor que body usa en su padding-bottom. */
-                height: calc(100vh - 76px - env(safe-area-inset-bottom, 0px));
-                height: calc(100dvh - 76px - env(safe-area-inset-bottom, 0px));
+                height: calc(100vh - 66px - max(10px, env(safe-area-inset-bottom, 0px)));
+                height: calc(100dvh - 66px - max(10px, env(safe-area-inset-bottom, 0px)));
                 border: none;
                 border-radius: 0;
             }
@@ -3685,7 +3685,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.54.2';
+        window.APP_HTML_VERSION = 'v4.54.3';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
