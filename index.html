@@ -112,6 +112,17 @@
             /* Texto sobre relleno de marca (cobalto solido).
                NO voltea: el cobalto sigue siendo oscuro en los dos temas. */
             --on-brand: #FFFFFF;
+
+            /* Cuanto se separa la barra inferior del borde de abajo.
+               El indicador de gestos de iOS mide ~5px y vive a ~8px del borde,
+               asi que no hace falta reservarle los 34px enteros del safe-area:
+               con ~20px los botones quedan despegados sin dejar una banda
+               muerta. En un telefono sin indicador, 10px de siempre.
+
+               Sale a variable porque de esto dependen CUATRO reglas —el nav, lo
+               que el body reserva y las dos alturas del foro— y tenerlo repetido
+               ya obligo a tocarlas todas dos veces. */
+            --nav-bottom: max(10px, calc(env(safe-area-inset-bottom, 0px) - 14px));
         }
 
         /* ── Interruptor de tema ─────────────────────────────────────── */
@@ -556,7 +567,7 @@
 
         @media (max-width: 767px) {
             .tab-nav { display: none; }
-            body { padding-bottom: calc(66px + max(10px, env(safe-area-inset-bottom, 0px))); }
+            body { padding-bottom: calc(66px + var(--nav-bottom)); }
         /* SIN backdrop-filter aqui. Sobre un fondo opaco el desenfoque no se
            ve —esta difuminando algo que ya esta tapado— pero fuerza a la
            barra a su propia capa de composicion, y eso es justo lo que
@@ -571,7 +582,7 @@
                 right: 0;
                 background: var(--nav);
                 border-top: 1px solid var(--border);
-                padding: 8px 4px max(10px, env(safe-area-inset-bottom, 0px));
+                padding: 8px 4px var(--nav-bottom);
                 z-index: 100;
             }
         }
@@ -1314,8 +1325,8 @@
                 /* dvh evita el salto al aparecer/ocultarse la barra del browser.
                    El 76px + safe-area es exactamente el alto del bottom nav, el
                    mismo valor que body usa en su padding-bottom. */
-                height: calc(100vh - 66px - max(10px, env(safe-area-inset-bottom, 0px)));
-                height: calc(100dvh - 66px - max(10px, env(safe-area-inset-bottom, 0px)));
+                height: calc(100vh - 66px - var(--nav-bottom));
+                height: calc(100dvh - 66px - var(--nav-bottom));
                 border: none;
                 border-radius: 0;
             }
@@ -3685,7 +3696,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.54.3';
+        window.APP_HTML_VERSION = 'v4.54.4';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
