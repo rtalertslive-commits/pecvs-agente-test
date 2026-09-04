@@ -589,9 +589,16 @@
             transition: transform 0.15s ease;
         }
         .bottom-nav .bn-btn span {
-            font-size: 10px;
+            /* 7 botones: en un telefono de 360px son ~51px cada uno. A 10px con
+               letter-spacing, "Bitácora" no cabe y se parte en dos renglones,
+               que desalinea toda la barra. */
+            font-size: 9px;
             font-weight: 600;
-            letter-spacing: 0.2px;
+            letter-spacing: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
         }
         .bottom-nav .bn-btn.active { color: var(--gold); }
         .bottom-nav .bn-btn.active i { transform: scale(1.12); }
@@ -1382,6 +1389,32 @@
             margin-bottom: 14px; padding-bottom: 12px;
             border-bottom: 1px solid var(--border);
         }
+
+        /* ── Listas de ranking ──────────────────────────────────────────
+           Scroll propio por lista. Sin esto, tres listas de 150 agentes hacen
+           una pagina de scroll infinito donde nadie encuentra nada. */
+        .rk-lista {
+            display: flex; flex-direction: column; gap: 6px;
+            max-height: 380px; overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-right: 4px;
+        }
+        .rk-fila {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px 11px; border-radius: 8px;
+            background: rgba(var(--vk), 0.04); border: 1px solid var(--border);
+        }
+        .rk-fila.yo {
+            background: rgba(var(--amarillo-rgb), 0.12);
+            border-color: rgba(var(--amarillo-rgb), 0.45);
+        }
+        .rk-pos { width: 28px; text-align: center; font-size: 12px; font-weight: 800; color: var(--slate); flex-shrink: 0; }
+        .rk-nom { flex: 1; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .rk-fila.yo .rk-nom { font-weight: 900; color: var(--gold-l); }
+        .rk-val { font-size: 12px; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
+        /* Cuando el agente no entra en lo que se ve, se ancla su fila al final
+           para que no tenga que buscarse entre 150. */
+        .rk-yo-fijo { margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(var(--vk), 0.2); }
 
         /* ── Badges de rol ── */
         .rol-badge {
@@ -2305,6 +2338,7 @@
             <button class="tab-btn" data-tab="charts" onclick="switchTab('charts',this)"><i class="fa fa-chart-area"></i>
                 Tendencias</button>
             <button class="tab-btn" data-tab="tienda" onclick="switchTab('tienda',this)"><i class="fa fa-store"></i> Tienda</button>
+            <button class="tab-btn" data-tab="rankings" onclick="switchTab('rankings',this)"><i class="fa fa-ranking-star"></i> Rankings</button>
         </div>
 
         <!-- TAB: BITACORA -->
@@ -2597,6 +2631,47 @@
             </div>
         </div>
 
+
+        <!-- ═══════════════════ TAB: RANKINGS ═══════════════════
+             Los tres rankings de la region. Las listas NO se cortan en 10: cada
+             una trae su propio scroll y se puede recorrer entera. La fila del
+             propio agente se resalta y se anota su lugar, que es lo unico que
+             la mayoria viene a buscar. -->
+        <div id="tab-rankings" class="tab-panel">
+            <div class="card" style="margin-bottom:16px;">
+                <p class="card-title" style="margin:0 0 4px;"><i class="fa fa-calendar-check"></i> Los más constantes</p>
+                <p style="font-size:11px;color:var(--slate);margin:0 0 12px;">
+                    Días reportados de <span id="rk-mes-const">este mes</span>, contra los días que ya pasaron.
+                    Reportar todos los días es lo único que depende sólo de ti.
+                </p>
+                <div id="rk-constancia" class="rk-lista">
+                    <div class="empty-state"><i class="fa fa-spinner fa-spin"></i> Cargando...</div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom:16px;">
+                <p class="card-title" style="margin:0 0 4px;"><i class="fa fa-bolt"></i> <span id="mult-top-titulo">Multiplicadores activos</span></p>
+                <p style="font-size:11px;color:var(--slate);margin:0 0 12px;">Los que más multiplican su día este mes en tu región.</p>
+                <div id="mult-top10" class="rk-lista">
+                    <div class="empty-state"><i class="fa fa-spinner fa-spin"></i> Cargando...</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
+                    <p class="card-title" style="margin:0;">🏆 <span id="lb-period-label">Top del mes</span></p>
+                    <div id="lb-period-toggle" style="display:flex; gap:4px; background:rgba(var(--vk), 0.04); border: 1px solid var(--border); border-radius:8px; padding:3px;">
+                        <button id="lb-btn-month" onclick="switchLeaderboardPeriod('month')" style="padding:5px 14px; background:rgba(32, 85, 154, 0.18); border:none; border-radius:8px; color:var(--gold-l); font-weight:700; font-size:12px; cursor:pointer;">Mes</button>
+                        <button id="lb-btn-year" onclick="switchLeaderboardPeriod('year')" style="padding:5px 14px; background:transparent; border:none; border-radius:8px; color:rgba(var(--vk), 0.6); font-weight:600; font-size:12px; cursor:pointer;">Año</button>
+                    </div>
+                </div>
+                <p style="font-size:11px;color:var(--slate);margin:0 0 12px;">Los agentes que más gastaron en tu región.</p>
+                <div id="tienda-leaderboard" class="rk-lista">
+                    <div class="empty-state"><i class="fa fa-spinner fa-spin"></i> Cargando...</div>
+                </div>
+            </div>
+        </div>
+
         <!-- ═══════════════════ TAB: TIENDA ═══════════════════ -->
         <div id="tab-tienda" class="tab-panel">
             <!-- Sub-tabs -->
@@ -2630,27 +2705,6 @@
             <!-- Sub-view: ACTIVIDAD (feed + leaderboard) -->
             <div id="ts-view-actividad" style="display:none;">
 
-                <!-- Top 10 de multiplicadores del mes en curso -->
-                <div class="card" style="margin-bottom:16px;">
-                    <p class="card-title" style="margin:0 0 4px;"><i class="fa fa-bolt"></i> <span id="mult-top-titulo">Multiplicadores activos</span></p>
-                    <p style="font-size:11px;color:var(--slate);margin:0 0 12px;">Los 10 que más multiplican su día este mes en tu región.</p>
-                    <div id="mult-top10" style="display:flex;flex-direction:column;gap:6px;">
-                        <div class="empty-state"><i class="fa fa-spinner fa-spin"></i> Cargando...</div>
-                    </div>
-                </div>
-                <div class="card" style="margin-bottom:16px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
-                        <p class="card-title" style="margin:0;">🏆 <span id="lb-period-label">Top del mes</span></p>
-                        <div id="lb-period-toggle" style="display:flex; gap:4px; background:rgba(var(--vk), 0.04); border: 1px solid var(--border); border-radius:8px; padding:3px;">
-                            <button id="lb-btn-month" onclick="switchLeaderboardPeriod('month')" style="padding:5px 14px; background:rgba(32, 85, 154, 0.18); border:none; border-radius:8px; color:var(--gold-l); font-weight:700; font-size:12px; cursor:pointer;">Mes</button>
-                            <button id="lb-btn-year" onclick="switchLeaderboardPeriod('year')" style="padding:5px 14px; background:transparent; border:none; border-radius:8px; color:rgba(var(--vk), 0.6); font-weight:600; font-size:12px; cursor:pointer;">Año</button>
-                        </div>
-                    </div>
-                    <p style="font-size:11px;color:var(--slate);margin:0 0 12px;">Los agentes que más gastaron en tu región.</p>
-                    <div id="tienda-leaderboard" style="display:flex;flex-direction:column;gap:6px;">
-                        <div class="empty-state"><i class="fa fa-spinner fa-spin"></i> Cargando...</div>
-                    </div>
-                </div>
                 <div class="card">
                     <p class="card-title">🔥 Compras recientes</p>
                     <p style="font-size:11px;color:var(--slate);margin-bottom:12px;">Lo que estaban canjeando otros agentes de tu región.</p>
@@ -2684,6 +2738,10 @@
         <button class="bn-btn" data-tab="tienda" onclick="switchTab('tienda',this)">
             <i class="fa fa-store"></i>
             <span>Tienda</span>
+        </button>
+        <button class="bn-btn" data-tab="rankings" onclick="switchTab('rankings',this)">
+            <i class="fa fa-ranking-star"></i>
+            <span>Ranking</span>
         </button>
         <!-- El Foro es un MODAL, no una pestaña: por eso llama a openForo() y no
              a switchTab(), y va sin data-tab. Al no tener data-tab nunca recibe
@@ -3543,7 +3601,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.49.0';
+        window.APP_HTML_VERSION = 'v4.50.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -4319,6 +4377,8 @@
         // El filtro por `multiplier.month` es lo que hace que la lista sea de
         // ACTIVOS y no de historicos: un multiplicador ganado en junio sigue
         // en el documento, pero ya no paga.
+        // Sin limite: se pidio poder recorrer la lista completa. El limit(10)
+        // se quito y el scroll lo maneja .rk-lista.
         async function renderMultTop10() {
             const cont = document.getElementById('mult-top10');
             if (!cont) return;
@@ -4336,8 +4396,7 @@
                     where('directorCode', '==', dc),
                     where('multiplier.month', '==', mesKey),
                     where('multiplier.earned', '==', true),
-                    orderBy('multiplier.bonusPct', 'desc'),
-                    limit(10)));
+                    orderBy('multiplier.bonusPct', 'desc')));
 
                 if (snap.empty) {
                     cont.innerHTML = '<div class="empty-state"><i class="fa fa-circle-info"></i> Todavía nadie tiene multiplicador activo este mes.</div>';
@@ -4345,29 +4404,40 @@
                 }
                 const base = (pointsConfig && pointsConfig.agentDailyPoints) || 10;
                 const yo = (auth.currentUser && auth.currentUser.email) || '';
-                const medalla = i => (i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + '.');
-
-                cont.innerHTML = snap.docs.map((d, i) => {
+                const filas = snap.docs.map((d, i) => {
                     const x = d.data(), m = x.multiplier || {};
-                    const vale = Math.round(base * (1 + (Number(m.bonusPct) || 0) / 100));
-                    const soyYo = d.id === yo;
-                    return `
-                    <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;
-                                background:${soyYo ? 'rgba(var(--amarillo-rgb), 0.12)' : 'rgba(var(--vk), 0.04)'};
-                                border:1px solid ${soyYo ? 'rgba(var(--amarillo-rgb), 0.45)' : 'var(--border)'};">
-                        <span style="width:26px;text-align:center;font-size:13px;font-weight:800;color:var(--slate);">${medalla(i)}</span>
-                        <span style="flex:1;font-size:12.5px;font-weight:${soyYo ? '900' : '600'};color:${soyYo ? 'var(--gold-l)' : 'var(--white)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-                            ${escapeHtml(x.agentName || d.id)}${soyYo ? ' <span style="font-size:10px;">(tú)</span>' : ''}
-                        </span>
-                        <span style="font-size:11px;color:var(--slate);white-space:nowrap;">${m.daysReported || 0}/${m.daysInMonth || 0} días</span>
-                        <span class="mult-chip-demo" style="padding:3px 10px;"><i class="fa fa-bolt"></i> <b>${vale}</b></span>
-                    </div>`;
-                }).join('');
+                    return { email: d.id, nombre: x.agentName || d.id, pos: i + 1,
+                             bonusPct: Number(m.bonusPct) || 0,
+                             dias: (m.daysReported || 0) + '/' + (m.daysInMonth || 0),
+                             vale: Math.round(base * (1 + (Number(m.bonusPct) || 0) / 100)) };
+                });
+                cont.innerHTML = _rkPintar(filas, yo, f =>
+                    '<span class="rk-val" style="color:var(--slate);font-weight:600;">' + f.dias + ' días</span>' +
+                    '<span class="mult-chip-demo" style="padding:3px 10px;"><i class="fa fa-bolt"></i> <b>' + f.vale + '</b></span>');
             } catch (e) {
-                console.warn('[mult] top10:', e && e.message);
+                console.warn('[mult] top:', e && e.message);
                 cont.innerHTML = '<div class="empty-state"><i class="fa fa-circle-info"></i> No se pudo cargar el top de multiplicadores.</div>';
             }
         }
+
+        // Pinta una lista de ranking. `filas` trae {email, nombre, pos} y `extra`
+        // devuelve el HTML de la derecha. Si el agente no cae dentro de los
+        // primeros 30, su fila se ancla al final: buscarse entre 150 no es
+        // razonable, y su lugar es justo lo que viene a ver.
+        function _rkPintar(filas, yo, extra) {
+            const medalla = p => (p === 1 ? '🥇' : p === 2 ? '🥈' : p === 3 ? '🥉' : p + '.');
+            const fila = (f, fijo) =>
+                '<div class="rk-fila' + (f.email === yo ? ' yo' : '') + (fijo ? ' rk-yo-fijo' : '') + '">' +
+                '<span class="rk-pos">' + medalla(f.pos) + '</span>' +
+                '<span class="rk-nom">' + escapeHtml(f.nombre) + (f.email === yo ? ' (tú)' : '') + '</span>' +
+                extra(f) + '</div>';
+            const visibles = filas.slice(0, 30);
+            let html = visibles.map(f => fila(f, false)).join('');
+            const mio = filas.find(f => f.email === yo);
+            if (mio && !visibles.some(f => f.email === yo)) html += fila(mio, true);
+            return html;
+        }
+
 
 
         // ─── TEMA CLARO / OSCURO ─────────────────────────────────────────
@@ -7369,7 +7439,7 @@
                     }
                 }
             });
-            if (which === 'actividad') { renderActividadTab(); renderMultTop10(); }
+            if (which === 'actividad') { renderActividadTab(); }
             if (which === 'solicitudes') renderMisSolicitudes();
             if (which === 'comprar') renderTiendaItems();
         };
@@ -7419,16 +7489,16 @@
         // Carga las solicitudes aprobadas de toda la región y renderiza:
         //   1) Leaderboard top 5 gastadores del período elegido (mes o año)
         //   2) Feed cronológico de las últimas 20 compras aprobadas
+        // Solo el feed de compras recientes. Los dos rankings que vivian aqui
+        // se movieron a la pestaña Rankings, y tocar sus contenedores desde aca
+        // escribiria dentro de esa pestaña sin que nadie lo pidiera.
         async function renderActividadTab() {
             const feedEl = document.getElementById('tienda-feed');
-            const lbEl   = document.getElementById('tienda-leaderboard');
             if (!user || !state.directorCode) {
                 if (feedEl) feedEl.innerHTML = '<div class="empty-state"><i class="fa fa-circle-info"></i> Sin director asignado aún.</div>';
-                if (lbEl)   lbEl.innerHTML   = '';
                 return;
             }
             if (feedEl) feedEl.innerHTML = '<div class="empty-state"><i class="fa fa-spinner fa-spin"></i> Cargando...</div>';
-            if (lbEl)   lbEl.innerHTML   = '<div class="empty-state"><i class="fa fa-spinner fa-spin"></i> Cargando...</div>';
             try {
                 const q = query(
                     collection(db, 'redemptionRequests'),
@@ -7462,12 +7532,106 @@
                         : '<div class="empty-state"><i class="fa fa-inbox"></i> Sin compras aprobadas en tu región todavía.</div>';
                 }
 
-                _renderLeaderboardFromCache();
             } catch (e) {
                 console.error('[actividad]', e);
                 if (feedEl) feedEl.innerHTML = '<div class="empty-state">Error cargando actividad.</div>';
-                if (lbEl)   lbEl.innerHTML   = '';
             }
+        }
+
+        // ─── RANKINGS ────────────────────────────────────────────────────
+        // Constancia del MES EN CURSO. No se puede sacar de multiplier.daysReported
+        // porque ese campo es del mes pasado, que es contra el que se otorgo.
+        // Hay que contar los dias reportados leyendo las bitacoras de la region:
+        // son ~258 documentos y 1.5 MB, que un telefono aguanta de sobra, y se
+        // cachea por sesion para no repetirlo al volver a entrar a la pestaña.
+        let _rkConstanciaCache = null;
+
+        async function renderConstancia() {
+            const cont = document.getElementById('rk-constancia');
+            if (!cont) return;
+            const dc = state.directorCode || '';
+            if (!dc) { cont.innerHTML = '<div class="empty-state"><i class="fa fa-circle-info"></i> Sin región configurada.</div>'; return; }
+
+            const hoy = serverNow || new Date();
+            const anio = hoy.getFullYear(), mesNum = hoy.getMonth() + 1;
+            const mesNombre = MONTHS_ES[hoy.getMonth()] + ' ' + anio;
+            const lbl = document.getElementById('rk-mes-const');
+            if (lbl) lbl.textContent = MONTHS_ES[hoy.getMonth()].toLowerCase();
+            // El denominador son los dias YA TRANSCURRIDOS, no los del mes: a
+            // mitad de mes, medir contra 30 hace que todos se vean mal.
+            const transcurridos = hoy.getDate();
+
+            try {
+                if (!_rkConstanciaCache) {
+                    const snap = await getDocs(query(collection(db, 'users'),
+                        where('directorCode', '==', dc)));
+                    _rkConstanciaCache = snap.docs.map(d => ({ id: d.id, x: d.data() }));
+                }
+                const cal = getMonthCalendar(anio, mesNum);
+                const filas = [];
+                _rkConstanciaCache.forEach(({ id, x }) => {
+                    if (!x.agentName || x.status === 'inactive') return;
+                    const dias = new Set();
+                    (x.entries || []).filter(e => String(e.mes || '').trim() === mesNombre).forEach(e => {
+                        const semana = cal[parseInt(e.semana) - 1] || [];
+                        (e.dias || []).forEach(d => {
+                            const info = semana.find(w => w.dayName === d.dia);
+                            if (!info || info.date > transcurridos) return;
+                            const dd = { P: Number(d.P) || 0, E: Number(d.E) || 0, C: Number(d.C) || 0,
+                                         V: Number(d.V) || 0, S: Number(d.S) || 0, prima: parseFloat(d.prima) || 0 };
+                            const hay = (dd.P + dd.E + dd.C + dd.V + dd.S) > 0 || dd.prima > 0;
+                            if (d.sinActividad === true || (hay && validateDay(dd).ok)) dias.add(info.date);
+                        });
+                    });
+                    filas.push({ email: id, nombre: x.agentName, dias: dias.size });
+                });
+                if (!filas.length) { cont.innerHTML = '<div class="empty-state"><i class="fa fa-circle-info"></i> Sin datos todavía.</div>'; return; }
+
+                filas.sort((a, b) => b.dias - a.dias || a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
+                filas.forEach((f, i) => { f.pos = i + 1; });
+                const yo = (auth.currentUser && auth.currentUser.email) || '';
+                cont.innerHTML = _rkPintar(filas, yo, f => {
+                    const pleno = f.dias >= transcurridos;
+                    return '<span class="rk-val" style="color:' + (pleno ? 'var(--green)' : 'var(--slate)') + ';">' +
+                           (pleno ? '🔥 ' : '') + f.dias + '/' + transcurridos + '</span>';
+                });
+            } catch (e) {
+                console.warn('[rank] constancia:', e && e.message);
+                cont.innerHTML = '<div class="empty-state"><i class="fa fa-circle-info"></i> No se pudo cargar.</div>';
+            }
+        }
+
+        window.renderRankings = function () {
+            renderConstancia();
+            renderMultTop10();
+            renderGastadores();
+        };
+
+        // El top de gastadores vive de las mismas solicitudes aprobadas que el
+        // feed de la Tienda. Se separo para que Rankings no dependa de haber
+        // entrado antes a la Tienda.
+        async function renderGastadores() {
+            const lbEl = document.getElementById('tienda-leaderboard');
+            if (!lbEl) return;
+            if (!user || !state.directorCode) {
+                lbEl.innerHTML = '<div class="empty-state"><i class="fa fa-circle-info"></i> Sin director asignado aún.</div>';
+                return;
+            }
+            if (!_actividadCache) {
+                lbEl.innerHTML = '<div class="empty-state"><i class="fa fa-spinner fa-spin"></i> Cargando...</div>';
+                try {
+                    const snap = await getDocs(query(collection(db, 'redemptionRequests'),
+                        where('directorCode', '==', state.directorCode),
+                        where('status', '==', 'approved')));
+                    _actividadCache = snap.docs.map(d => d.data())
+                        .sort((a, b) => (b.fechaResolucion || '').localeCompare(a.fechaResolucion || ''));
+                } catch (e) {
+                    console.error('[rank] gastadores', e);
+                    lbEl.innerHTML = '<div class="empty-state">Error cargando.</div>';
+                    return;
+                }
+            }
+            _renderLeaderboardFromCache();
         }
 
         // Renderiza el leaderboard usando _actividadCache según _actividadPeriod.
@@ -7491,11 +7655,10 @@
                 byEmail[email].total += spent;
             });
             const ranking = Object.values(byEmail).sort((a, b) => b.total - a.total);
-            const top5 = ranking.slice(0, 5).map((r, i) => ({ ...r, position: i + 1 }));
-            const myIdx = ranking.findIndex(r => r.email === user.email);
-            if (myIdx >= 5) {
-                top5.push({ ...ranking[myIdx], position: myIdx + 1, _separator: true });
-            }
+            // Antes se cortaba en 5. Ahora va la lista completa y el scroll lo
+            // maneja .rk-lista; _rkPintar ancla la fila propia si queda fuera
+            // de lo que se ve de entrada.
+            const top5 = ranking.map((r, i) => ({ ...r, position: i + 1 }));
             const medals = { 1: '🥇', 2: '🥈', 3: '🥉' };
             const emptyMsg = _actividadPeriod === 'year'
                 ? 'Sin gastos en lo que va del año.'
@@ -7718,6 +7881,7 @@
             if (name === 'kpis') renderKPIs();
             if (name === 'charts') renderCharts();
             if (name === 'tienda') window.initAgenteTienda();
+            if (name === 'rankings') window.renderRankings();
         }
 
         window.openConfig = function () {
