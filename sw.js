@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pecvs-agent-testnet-v4.54.4';
+const CACHE_NAME = 'pecvs-agent-testnet-v4.54.5';
 // Los iconos llevan sufijo -v2 A PROPOSITO. Chrome decide si tiene que
 // regenerar el WebAPK comparando los campos del manifest, y para los iconos
 // compara la URL, NO el contenido: dejarlos con el mismo nombre y cambiarles
