@@ -18,19 +18,22 @@
 
     <!-- PWA / Mobile Web App Meta -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#071D49">
+    <meta name="theme-color" content="#20559A">
     <script>
-        /* Tema, aplicado antes del primer pixel. El script de la app es
-           type="module" y por lo tanto diferido: aplicarlo alla haria que la
-           pantalla arrancara oscura y saltara a clara a la vista del agente. */
+        /* ══ TEMA OSCURO DESHABILITADO ═══════════════════════════════════
+           Se decidio dejar solo el claro POR AHORA. No se borro nada: los
+           tokens y las reglas del tema oscuro siguen enteros en la hoja, y
+           volver a habilitarlo es deshacer estos tres puntos:
+
+             1. este script (que antes leia pecvsTemaActivo),
+             2. _ponerTema, que ahora ignora lo que le pidan,
+             3. la clase .tema-row, escondida con display:none.
+
+           El atributo se pone aqui y no en el modulo de la app porque ese va
+           diferido: la pantalla arrancaria oscura y saltaria a clara a la
+           vista del agente. */
         (function () {
-            var t;
-            try { t = localStorage.getItem('pecvsTemaActivo'); } catch (e) {}
-            if (t === 'claro') {
-                document.documentElement.setAttribute('data-tema', 'claro');
-                var m = document.querySelector('meta[name="theme-color"]');
-                if (m) m.setAttribute('content', '#20559A');
-            }
+            document.documentElement.setAttribute('data-tema', 'claro');
         })();
     </script>
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -109,7 +112,10 @@
 
         /* ── Interruptor de tema ─────────────────────────────────────── */
         .tema-row {
-            display: flex; align-items: center; gap: 9px;
+            /* TEMA OSCURO DESHABILITADO: no tiene sentido ofrecer un cambio
+               que no cambia nada. Quitar este display:none para devolverlo. */
+            display: none !important;
+            align-items: center; gap: 9px;
             padding: 9px 13px; margin-bottom: 13px;
             background: var(--panel); border: 1px solid var(--border);
             border-radius: 24px;
@@ -3641,7 +3647,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.52.0';
+        window.APP_HTML_VERSION = 'v4.53.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -4483,12 +4489,16 @@
         // ─── TEMA CLARO / OSCURO ─────────────────────────────────────────
         // El cambio es solo de tokens: ninguna regla concreta sabe de temas.
         // Los velos van en rgba(var(--vk), a), asi que voltean solos.
+        // Mientras el oscuro este deshabilitado esto no hace nada. Se deja en
+        // pie porque el pincel (?editar=1) tiene un boton que la llama.
         window.alternarTema = function () {
-            const claro = document.documentElement.getAttribute('data-tema') === 'claro';
-            _ponerTema(claro ? 'oscuro' : 'claro');
+            _ponerTema('claro');
         };
 
         function _ponerTema(t) {
+            // TEMA OSCURO DESHABILITADO: se ignora lo que pidan y se fuerza el
+            // claro. Cuando se vuelva a habilitar, restituir el `t` original.
+            t = 'claro';
             const raiz = document.documentElement;
             if (t === 'claro') raiz.setAttribute('data-tema', 'claro');
             else raiz.removeAttribute('data-tema');
