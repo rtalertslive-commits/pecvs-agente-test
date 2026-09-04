@@ -3083,7 +3083,7 @@
     </div>
 
     <!-- REGISTER OVERLAY -->
-    <div id="register-overlay" style="display:none; position:fixed; inset:0; background:radial-gradient(circle at top right,#F4F7FB,#FFFFFF); z-index:10001; align-items:center; justify-content:center; flex-direction:column; padding:20px;">
+    <div id="register-overlay" style="display:none; position:fixed; inset:0; background:var(--panel2); z-index:10001; align-items:center; justify-content:center; flex-direction:column; padding:20px;">
         <div class="login-card" style="max-width:420px;">
             <div style="font-size:40px; margin-bottom:16px;">📝</div>
             <h2 style="color:var(--gold); font-family:'Source Sans Pro',sans-serif; margin-bottom:8px;">Solicitar Acceso</h2>
@@ -3115,7 +3115,7 @@
     </div>
 
     <!-- PENDING OVERLAY -->
-    <div id="pending-overlay" style="display:none; position:fixed; inset:0; background:radial-gradient(circle at top right,#F4F7FB,#FFFFFF); z-index:10001; align-items:center; justify-content:center; flex-direction:column; padding:20px;">
+    <div id="pending-overlay" style="display:none; position:fixed; inset:0; background:var(--panel2); z-index:10001; align-items:center; justify-content:center; flex-direction:column; padding:20px;">
         <div class="login-card" style="max-width:400px;">
             <div style="font-size:50px; margin-bottom:16px;">⏳</div>
             <h2 style="color:var(--orange); font-family:'Source Sans Pro',sans-serif; margin-bottom:8px;">Solicitud Pendiente</h2>
@@ -3125,7 +3125,7 @@
     </div>
 
     <!-- REVOKED OVERLAY -->
-    <div id="revoked-overlay" style="display:none; position:fixed; inset:0; background:radial-gradient(circle at top right,#F4F7FB,#FFFFFF); z-index:10001; align-items:center; justify-content:center; flex-direction:column; padding:20px;">
+    <div id="revoked-overlay" style="display:none; position:fixed; inset:0; background:var(--panel2); z-index:10001; align-items:center; justify-content:center; flex-direction:column; padding:20px;">
         <div class="login-card" style="max-width:400px;">
             <div style="font-size:50px; margin-bottom:16px;">🚫</div>
             <h2 style="color:var(--red); font-family:'Source Sans Pro',sans-serif; margin-bottom:8px;">Acceso Revocado</h2>
@@ -3383,6 +3383,32 @@
         :root[data-tema="claro"] #install-btn span:nth-child(2) { color: #9c8307 !important; border-color: #cccccc !important; }
         :root[data-tema="claro"] #install-btn { color: #000000 !important; }
         :root[data-tema="claro"] #login-overlay div.login-card { color: #ffc2c2 !important; }
+
+        /* ── REGISTRO, PENDIENTE Y BAJA ────────────────────────────────────
+           Los tres overlays traian el fondo clavado en un degradado blanco
+           (#F4F7FB -> #FFFFFF) para los DOS temas. El de login tenia una regla
+           que lo corregia; estos tres nunca la recibieron, asi que el texto
+           pensado para fondo oscuro —el titulo en --gold, las etiquetas en
+           --slate— quedaba sobre blanco y no se leia.
+
+           Se alinean con el login: mismo fondo de overlay y misma tarjeta.
+           NO se copia el color #ffc2c2 de la regla de arriba: ese rosa palido
+           sobre papel claro da 1.1:1 y es un error de una tanda vieja que aqui
+           no hay por que repetir. */
+        #register-overlay, #pending-overlay, #revoked-overlay {
+            background: var(--panel2) !important;
+        }
+        #register-overlay div.login-card,
+        #pending-overlay div.login-card,
+        #revoked-overlay div.login-card {
+            color: var(--white) !important;
+            background: var(--bg) !important;
+        }
+        :root[data-tema="claro"] #register-overlay,
+        :root[data-tema="claro"] #pending-overlay,
+        :root[data-tema="claro"] #revoked-overlay {
+            background: #133971 !important;
+        }
         /* Aqui habia una regla que ponia #m-tt-$ en #2f5291 — azul oscuro sobre
            la tarjeta cobalto, 1.0:1. Se retira porque contradice lo pedido
            despues: que la cifra vaya del mismo blanco que su etiqueta. Estaba
@@ -3615,7 +3641,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.51.0';
+        window.APP_HTML_VERSION = 'v4.52.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
