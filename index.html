@@ -3,7 +3,11 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- viewport-fit=cover es lo que hace que env(safe-area-inset-*) valga algo.
+         Sin el resuelven a 0, y la franja Oxford de la barra de estado medía
+         cero pixeles: nunca se dibujo. El resto del layout ya lo esperaba —el
+         nav de abajo, el body y la cabecera del foro ya suman sus insets. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Actividad — Registro Profesional</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
@@ -3681,7 +3685,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.54.1';
+        window.APP_HTML_VERSION = 'v4.54.2';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
