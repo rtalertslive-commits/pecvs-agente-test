@@ -3543,7 +3543,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.48.0';
+        window.APP_HTML_VERSION = 'v4.49.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -6378,10 +6378,20 @@
         // recorre varios meses de una sola pasada y julio no puede cobrar el
         // multiplicador de agosto por contagio.
         function _multBonusFor(dateKey) {
-            const mx = state.multiplier;
-            if (!mx || mx.earned !== true) return 0;
-            if (typeof mx.month !== 'string' || typeof dateKey !== 'string') return 0;
-            return dateKey.startsWith(mx.month) ? (Number(mx.bonusPct) || 0) / 100 : 0;
+            if (typeof dateKey !== 'string') return 0;
+            const sirve = m => m && m.earned === true && typeof m.month === 'string' &&
+                               m.month && dateKey.startsWith(m.month);
+            // El multiplicador VIGENTE, para los dias del mes que paga.
+            if (sirve(state.multiplier)) return (Number(state.multiplier.bonusPct) || 0) / 100;
+            // Y el ANTERIOR, para los dias del mes que ya cerro.
+            //
+            // Un dia se paga al dia siguiente y solo cuando el agente abre la app.
+            // Si el director re-otorga el dia 1 por la tarde y el agente abre en la
+            // noche, el ultimo dia del mes pasado todavia estaba sin pagar y se
+            // cobraba contra el multiplicador NUEVO: la fecha no empieza con el mes
+            // nuevo, asi que salia sin bono. En mainnet le paso a 8 agentes.
+            if (sirve(state.multiplierPrev)) return (Number(state.multiplierPrev.bonusPct) || 0) / 100;
+            return 0;
         }
 
         // Cuanto vale un dia reportado en esa fecha, ya multiplicado.
