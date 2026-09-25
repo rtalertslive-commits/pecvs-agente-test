@@ -3710,7 +3710,22 @@
         :root[data-tema="claro"] .foro-area {
             background: rgba(233, 238, 245, .6);
         }
-    </style>
+    
+        /* ── Fila de totopos en telefono ──
+           Totopos + multiplicador + BONO! no caben en un renglon a 360-412 px
+           con el tamaño de escritorio (el peor caso, "sin multiplicador" con
+           saldo de 5 cifras, pide ~417 px). Se compactan separacion, relleno
+           y letra; los textos no cambian. */
+        @media (max-width: 480px) {
+            .header .row-info { gap: 6px; }
+            .header #mult-badge,
+            .header #bono-badge { margin-left: 0; padding: 4px 8px; font-size: 10.5px; gap: 3px; }
+            .header #mult-badge b { font-size: 13px; }
+            .header #bono-badge { letter-spacing: 0; }
+            .header #karma-badge { padding: 4px 7px 4px 6px; gap: 4px; }
+            .header #karma-badge .karma-lbl { letter-spacing: .2px; }
+        }
+</style>
 
     <div id="karma-celebration">
         <div id="karma-particles"></div>
@@ -3736,7 +3751,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.57.0';
+        window.APP_HTML_VERSION = 'v4.58.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
