@@ -3774,7 +3774,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.60.0';
+        window.APP_HTML_VERSION = 'v4.61.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -8934,10 +8934,11 @@
         // Las reglas y las semanas del año con su resultado. Fuentes:
         //  - ganada: una entrada { type:'bono_semanal', semana } en el karmaLog
         //    del agente, que es lo que escribe el director al pagar.
-        //  - con resultados: pointsConfig.bonoSubidas, la lista de semanas que
-        //    el director ya subio. Sin esto no se distingue "perdida" de
+        //  - con resultados: config/{dc}_bono.subidas, las semanas que el
+        //    director ya subio. Sin esto no se distingue "perdida" de
         //    "todavia no hay resultados".
-        //  - la meta y los totopos: pointsConfig.bonoMeta / bonoTotopos.
+        //  - la meta y los totopos: config/{dc}_bono.meta / .totopos.
+        // Es un doc por region: en mainnet la config de puntos es compartida.
         // Misma numeracion ISO que el director: la clave es '2026-W38'.
         function _bonoSemanasAgente(anio) {
             const ene4 = new Date(anio, 0, 4);
@@ -8980,17 +8981,23 @@
             return { anio, semanas };
         }
 
+        let _bonoCfg = null;
         window.openBonoModal = async function () {
             document.getElementById('bono-modal').classList.add('open');
-            _pintarBono();
-            // La config se cargo al abrir la app; se relee por si el director
-            // subio una semana mientras tanto.
+            // La primera vez se espera la config (sin ella las reglas saldrian
+            // con numeros por defecto); despues se pinta lo que ya habia y se
+            // relee por si el director subio una semana mientras tanto.
+            if (_bonoCfg) _pintarBono();
+            else document.getElementById('bono-body').innerHTML = '<div class="empty-state"><i class="fa fa-spinner fa-spin"></i> Cargando…</div>';
             try {
                 const dc = state.directorCode;
-                if (!dc) return;
-                const s = await getDoc(doc(db, 'config', `${dc}_pointsConfig`));
-                if (s.exists()) { pointsConfig = { ...pointsConfig, ...s.data() }; _pintarBono(); }
+                if (dc) {
+                    const s = await getDoc(doc(db, 'config', `${dc}_bono`));
+                    _bonoCfg = s.exists() ? s.data() : {};
+                }
             } catch (e) { console.warn('[bono] config:', e && e.message); }
+            if (!_bonoCfg) _bonoCfg = {};
+            _pintarBono();
         };
 
         window.closeBonoModal = function () {
@@ -9000,10 +9007,11 @@
         function _pintarBono() {
             const cont = document.getElementById('bono-body');
             if (!cont) return;
-            const meta = Number(pointsConfig && pointsConfig.bonoMeta) || 2000;
-            const tot  = Number(pointsConfig && pointsConfig.bonoTotopos) || 10;
+            const cfg  = _bonoCfg || {};
+            const meta = Number(cfg.meta) || 2000;
+            const tot  = Number(cfg.totopos) || 10;
             const { anio, semanas } = _bonoEstados(serverNow || new Date(), state.karmaLog,
-                                                   pointsConfig && pointsConfig.bonoSubidas, state.approvedAt);
+                                                   cfg.subidas, state.approvedAt);
             const nGan = semanas.filter(s => s.est === 'ganada').length;
             const nPer = semanas.filter(s => s.est === 'perdida').length;
             const ptsAnio = semanas.reduce((a, s) => a + s.pts, 0);
