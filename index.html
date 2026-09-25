@@ -3705,7 +3705,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.55.0';
+        window.APP_HTML_VERSION = 'v4.56.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -7289,6 +7289,16 @@
             if (!entries || !entries.length) return '';
             const grants = entries.filter(e => e.type === 'manual_grant');
             const dayCloses = entries.filter(e => !e.type);
+            // Bono semanal: no es regalo, es resultado. Sin este caso caia en el
+            // mensaje generico de "regalos del director".
+            const bonos = entries.filter(e => e.type === 'bono_semanal');
+            if (bonos.length) {
+                if (!grants.length && !dayCloses.length) {
+                    return bonos.length === 1 ? '🏆 Cumpliste tu bono semanal' : `🏆 Cumpliste ${bonos.length} bonos semanales`;
+                }
+                return 'Por ' + [dayCloses.length && 'tu actividad', 'tu bono semanal', grants.length && 'regalos del director']
+                    .filter(Boolean).join(', ').replace(/, ([^,]*)$/, ' y $1');
+            }
             if (grants.length === 0 && dayCloses.length > 0) {
                 return 'Por reportar tu actividad';
             }
