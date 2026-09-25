@@ -2420,7 +2420,8 @@
                      aria-label="Ver de dónde sale tu multiplicador" title="Toca para ver de dónde sale"
                      style="display:none;"></div>
                 <div id="bono-badge" onclick="openBonoModal()" role="button" tabindex="0"
-                     aria-label="Ver tu bono semanal" title="Toca para ver tu bono semanal">
+                     aria-label="Ver tu bono semanal" title="Toca para ver tu bono semanal"
+                     style="display:none;">
                     <i class="fa fa-trophy"></i> BONO!
                 </div>
             </div>
@@ -3774,7 +3775,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.61.0';
+        window.APP_HTML_VERSION = 'v4.62.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -5886,6 +5887,8 @@
                         // Iniciar listener de anuncios para mantener badge y modal actualizados
                         startAnunciosListener();
                         applyFeatureGlows();
+                // BONO! solo si la region ya tiene su bono configurado.
+                _bonoMostrarBoton().catch(err => console.warn('[bono] boton:', err));
                 // Punto rojo del foro. Va despues de loadFromCloud porque
                 // necesita state.directorCode, y no se espera: si tarda o
                 // falla, la app ya esta pintada y usable.
@@ -8982,6 +8985,20 @@
         }
 
         let _bonoCfg = null;
+
+        // El boton solo aparece si la region tiene config/{dc}_bono, o sea si
+        // su director ya configuro el bono. Sin esto, una region sin bono veria
+        // el boton brillando con reglas por defecto que nadie le prometio.
+        async function _bonoMostrarBoton() {
+            const dc = state.directorCode;
+            if (!dc) return;
+            const s = await getDoc(doc(db, 'config', `${dc}_bono`));
+            if (!s.exists()) return;
+            _bonoCfg = s.data();
+            const b = document.getElementById('bono-badge');
+            if (b) b.style.display = '';
+        }
+
         window.openBonoModal = async function () {
             document.getElementById('bono-modal').classList.add('open');
             // La primera vez se espera la config (sin ella las reglas saldrian
