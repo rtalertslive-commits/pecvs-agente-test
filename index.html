@@ -3751,7 +3751,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.58.0';
+        window.APP_HTML_VERSION = 'v4.59.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -9007,9 +9007,11 @@
                    que se te ingresa en Promessa suma al menos <strong>${_money(meta)}</strong>, ganas
                    <strong>${tot} totopos</strong>.</p>
                 <ul>
-                    <li>📈 <strong>Cuenta lo que registra Promessa</strong>, no lo que reportas en la app. La prima excedente no cuenta.</li>
+                    <li>📈 <strong>Cuenta lo que ingresas a Promessa.</strong> La prima excedente no cuenta.</li>
+                    <li>✅ <strong>No necesitas reportar.</strong> Este bono no depende de tu bitácora: se calcula solo con lo que ingresas a Promessa.</li>
+                    <li>🗓️ <strong>Promessa recibe producción hasta el viernes.</strong> La excepción son los días de cierre de mes, que pueden caer en fin de semana: lo que ingreses esos días también cuenta para su semana.</li>
                     <li>📅 <strong>Cada semana cuenta sola.</strong> Si no llegas, esa semana se pierde: no se junta con la siguiente.</li>
-                    <li>🗓️ <strong>Los resultados salen cuando tu director sube el reporte de la semana</strong>, normalmente el lunes siguiente.</li>
+                    <li>📬 <strong>Los resultados salen cuando tu director sube el reporte de la semana</strong>, normalmente el lunes siguiente.</li>
                     <li>➕ <strong>Es aparte</strong> de los totopos por reportar tu día: los dos se suman.</li>
                 </ul>
                 <div style="display:flex; gap:8px; flex-wrap:wrap; margin:14px 0 10px;">
