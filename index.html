@@ -1650,6 +1650,29 @@
             transition: transform .15s;
         }
         #bono-badge i { color: #ffc72c; }
+        /* Hasta el primer toque: halo dorado + destello que cruza el boton.
+           Mas fuerte que el .novedad-glow azul generico, que sobre un boton
+           azul casi no se ve. Lo pone/quita applyFeatureGlows ('bono'). */
+        #bono-badge.novedad-glow {
+            position: relative; overflow: hidden;
+            animation: bonoGlow 1.6s ease-in-out infinite;
+        }
+        @keyframes bonoGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 199, 44, 0.8); }
+            50%      { box-shadow: 0 0 0 8px rgba(255, 199, 44, 0); }
+        }
+        #bono-badge.novedad-glow::after {
+            content: ''; position: absolute; top: 0; bottom: 0; left: -60%; width: 45%;
+            background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+            transform: skewX(-20deg);
+            animation: bonoBarrido 2.4s ease-in-out infinite;
+            pointer-events: none;
+        }
+        @keyframes bonoBarrido { 0% { left: -60%; } 60%, 100% { left: 130%; } }
+        @media (prefers-reduced-motion: reduce) {
+            #bono-badge.novedad-glow { animation: none; box-shadow: 0 0 0 3px rgba(255, 199, 44, 0.7); }
+            #bono-badge.novedad-glow::after { display: none; }
+        }
         #bono-badge:hover { transform: translateY(-1px); }
         #bono-badge:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
         .bono-fila { display: flex; align-items: center; gap: 10px; padding: 8px 4px; border-bottom: 1px solid var(--border); font-size: 12.5px; }
@@ -3751,7 +3774,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.59.0';
+        window.APP_HTML_VERSION = 'v4.60.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -5601,6 +5624,7 @@
         const NEW_FEATURES_TO_GLOW = [
             { feature: 'notif',    selector: '#notif-bell-btn' },
             { feature: 'anuncios', selector: '#anuncios-btn' },
+            { feature: 'bono',     selector: '#bono-badge' },
         ];
 
         function applyFeatureGlows() {
