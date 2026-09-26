@@ -3800,7 +3800,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.65.0';
+        window.APP_HTML_VERSION = 'v4.66.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -8978,7 +8978,7 @@
         // semana: la primera paga mas y van bajando hacia el cierre.
         // Ambar: todas las demas, las que cruzan de mes y las del cierre.
         // Se paga la tarifa por cada bloque completo de la meta ($2,000).
-        const BONO_TARIFAS_DEF = { ambar: 125, dos: [175, 150], tres: [175, 155, 140] };
+        const BONO_TARIFAS_DEF = { ambar: 100, dos: [175, 150], tres: [175, 155, 140] };
         const _bonoHabil = d => d.getDay() !== 0 && d.getDay() !== 6;
         // d es uno de los ultimos 5 dias habiles de su mes
         function _bonoEsCierre(d) {
