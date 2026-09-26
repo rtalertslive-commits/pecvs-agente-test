@@ -1680,10 +1680,10 @@
         .bono-fila .bono-sem { font-weight: 700; width: 78px; flex-shrink: 0; }
         .bono-fila .bono-fechas { color: var(--slate); flex: 1; }
         .bono-fila .bono-est { font-weight: 700; white-space: nowrap; }
-        /* Tarifa de la semana: verde paga mas, ambar es la base */
+        /* Tarifa de la semana: azul paga mas, ambar es la base */
         .bono-tar { display: inline-block; min-width: 38px; text-align: center; padding: 1px 7px; border-radius: 9px;
                     font-weight: 900; font-size: 12px; font-variant-numeric: tabular-nums; flex-shrink: 0; }
-        .bono-tar.v { background: #DDF0E6; color: #1F7A55; }
+        .bono-tar.v { background: #C7D7EE; color: #1B4880; }
         .bono-tar.a { background: #F8E7D3; color: #A95A16; }
         /* Calendario del mes dentro de BONO! */
         .bcal-caja { border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin: 12px 0; }
@@ -1694,13 +1694,13 @@
         .bcal { width: 100%; border-collapse: separate; border-spacing: 0 3px; font-variant-numeric: tabular-nums; }
         .bcal th { font-size: 10.5px; color: var(--slate); font-weight: 600; text-align: center; padding-bottom: 2px; }
         .bcal td { text-align: center; font-size: 13px; padding: 5px 0; }
-        .bcal tr.v td { background: #DDF0E6; } .bcal tr.a td { background: #F8E7D3; }
+        .bcal tr.v td { background: #C7D7EE; } .bcal tr.a td { background: #F8E7D3; }
         .bcal td.tar { text-align: left; padding-left: 8px; border-radius: 8px 0 0 8px; white-space: nowrap; line-height: 1.05; }
         .bcal td:last-child { border-radius: 0 8px 8px 0; }
         .bcal th.tar { text-align: left; padding-left: 8px; }
         .bcal td.tar b { font-size: 16px; font-weight: 900; }
         .bcal td.tar span { display: block; font-size: 9.5px; font-weight: 600; }
-        .bcal tr.v td.tar { color: #1F7A55; } .bcal tr.a td.tar { color: #A95A16; }
+        .bcal tr.v td.tar { color: #1B4880; } .bcal tr.a td.tar { color: #A95A16; }
         .bcal td.fuera { color: #9AA6BA; }
         .bcal td.cie { box-shadow: inset 0 -3px 0 #A95A16; }
         .bcal td.hoy { background: #071D49 !important; color: #FFFFFF; border-radius: 6px; font-weight: 800; }
@@ -3800,7 +3800,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.64.0';
+        window.APP_HTML_VERSION = 'v4.65.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -9132,7 +9132,7 @@
                 </div>
                 <table class="bcal"><thead><tr><th class="tar">Totopos</th><th>L</th><th>M</th><th>M</th><th>J</th><th>V</th><th>S</th><th>D</th></tr></thead>
                 <tbody>${filas.join('')}</tbody></table>
-                <p class="bcal-pie">${verdes} semanas verdes este mes · subrayados: días del cierre (últimos 5 días hábiles)</p>`;
+                <p class="bcal-pie">${verdes} semanas azules este mes · subrayados: días del cierre (últimos 5 días hábiles)</p>`;
         }
 
         function _pintarBono() {
@@ -9175,10 +9175,10 @@
                    ${_money(meta * 2)} cobras <strong>2 veces</strong>; ${_money(meta * 3)}, <strong>3 veces</strong>, y así.</p>
                 <p style="margin-top:10px;"><strong>Cuánto vale cada ${_money(meta)} depende de la semana:</strong></p>
                 <ul>
-                    <li><span class="bono-tar v">${tarifas.tres[0]}</span> <strong>Semanas verdes</strong>: completas dentro del mes y lejos del cierre. Pagan más, y la primera del mes es la que más paga (${tarifas.dos[0]} → ${tarifas.tres[2]}).</li>
+                    <li><span class="bono-tar v">${tarifas.tres[0]}</span> <strong>Semanas azules</strong>: completas dentro del mes y lejos del cierre (${tarifas.dos[0]} → ${tarifas.tres[2]}).</li>
                     <li><span class="bono-tar a">${tarifas.ambar}</span> <strong>Semanas ámbar</strong>: las que cruzan de un mes a otro y las del cierre (últimos 5 días hábiles del mes).</li>
                 </ul>
-                <p style="font-size:13px;color:var(--slate);">Mientras más temprano en el mes ingreses tu producción, más ganas.</p>
+                <p style="font-size:13px;color:var(--slate);">Las semanas azules pagan más, y la primera azul de cada mes es la que más paga.</p>
                 <div class="bcal-caja" id="bono-cal">${_bonoCalendarioHtml(_bonoMesVer || mesHoy, tarifas, meta)}</div>
                 <ul>
                     <li>📈 <strong>Cuenta lo que ingresas a Promessa.</strong> La prima excedente no cuenta.</li>
