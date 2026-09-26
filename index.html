@@ -3800,7 +3800,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.63.0';
+        window.APP_HTML_VERSION = 'v4.64.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -9167,24 +9167,18 @@
                 </div>`;
             }).join('');
 
-            // Ejemplo con los numeros reales del mes en curso
             const mesHoy = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-            const v1 = _bonoVerdesDelMes(mesHoy.getFullYear(), mesHoy.getMonth())[0];
-            const tV = v1 ? _bonoTarifaSemana(new Date(v1), tarifas).tarifa : tarifas.dos[0];
-            const semV = v1 ? new Date(v1) : null;
 
             cont.innerHTML = `
                 <p><strong>¿Cómo se gana?</strong> Cada semana, de <strong>lunes a domingo</strong>, ganas totopos
                    <strong>por cada ${_money(meta)}</strong> que ingreses a Promessa. Si en una misma semana ingresas
-                   ${_money(meta * 2)} cobras <strong>2 veces</strong>; ${_money(meta * 3)}, <strong>3 veces</strong>, y así.
-                   Si esa semana no llegas a ${_money(meta)}, no cobras.</p>
+                   ${_money(meta * 2)} cobras <strong>2 veces</strong>; ${_money(meta * 3)}, <strong>3 veces</strong>, y así.</p>
                 <p style="margin-top:10px;"><strong>Cuánto vale cada ${_money(meta)} depende de la semana:</strong></p>
                 <ul>
                     <li><span class="bono-tar v">${tarifas.tres[0]}</span> <strong>Semanas verdes</strong>: completas dentro del mes y lejos del cierre. Pagan más, y la primera del mes es la que más paga (${tarifas.dos[0]} → ${tarifas.tres[2]}).</li>
                     <li><span class="bono-tar a">${tarifas.ambar}</span> <strong>Semanas ámbar</strong>: las que cruzan de un mes a otro y las del cierre (últimos 5 días hábiles del mes).</li>
                 </ul>
-                <p style="font-size:13px;color:var(--slate);">Mientras más temprano en el mes ingreses tu producción, más ganas.
-                   ${semV ? `Ejemplo: ${_money(meta * 2)} en la semana del ${fecha(semV)} son 2 × ${tV} = <strong>${(2 * tV).toLocaleString('es-MX')} totopos</strong>; la misma producción en el cierre son 2 × ${tarifas.ambar} = ${(2 * tarifas.ambar).toLocaleString('es-MX')}.` : ''}</p>
+                <p style="font-size:13px;color:var(--slate);">Mientras más temprano en el mes ingreses tu producción, más ganas.</p>
                 <div class="bcal-caja" id="bono-cal">${_bonoCalendarioHtml(_bonoMesVer || mesHoy, tarifas, meta)}</div>
                 <ul>
                     <li>📈 <strong>Cuenta lo que ingresas a Promessa.</strong> La prima excedente no cuenta.</li>
