@@ -3800,7 +3800,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.68.0';
+        window.APP_HTML_VERSION = 'v4.69.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -6174,8 +6174,15 @@
                     state.karma = fresh.karma;
                     karmaChanged = true;
                 }
-                if (Array.isArray(fresh.karmaLog) && fresh.karmaLog.length !== (state.karmaLog || []).length) {
-                    state.karmaLog = fresh.karmaLog;
+                // Antes se comparaba solo el LARGO. El director ahora puede
+                // recalcular los totopos de dias ya pagados cuando re-otorga el
+                // multiplicador, y eso cambia VALORES sin agregar entradas: con
+                // la comparacion vieja el agente no lo adoptaba y su copia vieja
+                // volvia a subir en el siguiente sync, dejando el desglose por
+                // dia peleado con el saldo.
+                const logFresco = Array.isArray(fresh.karmaLog) ? fresh.karmaLog : null;
+                if (logFresco && JSON.stringify(logFresco) !== JSON.stringify(state.karmaLog || [])) {
+                    state.karmaLog = logFresco;
                     karmaChanged = true;
                 }
                 if (typeof fresh.karmaLastNotified === 'number') state.karmaLastNotified = fresh.karmaLastNotified;
@@ -6248,11 +6255,36 @@
                 // Esto duplica la defensa de loadFromCloud por si algún flujo deja undefined.
                 const agentOwnedFields = {
                     entries: Array.isArray(state.entries) ? state.entries : [],
-                    karma: typeof state.karma === 'number' ? state.karma : 0,
-                    karmaLog: Array.isArray(state.karmaLog) ? state.karmaLog : [],
                     karmaLastNotified: typeof state.karmaLastNotified === 'number' ? state.karmaLastNotified : 0
                 };
-                await setDoc(doc(db, "users", user.email), agentOwnedFields, { merge: true });
+                // Totopos: NO se sube la copia local del historial (si la app
+                // estuvo dormida, no trae los canjes/pagos que el director
+                // escribio mientras tanto y los borraba). Se lee el del servidor
+                // y solo se le agregan los cierres de dia (sin `type`) que aun
+                // no tiene; el saldo sube exactamente lo que suman esos cierres.
+                const userRef = doc(db, "users", user.email);
+                let fusion = null;
+                try {
+                    await runTransaction(db, async (tx) => {
+                        const srv = (await tx.get(userRef)).data() || {};
+                        const logSrv = Array.isArray(srv.karmaLog) ? srv.karmaLog : [];
+                        const pagadas = new Set(logSrv.filter(k => k && k.date && !k.type).map(k => k.date));
+                        const nuevos = (Array.isArray(state.karmaLog) ? state.karmaLog : [])
+                            .filter(k => k && k.date && !k.type && !pagadas.has(k.date));
+                        fusion = {
+                            karma: (typeof srv.karma === 'number' ? srv.karma : 0) + nuevos.reduce((a, k) => a + (Number(k.points) || 0), 0),
+                            karmaLog: logSrv.concat(nuevos)
+                        };
+                        tx.set(userRef, { ...agentOwnedFields, ...fusion }, { merge: true });
+                    });
+                    state.karma = fusion.karma;
+                    state.karmaLog = fusion.karmaLog;
+                } catch (txErr) {
+                    // Sin conexion la transaccion falla: se guarda el reporte y los
+                    // totopos pendientes quedan en state.karmaLog para la siguiente.
+                    console.warn('[syncToCloud] totopos pendientes:', txErr);
+                    await setDoc(userRef, agentOwnedFields, { merge: true });
+                }
                 // Mantener _lastKnownCloudSize en sync (lo que acabamos de escribir)
                 _lastKnownCloudSize = agentOwnedFields.entries.length;
                 console.log("Synced to cloud");
@@ -6837,6 +6869,53 @@
             const head = `<h2 style="font-family:'Source Sans Pro',sans-serif; color:var(--gold); margin:0 0 4px; font-size:20px;">Tu multiplicador</h2>
                 <div style="font-size:12px; color:var(--slate); margin-bottom:16px; text-transform:capitalize;">${mes} ${String(mx.month || '').split('-')[0]}</div>`;
 
+            // ── Otorgado a mano por el director ─────────────────────────────
+            // Va ANTES que todo lo demás. Un multiplicador de regalo no tiene CSV
+            // detrás: si cayera en las ramas de abajo le imprimiría un escalón,
+            // una cobertura y un "coincidiste con el corporativo" que no
+            // corresponden a nada, y el agente leería números que no existen.
+            if (mx.manual === true) {
+                if (mx.earned !== true) {
+                    el.innerHTML = head + `
+                        <div class="mrec-row"><div class="mrec-ico">—</div><div>
+                            <div class="mrec-k">Tu director retiró tu multiplicador</div>
+                            <div class="mrec-v">${escapeHtml(mx.nota || '')}</div>
+                        </div></div>
+                        <div style="font-size:12px; color:var(--slate); margin-top:14px; line-height:1.55;">
+                            Los totopos que ya habías ganado con él <b>son tuyos</b>: no se te descuenta nada.
+                            De hoy en adelante tu día vuelve a valer ${base}.
+                        </div>`;
+                    return;
+                }
+                const valeM = Math.round(base * (1 + (Number(mx.bonusPct) || 0) / 100));
+                el.innerHTML = head + `
+                    <div class="mrec-row"><div class="mrec-ico">🎁</div><div>
+                        <div class="mrec-k">Te lo otorgó tu director</div>
+                        <div class="mrec-v">${escapeHtml(mx.nota || 'Otorgado por tu director')}</div>
+                    </div></div>
+                    ${(mx.porCobertura === true && (mx.tierPct || 0) > (mx.bonusPct || 0)) ? `
+                    <div class="mrec-row"><div class="mrec-ico">📅</div><div>
+                        <div class="mrec-k">Tus días reportados</div>
+                        <div class="mrec-v">Reportaste <b>${mx.daysReported}</b> de <b>${mx.daysInMonth}</b> días.<br>
+                            Tu director te dio <b>+${mx.tierPct}%</b>, y como el bono se reparte según los días
+                            que reportaste, quedó en <b style="color:var(--gold);">+${mx.bonusPct}%</b>.</div>
+                    </div></div>` : ''}
+                    <div class="mrec-row"><div class="mrec-ico">⚡</div><div>
+                        <div class="mrec-k">Tu bono</div>
+                        <div class="mrec-v"><b style="color:var(--gold);">+${mx.bonusPct}%</b> sobre cada día que reportes</div>
+                    </div></div>
+                    <div class="mrec-row"><div class="mrec-ico">🌽</div><div>
+                        <div class="mrec-k">Cada día de ${mes} vale</div>
+                        <div class="mrec-v"><b style="color:var(--gold);">${valeM}</b> totopos en vez de ${base}</div>
+                    </div></div>
+                    <div style="font-size:12px; color:var(--slate); margin-top:14px; line-height:1.55;">
+                        Este no salió del cálculo mensual: te lo dio tu director directamente.
+                        Aplica sólo a los días de ${mes}, y los que ya habías reportado ese mes
+                        ya se recalcularon con este bono.
+                    </div>`;
+                return;
+            }
+
             // ── No lo ganó ──────────────────────────────────────────────────
             // Son dos fallas distintas con dos acciones distintas. Al que reportó
             // perfecto pero no alcanzó el escalón NO se le puede decir que su
@@ -7384,6 +7463,23 @@
 
         // Subtítulo de la celebración basado en los entries uncelebrated.
         function _buildCelebrateReason(entries) {
+            // El recalculo del multiplicador no agrega totopos con una entrada
+            // propia: SUBE el valor de dias que ya estaban en el log. Asi que el
+            // delta se le atribuiria a esos dias y saldria "Por reportar tu
+            // actividad" — cierto, pero sin explicar por que subio hoy algo que
+            // ya se habia pagado. La marca `mult_retro` que deja el director es
+            // lo que permite decirlo bien.
+            //
+            // Se busca en la cola del log y no entre `entries`, porque la marca
+            // va en 0 totopos y `entries` solo trae positivos.
+            const log = Array.isArray(state.karmaLog) ? state.karmaLog : [];
+            for (let i = log.length - 1; i >= 0 && i >= log.length - 4; i--) {
+                if (log[i] && log[i].type === 'mult_retro') {
+                    const d = Number(log[i].dias) || 0;
+                    return `🔄 ${escapeHtml(log[i].reason || 'Recálculo de tu multiplicador')}` +
+                           (d ? ` — se ajustaron ${d} día${d === 1 ? '' : 's'}` : '');
+                }
+            }
             if (!entries || !entries.length) return '';
             const grants = entries.filter(e => e.type === 'manual_grant');
             const dayCloses = entries.filter(e => !e.type);
