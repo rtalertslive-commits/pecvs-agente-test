@@ -3807,7 +3807,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.71.0';
+        window.APP_HTML_VERSION = 'v4.71.1';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -5469,7 +5469,7 @@
             if (!nDias && !filas) return '';
             return `<div class="cal-pagos">
                 <div class="cal-pagos-t">Lo que ganaste en ${MONTHS_ES[_myCalMonth - 1]}</div>
-                <div class="cal-pagos-fila"><span>🌽 Bitácora (${nDias} ${nDias === 1 ? 'día' : 'días'})</span><span class="cal-mas">+${totBit.toLocaleString('es-MX')}</span></div>
+                <div class="cal-pagos-fila"><span>📒 Bitácora (${nDias} ${nDias === 1 ? 'día' : 'días'})</span><span class="cal-mas">+${totBit.toLocaleString('es-MX')}</span></div>
                 ${filas}
                 <div class="cal-pagos-fila cal-pagos-total"><span>Total</span><span>+${(totBit + totBono).toLocaleString('es-MX')}</span></div>
             </div>`;
@@ -5557,7 +5557,7 @@
             let pago = '';
             if (cierre) {
                 const bonoPct = Math.round(((Number(cierre.mult) || 1) - 1) * 100);
-                pago = `🌽 Te pagaron <strong class="cal-mas">+${Number(cierre.points) || 0}</strong> totopos` +
+                pago = `<svg class="totopo-icon"><use href="#totopo"/></svg> Te pagaron <strong class="cal-mas">+${Number(cierre.points) || 0}</strong> totopos` +
                        (bonoPct > 0 ? ` <span style="color:var(--slate);">(${Number(cierre.base) || 10} base + ${bonoPct}% de multiplicador)</span>` : '');
             } else if (valido) {
                 const esperado = Math.round(((pointsConfig && pointsConfig.agentDailyPoints) || 10) * (1 + _multBonusFor(dk)));
