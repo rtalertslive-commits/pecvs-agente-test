@@ -3823,7 +3823,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.73.0';
+        window.APP_HTML_VERSION = 'v4.73.1';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -6733,12 +6733,12 @@
         // La cabecera Date (y worldtimeapi) dan un INSTANTE; el resto de la app lo lee con
         // getDate()/getDay(), que usan la zona del telefono. Se reconstruye con la pared de
         // Monterrey para que el dia sea el de Mexico sin importar donde este el telefono.
+        // Desfase FIJO de UTC-6 (Mexico no tiene horario de verano desde 2022) y no
+        // Intl/'America/Monterrey': un telefono con la base de zonas horarias vieja creeria
+        // que en verano es UTC-5 y de noche mostraria el dia siguiente.
         function _aHoraMonterrey(d) {
-            const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA', {
-                timeZone: 'America/Monterrey', hourCycle: 'h23',
-                year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric'
-            }).formatToParts(d).map(x => [x.type, x.value]));
-            return new Date(+p.year, p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+            const u = new Date(d.getTime() - 6 * 3600e3);
+            return new Date(u.getUTCFullYear(), u.getUTCMonth(), u.getUTCDate(), u.getUTCHours(), u.getUTCMinutes(), u.getUTCSeconds());
         }
 
         async function getServerTime() {
