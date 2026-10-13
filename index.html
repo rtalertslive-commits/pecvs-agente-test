@@ -3055,7 +3055,7 @@
     <div class="modal-overlay" id="notif-modal">
         <div class="modal-box">
             <h2 style="font-family:'Source Sans Pro',sans-serif; color:var(--gold); margin-top:0;"><i class="fa fa-bell" style="margin-right:8px;"></i>Notificaciones</h2>
-            <p style="font-size:12px; color:var(--slate); margin:0 0 18px;">Recibí avisos importantes del director y reconocimientos directamente en tu dispositivo.</p>
+            <p style="font-size:12px; color:var(--slate); margin:0 0 18px;">Recibí avisos importantes del director y cuando ganes un multiplicador o BONO! directamente en tu dispositivo.</p>
 
             <label id="notif-master-row" style="display:none; align-items:center; justify-content:space-between; padding:14px 16px; background:rgba(var(--vk), 0.04); border:1px solid rgba(var(--vk), 0.1); border-radius:8px; margin-bottom:12px; cursor:pointer; gap:12px;">
                 <div style="flex:1; min-width:0;">
@@ -3077,14 +3077,6 @@
                         <div style="font-size:11px; color:var(--slate); margin-top:2px;">Broadcasts importantes del director, promotor y coach.</div>
                     </div>
                     <input type="checkbox" id="notif-pref-anuncios" onchange="saveNotifPrefs()" style="width:22px; height:22px; accent-color:var(--gold); cursor:pointer; flex-shrink:0;" checked>
-                </label>
-
-                <label class="notif-toggle-row" style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom: 1px solid var(--border); cursor:pointer;">
-                    <div style="flex:1; min-width:0;">
-                        <div style="font-size:14px; color: var(--white); font-weight:600;">🏆 Reconocimientos</div>
-                        <div style="font-size:11px; color:var(--slate); margin-top:2px;">Cuando ganas totopos o desbloqueas logros.</div>
-                    </div>
-                    <input type="checkbox" id="notif-pref-reconocimientos" onchange="saveNotifPrefs()" style="width:22px; height:22px; accent-color:var(--gold); cursor:pointer; flex-shrink:0;" checked>
                 </label>
 
                 <label class="notif-toggle-row" style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom: 1px solid var(--border); cursor:pointer;">
@@ -3823,7 +3815,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.73.1';
+        window.APP_HTML_VERSION = 'v4.74.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -4058,14 +4050,13 @@
             }
         }
 
-        // notifPrefs por defecto: anuncios, reconocimientos, multiplicador y bono ON; recordatorio OFF a las 19:00.
+        // notifPrefs por defecto: anuncios, multiplicador y bono ON; recordatorio OFF a las 19:00.
         // subscribed=true por defecto (first-time = enabled si acepta el banner).
         // bannerDismissed=false → mostrar banner si perm=default.
         const DEFAULT_NOTIF_PREFS = {
             subscribed: true,
             bannerDismissed: false,
             anuncios: true,
-            reconocimientos: true,
             multiplicador: true,     // aviso cuando ganas un multiplicador
             bono: true,              // aviso cuando ganas un BONO!
             recordatorio: { enabled: false, time: '19:00' }
@@ -5926,12 +5917,10 @@
         function loadNotifPrefsIntoUI() {
             const p = state.notifPrefs || DEFAULT_NOTIF_PREFS;
             const anuncios = document.getElementById('notif-pref-anuncios');
-            const reconoc  = document.getElementById('notif-pref-reconocimientos');
             const record   = document.getElementById('notif-pref-recordatorio');
             const recordT  = document.getElementById('notif-pref-recordatorio-time');
             const recordRow= document.getElementById('notif-recordatorio-time-row');
             if (anuncios) anuncios.checked = !!p.anuncios;
-            if (reconoc)  reconoc.checked  = !!p.reconocimientos;
             const multi = document.getElementById('notif-pref-multiplicador');
             const bonoEl = document.getElementById('notif-pref-bono');
             if (multi)  multi.checked  = p.multiplicador !== false;
@@ -5953,14 +5942,12 @@
         window.saveNotifPrefs = function () {
             if (!user) return;
             const anuncios = !!document.getElementById('notif-pref-anuncios')?.checked;
-            const reconoc  = !!document.getElementById('notif-pref-reconocimientos')?.checked;
             const multiplicador = !!document.getElementById('notif-pref-multiplicador')?.checked;
             const bono     = !!document.getElementById('notif-pref-bono')?.checked;
             const recordEn = !!document.getElementById('notif-pref-recordatorio')?.checked;
             const recordT  = document.getElementById('notif-pref-recordatorio-time')?.value || '19:00';
             const newPrefs = {
                 anuncios,
-                reconocimientos: reconoc,
                 multiplicador,
                 bono,
                 recordatorio: { enabled: recordEn, time: recordT }
@@ -6207,7 +6194,6 @@
                         if (typeof state.notifPrefs.subscribed !== 'boolean') state.notifPrefs.subscribed = DEFAULT_NOTIF_PREFS.subscribed;
                         if (typeof state.notifPrefs.bannerDismissed !== 'boolean') state.notifPrefs.bannerDismissed = DEFAULT_NOTIF_PREFS.bannerDismissed;
                         if (typeof state.notifPrefs.anuncios !== 'boolean') state.notifPrefs.anuncios = DEFAULT_NOTIF_PREFS.anuncios;
-                        if (typeof state.notifPrefs.reconocimientos !== 'boolean') state.notifPrefs.reconocimientos = DEFAULT_NOTIF_PREFS.reconocimientos;
                         if (typeof state.notifPrefs.multiplicador !== 'boolean') state.notifPrefs.multiplicador = DEFAULT_NOTIF_PREFS.multiplicador;
                         if (typeof state.notifPrefs.bono !== 'boolean') state.notifPrefs.bono = DEFAULT_NOTIF_PREFS.bono;
                         if (!state.notifPrefs.recordatorio || typeof state.notifPrefs.recordatorio !== 'object') {
