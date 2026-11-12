@@ -3824,7 +3824,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.77.0';
+        window.APP_HTML_VERSION = 'v4.78.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -7961,7 +7961,9 @@
                       '<div style="font-size:11px;color:var(--slate);">Puja mínima: ' + min + ' · Te quedan ' + disponible + ' disponibles.</div>';
                 return '<div class="card" style="margin-bottom:14px;border:1px solid rgba(212,175,55,0.45);">' +
                     '<p class="card-title">🔨 Subasta</p>' +
-                    '<div style="text-align:center;font-size:36px;">' + escapeHtml(a.emoji || '🔨') + '</div>' +
+                    (a.imageUrl
+                        ? '<img src="' + escapeHtml(a.imageUrl) + '" alt="' + escapeHtml(a.nombre || '') + '" loading="lazy" onclick="openImagePreview(this.src)" style="display:block;margin:0 auto;width:160px;height:160px;max-width:100%;object-fit:cover;border-radius:10px;border:1px solid rgba(212,175,55,0.35);cursor:zoom-in;">'
+                        : '<div style="text-align:center;font-size:36px;">' + escapeHtml(a.emoji || '🔨') + '</div>') +
                     '<div style="text-align:center;font-weight:700;font-size:15px;">' + escapeHtml(a.nombre || '') + '</div>' +
                     (a.descripcion ? '<div style="text-align:center;font-size:12px;color:var(--slate);">' + escapeHtml(a.descripcion) + '</div>' : '') +
                     '<div style="text-align:center;margin:8px 0;font-weight:900;color:var(--gold);">' +
