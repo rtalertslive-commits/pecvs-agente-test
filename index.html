@@ -3824,7 +3824,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.78.0';
+        window.APP_HTML_VERSION = 'v4.79.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -7926,21 +7926,43 @@
         // como comprometida (_pujasComprometidas) hasta que la superen; el director cobra al cerrar.
         let _subastas = [];
         let _pujasComprometidas = 0;
+        let _subastasTerminadas = [];   // cerradas o canceladas en los ultimos 7 dias (para ver quien gano)
 
         async function cargarSubastas() {
             const dc = state.directorCode || '', me = user && (user.email || user.uid);
-            if (!dc || !me) { _subastas = []; _pujasComprometidas = 0; return; }
+            if (!dc || !me) { _subastas = []; _subastasTerminadas = []; _pujasComprometidas = 0; return; }
             const snap = await getDocs(query(collection(db, 'auctions'), where('directorCode', '==', dc), where('status', '==', 'open')));
             _subastas = snap.docs.map(d => ({ _id: d.id, ...d.data() })).sort((a, b) => a.endsAtMs - b.endsAtMs);
             _pujasComprometidas = _subastas.filter(a => a.topBidderId === me).reduce((s, a) => s + (Number(a.topBid) || 0), 0);
+            try {
+                const fin = await getDocs(query(collection(db, 'auctions'), where('directorCode', '==', dc), where('status', 'in', ['closed', 'cancelled'])));
+                const desde = Date.now() - 7 * 864e5;
+                _subastasTerminadas = fin.docs.map(d => ({ _id: d.id, ...d.data() }))
+                    .filter(a => new Date(a.closedAt || 0).getTime() >= desde)
+                    .sort((a, b) => (b.closedAt || '').localeCompare(a.closedAt || ''));
+            } catch (e) { _subastasTerminadas = []; console.warn('subastas terminadas:', e.message); }
         }
 
         async function renderSubastas() {
             const box = document.getElementById('subastas-box');
             if (!box) return;
             try { await renderMisSolicitudes(); } catch {}   // refresca _subastas y lo comprometido
-            if (!_subastas.length) { box.innerHTML = ''; return; }
+            if (!_subastas.length && !_subastasTerminadas.length) { box.innerHTML = ''; return; }
             const me = user.email || user.uid;
+            const resultados = _subastasTerminadas.map(a => {
+                const participe = (a.history || []).some(h => h.id === me);
+                const gane = a.winnerId === me;
+                const img = a.imageUrl ? '<img src="' + escapeHtml(a.imageUrl) + '" alt="" loading="lazy" onclick="openImagePreview(this.src)" style="width:56px;height:56px;object-fit:cover;border-radius:8px;cursor:zoom-in;flex-shrink:0;">' : '<div style="font-size:32px;flex-shrink:0;">' + escapeHtml(a.emoji || '🔨') + '</div>';
+                let linea, color;
+                if (a.status === 'cancelled') { linea = 'Subasta cancelada por el director.'; color = 'var(--slate)'; }
+                else if (!a.winnerId) { linea = 'Cerró sin ganador.'; color = 'var(--slate)'; }
+                else { linea = '🏆 Ganó <b>' + escapeHtml(a.winnerName || '') + '</b> con ' + a.winningBid + ' totopos.'; color = 'var(--gold)'; }
+                const nota = gane ? '<div style="color:var(--green);font-weight:700;font-size:12px;margin-top:2px;">¡Ganaste! Ya se descontaron tus totopos y tu premio queda por entregar.</div>'
+                    : (participe && a.winnerId) ? '<div style="color:var(--slate);font-size:12px;margin-top:2px;">No ganaste; tus totopos no se descontaron.</div>' : '';
+                return '<div class="card" style="margin-bottom:14px;display:flex;gap:12px;align-items:center;">' + img +
+                    '<div style="min-width:0;"><div style="font-weight:700;font-size:13px;">Subasta terminada: ' + escapeHtml(a.nombre || '') + '</div>' +
+                    '<div style="font-size:13px;color:' + color + ';">' + linea + '</div>' + nota + '</div></div>';
+            }).join('');
             box.innerHTML = _subastas.map(a => {
                 const eId = escapeHtml(a._id);
                 const terminada = Date.now() >= a.endsAtMs;
@@ -7970,7 +7992,7 @@
                     (a.topBid > 0 ? 'Puja más alta: ' + a.topBid + ' totopos — ' + escapeHtml(a.topBidderName || '') : 'Sin pujas todavía') + '</div>' +
                     '<div style="text-align:center;font-size:11px;color:var(--slate);margin-bottom:8px;">Cierra ' + new Date(a.endsAtMs).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }) + '</div>' +
                     '<div style="display:flex;flex-direction:column;gap:6px;">' + estado + accion + '</div></div>';
-            }).join('');
+            }).join('') + resultados;
         }
 
         window.pujarSubasta = async function(id) {
