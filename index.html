@@ -3824,7 +3824,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.82.0';
+        window.APP_HTML_VERSION = 'v4.83.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -7950,12 +7950,14 @@
         const _multiSubasta = a => (a.unidades || 1) > 1;
         // Totopos que esta subasta me tiene apartados: mi oferta si voy dentro de las N (o si lidero la de 1 unidad).
         function _miReservaSubasta(a, me) {
+            if (a.tipo === 'bolsa') return Number((a.bids || {})[me]?.amount) || 0;   // bolsa: todo lo que meti queda apartado
             if (!_multiSubasta(a)) return a.topBidderId === me ? (Number(a.topBid) || 0) : 0;
             const rk = _rankingSubasta(a), i = rk.findIndex(b => b.id === me);
             return i >= 0 && i < a.unidades ? rk[i].amount : 0;
         }
         // Oferta minima: si voy dentro, subir mi oferta; si no, superar al ultimo lugar de los demas.
         function _minMulti(a, me) {
+            if (a.tipo === 'bolsa') { const yo = (a.bids || {})[me]; return yo ? Number(yo.amount) + a.increment : a.minBid; }
             const rk = _rankingSubasta(a), i = rk.findIndex(b => b.id === me), yo = rk[i];
             if (yo && i < a.unidades) return yo.amount + a.increment;
             const otros = rk.filter(b => b.id !== me);
@@ -8023,6 +8025,60 @@
                 '<div style="font-size:13px;color:' + color + ';">' + linea + '</div>' + nota + '</div></div>';
         }
 
+        function _repartoBolsa(a, montos) {
+            const lista = (montos || _rankingSubasta(a)).filter(b => b.amount > 0);
+            const total = lista.reduce((s, b) => s + b.amount, 0);
+            const precio = Math.max(a.minBid, Math.ceil(total / a.unidades));
+            const reparto = lista.map(b => { const unidades = Math.floor(b.amount / precio); return { ...b, unidades, paga: unidades * precio }; });
+            const asignadas = reparto.reduce((s, r) => s + r.unidades, 0);
+            return { total, precio, reparto, asignadas, sobran: a.unidades - asignadas };
+        }
+
+        function _tarjetaBolsa(a, me) {
+            const eId = escapeHtml(a._id), N = a.unidades, item = _nombreSubasta(a);
+            const { total, precio, reparto } = _repartoBolsa(a), mio = reparto.find(r => r.id === me);
+            const terminada = Date.now() >= a.endsAtMs;
+            const min = _minMulti(a, me);
+            const disponible = (state.karma || 0) - _karmaComprometido + (mio ? mio.amount : 0);
+            const puedo = !terminada && disponible >= min;
+            const estado = !mio ? ''
+                : (mio.unidades > 0
+                    ? '<div style="color:var(--green);font-weight:700;font-size:13px;">Metiste ' + mio.amount + '. Si cerrara ahorita te tocan ' + mio.unidades + ' ' + item + ' a ' + precio + ' c/u = ' + mio.paga + ' totopos.</div>' +
+                      (mio.amount > mio.paga ? '<div style="font-size:12px;color:var(--slate);">Los otros ' + (mio.amount - mio.paga) + ' no se te cobrarían.</div>' : '')
+                    : '<div style="color:#F5B83D;font-weight:700;font-size:13px;">Metiste ' + mio.amount + ', pero ahorita no alcanza ni para 1 (cada una va en ' + precio + '). Si se queda así, no se te cobra nada.</div>') +
+                  '<div style="font-size:12px;color:var(--slate);">Ojo: el precio por unidad sube entre más totopos metan todos. Tus ' + mio.amount + ' quedan apartados hasta el cierre.</div>';
+            const accion = terminada
+                ? '<div style="font-size:12px;color:var(--slate);">⏰ La subasta terminó. El director hará el reparto.</div>'
+                : (mio ? '<div style="font-size:12px;">Escribe tu <b>nuevo total</b> en la bolsa (hoy tienes ' + mio.amount + '):</div>' : '') +
+                  '<div style="display:flex;gap:8px;align-items:center;">' +
+                  '<input type="number" id="puja-' + eId + '" min="' + min + '" step="1" value="' + min + '" style="flex:1;min-width:0;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:inherit;">' +
+                  '<button class="btn btn-sm ' + (puedo ? 'btn-green' : '') + '" ' + (puedo ? '' : 'disabled') + ' onclick="pujarSubasta(\'' + eId + '\')">' + (!puedo ? 'Totopos insuficientes' : mio ? '⬆️ Subir mi total' : '💰 Meter a la bolsa') + '</button></div>' +
+                  '<div style="font-size:11px;color:var(--slate);">' + _lineaSaldoSubasta(min, disponible, _karmaComprometido - (mio ? mio.amount : 0), 'Cantidad') + '</div>';
+            return '<div class="card" style="margin-bottom:14px;border:1px solid rgba(212,175,55,0.45);">' +
+                '<p class="card-title">🔨 Subasta · bolsa</p>' + _imgSubasta(a, true) +
+                '<div style="text-align:center;font-weight:700;font-size:15px;">' + item + '</div>' +
+                (a.descripcion ? '<div style="text-align:center;font-size:12px;color:var(--slate);">' + escapeHtml(a.descripcion) + '</div>' : '') +
+                '<div style="text-align:center;margin:8px 0;font-weight:900;color:var(--gold);">' + N + ' unidades en bolsa · precio mínimo ' + a.minBid + ' c/u</div>' +
+                '<div class="info-box" style="font-size:12px;line-height:1.5;margin-bottom:8px;">ℹ️ Las ' + N + ' unidades se reparten según los totopos que mete cada quien: si metes el 10% de la bolsa, te toca el 10%. Todos pagan <b>el mismo precio</b> por unidad (la bolsa entre ' + N + ', nunca menos de ' + a.minBid + '). Solo unidades enteras: lo que no alcance para una no se te cobra.</div>' +
+                '<div style="text-align:center;font-size:13px;font-weight:700;">Bolsa actual: ' + total + ' totopos · precio por unidad hoy: ' + precio + '</div>' +
+                '<div style="text-align:center;font-size:11px;color:var(--slate);margin-bottom:8px;">' + reparto.length + ' agentes en la bolsa · Cierra ' + new Date(a.endsAtMs).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }) + '</div>' +
+                '<div style="display:flex;flex-direction:column;gap:6px;">' + estado + accion + '</div></div>';
+        }
+
+        function _resultadoBolsa(a, me) {
+            const item = _nombreSubasta(a), gs = a.ganadores || [], mio = gs.find(g => g.id === me), participe = !!(a.bids || {})[me];
+            const u = gs.reduce((s, g) => s + (g.unidades || 0), 0);
+            let linea, color;
+            if (a.status === 'cancelled') { linea = 'Subasta cancelada por el director.'; color = 'var(--slate)'; }
+            else if (!gs.length) { linea = 'A nadie le alcanzó ni para 1 unidad.'; color = 'var(--slate)'; }
+            else { linea = '🏆 Se repartieron ' + u + ' entre ' + gs.length + ' agentes, a ' + a.precioFinal + ' c/u.'; color = 'var(--gold)'; }
+            const nota = mio ? '<div style="color:var(--green);font-weight:700;font-size:12px;margin-top:2px;">🏆 ¡Te tocaron ' + mio.unidades + ' ' + item + '! Se descontaron ' + mio.amount + ' totopos y tu premio queda por entregar.</div>'
+                : (participe && a.status === 'closed') ? '<div style="color:var(--slate);font-size:12px;margin-top:2px;">Con lo que metiste no alcanzó para 1. No se te cobró nada.</div>' : '';
+            return '<div class="card" style="margin-bottom:14px;display:flex;gap:12px;align-items:center;">' + _imgSubasta(a, false) +
+                '<div style="min-width:0;"><div style="font-weight:700;font-size:13px;">Subasta terminada: ' + item + ' (bolsa de ' + a.unidades + ')</div>' +
+                '<div style="font-size:13px;color:' + color + ';">' + linea + '</div>' + nota + '</div></div>';
+        }
+
         async function _pujarMulti(id) {
             const monto = Math.floor(Number(document.getElementById('puja-' + id)?.value));
             const me = user.email || user.uid, nombre = state.agentName || user.displayName || me;
@@ -8043,7 +8099,9 @@
                         history: [...(a.history || []), { id: me, name: nombre, amount: monto, at }]
                     });
                 });
-                alert('✅ Ofreciste ' + monto + ' totopos. Mientras vayas dentro de los ganadores, quedan apartados.');
+                alert(_subastas.find(x => x._id === id)?.tipo === 'bolsa'
+                    ? '✅ Tu total en la bolsa: ' + monto + ' totopos. Quedan apartados hasta el cierre; solo se cobra lo que se convierta en unidades enteras.'
+                    : '✅ Ofreciste ' + monto + ' totopos. Mientras vayas dentro de los ganadores, quedan apartados.');
             } catch (e) { alert('No se pudo ofrecer:\n' + e.message); }
             renderSubastas();
             renderTiendaItems();
@@ -8071,6 +8129,7 @@
             if (!_subastas.length && !_subastasTerminadas.length) { box.innerHTML = ''; return; }
             const me = user.email || user.uid;
             const resultados = _subastasTerminadas.map(a => {
+                if (a.tipo === 'bolsa') return _resultadoBolsa(a, me);
                 if (_multiSubasta(a)) return _resultadoMulti(a, me);
                 const participe = (a.history || []).some(h => h.id === me);
                 const gane = a.winnerId === me;
@@ -8086,6 +8145,7 @@
                     '<div style="font-size:13px;color:' + color + ';">' + linea + '</div>' + nota + '</div></div>';
             }).join('');
             box.innerHTML = _subastas.map(a => {
+                if (a.tipo === 'bolsa') return _tarjetaBolsa(a, me);
                 if (_multiSubasta(a)) return _tarjetaMulti(a, me);
                 const eId = escapeHtml(a._id);
                 const terminada = Date.now() >= a.endsAtMs;
