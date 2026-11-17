@@ -3824,7 +3824,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.83.0';
+        window.APP_HTML_VERSION = 'v4.84.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -7974,6 +7974,19 @@
         }
         const _nombreSubasta = a => escapeHtml((a.nombre || '').replace(/[.\s]+$/, ''));   // sin punto final: va dentro de frases
 
+        const _ESTILO_SUBASTA = {
+            pieza:   { color: '#D4AF37', texto: '#2A1F00', etiqueta: '🔨 SUBASTA · 1 PIEZA' },
+            persona: { color: '#E8833A', texto: '#2B1200', etiqueta: '🏆 SUBASTA · 1 POR PERSONA' },
+            bolsa:   { color: '#14A38B', texto: '#FFFFFF', etiqueta: '🫙 BOLSA · REPARTO PROPORCIONAL' }
+        };
+        // Marco + etiqueta + frase de que tipo de subasta es.
+        function _abrirTarjetaSubasta(tipo, frase) {
+            const e = _ESTILO_SUBASTA[tipo];
+            return '<div class="card" style="margin-bottom:14px;border:2px solid ' + e.color + ';">' +
+                '<div style="text-align:center;margin-bottom:10px;"><span style="display:inline-block;background:' + e.color + ';color:' + e.texto + ';font-weight:900;font-size:11px;letter-spacing:1px;padding:4px 12px;border-radius:999px;">' + e.etiqueta + '</span>' +
+                '<div style="font-size:12px;font-weight:700;margin-top:6px;">' + frase + '</div></div>';
+        }
+
         function _imgSubasta(a, grande) {
             return a.imageUrl
                 ? (grande ? '<img src="' + escapeHtml(a.imageUrl) + '" alt="' + escapeHtml(a.nombre || '') + '" loading="lazy" onclick="openImagePreview(this.src)" style="display:block;margin:0 auto;width:160px;height:160px;max-width:100%;object-fit:cover;border-radius:10px;border:1px solid rgba(212,175,55,0.35);cursor:zoom-in;">'
@@ -8000,8 +8013,7 @@
                   '<input type="number" id="puja-' + eId + '" min="' + min + '" step="1" value="' + min + '" style="flex:1;min-width:0;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:inherit;">' +
                   '<button class="btn btn-sm ' + (puedo ? 'btn-green' : '') + '" ' + (puedo ? '' : 'disabled') + ' onclick="pujarSubasta(\'' + eId + '\')">' + (!puedo ? 'Totopos insuficientes' : dentro ? '⬆️ Subir oferta' : '🔨 Ofrecer') + '</button></div>' +
                   '<div style="font-size:11px;color:var(--slate);">' + _lineaSaldoSubasta(min, disponible, _karmaComprometido - (dentro ? yo.amount : 0), 'Oferta') + '</div>';
-            return '<div class="card" style="margin-bottom:14px;border:1px solid rgba(212,175,55,0.45);">' +
-                '<p class="card-title">🔨 Subasta</p>' + _imgSubasta(a, true) +
+            return _abrirTarjetaSubasta('persona', 'Las ' + N + ' ofertas más altas ganan 1 cada una') + _imgSubasta(a, true) +
                 '<div style="text-align:center;font-weight:700;font-size:15px;">' + item + '</div>' +
                 (a.descripcion ? '<div style="text-align:center;font-size:12px;color:var(--slate);">' + escapeHtml(a.descripcion) + '</div>' : '') +
                 '<div style="text-align:center;margin:8px 0;font-weight:900;color:var(--gold);">' + N + ' unidades · máximo 1 por persona</div>' +
@@ -8054,8 +8066,7 @@
                   '<input type="number" id="puja-' + eId + '" min="' + min + '" step="1" value="' + min + '" style="flex:1;min-width:0;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:inherit;">' +
                   '<button class="btn btn-sm ' + (puedo ? 'btn-green' : '') + '" ' + (puedo ? '' : 'disabled') + ' onclick="pujarSubasta(\'' + eId + '\')">' + (!puedo ? 'Totopos insuficientes' : mio ? '⬆️ Subir mi total' : '💰 Meter a la bolsa') + '</button></div>' +
                   '<div style="font-size:11px;color:var(--slate);">' + _lineaSaldoSubasta(min, disponible, _karmaComprometido - (mio ? mio.amount : 0), 'Cantidad') + '</div>';
-            return '<div class="card" style="margin-bottom:14px;border:1px solid rgba(212,175,55,0.45);">' +
-                '<p class="card-title">🔨 Subasta · bolsa</p>' + _imgSubasta(a, true) +
+            return _abrirTarjetaSubasta('bolsa', 'Entre más metes, más te toca · todos al mismo precio') + _imgSubasta(a, true) +
                 '<div style="text-align:center;font-weight:700;font-size:15px;">' + item + '</div>' +
                 (a.descripcion ? '<div style="text-align:center;font-size:12px;color:var(--slate);">' + escapeHtml(a.descripcion) + '</div>' : '') +
                 '<div style="text-align:center;margin:8px 0;font-weight:900;color:var(--gold);">' + N + ' unidades en bolsa · precio mínimo ' + a.minBid + ' c/u</div>' +
@@ -8164,8 +8175,7 @@
                       '<input type="number" id="puja-' + eId + '" min="' + min + '" step="1" value="' + min + '" style="flex:1;min-width:0;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:inherit;">' +
                       '<button class="btn btn-sm ' + (puedo ? 'btn-green' : '') + '" ' + (puedo ? '' : 'disabled') + ' onclick="pujarSubasta(\'' + eId + '\')">' + (puedo ? '🔨 Pujar' : 'Totopos insuficientes') + '</button></div>' +
                       '<div style="font-size:11px;color:var(--slate);">' + _lineaSaldoSubasta(min, disponible, _karmaComprometido, 'Puja') + '</div>';
-                return '<div class="card" style="margin-bottom:14px;border:1px solid rgba(212,175,55,0.45);">' +
-                    '<p class="card-title">🔨 Subasta</p>' +
+                return _abrirTarjetaSubasta('pieza', 'Gana la oferta más alta') +
                     (a.imageUrl
                         ? '<img src="' + escapeHtml(a.imageUrl) + '" alt="' + escapeHtml(a.nombre || '') + '" loading="lazy" onclick="openImagePreview(this.src)" style="display:block;margin:0 auto;width:160px;height:160px;max-width:100%;object-fit:cover;border-radius:10px;border:1px solid rgba(212,175,55,0.35);cursor:zoom-in;">'
                         : '<div style="text-align:center;font-size:36px;">' + escapeHtml(a.emoji || '🔨') + '</div>') +
