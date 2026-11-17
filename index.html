@@ -3824,7 +3824,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.84.0';
+        window.APP_HTML_VERSION = 'v4.85.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -8039,11 +8039,30 @@
 
         function _repartoBolsa(a, montos) {
             const lista = (montos || _rankingSubasta(a)).filter(b => b.amount > 0);
-            const total = lista.reduce((s, b) => s + b.amount, 0);
-            const precio = Math.max(a.minBid, Math.ceil(total / a.unidades));
-            const reparto = lista.map(b => { const unidades = Math.floor(b.amount / precio); return { ...b, unidades, paga: unidades * precio }; });
-            const asignadas = reparto.reduce((s, r) => s + r.unidades, 0);
-            return { total, precio, reparto, asignadas, sobran: a.unidades - asignadas };
+            const total = lista.reduce((s, b) => s + b.amount, 0), N = a.unidades;
+            const pide = p => lista.reduce((s, b) => s + Math.floor(b.amount / p), 0);   // unidades enteras que alcanzan todos a precio p
+            // Precio = el mas alto al que todavia se reparten las N (nunca menos del minimo). Si ni al minimo se
+            // piden N, se queda en el minimo y sobran.
+            let precio = a.minBid;
+            if (pide(precio) > N) {
+                let lo = precio, hi = Math.max(...lista.map(b => b.amount));
+                while (lo < hi) { const mid = Math.ceil((lo + hi) / 2); if (pide(mid) >= N) lo = mid; else hi = mid - 1; }
+                precio = lo;
+            }
+            const quiere = lista.map(b => Math.floor(b.amount / precio)), D = quiere.reduce((s, q) => s + q, 0);
+            let unidades = quiere.slice();
+            if (D > N) {
+                // A ese precio se piden mas de las que hay: a cada quien su parte proporcional; las que quedan por
+                // redondeo, a quien le falto mas para la siguiente (empate: quien entro primero).
+                unidades = quiere.map(q => Math.floor(q * N / D));
+                let faltan = N - unidades.reduce((s, u) => s + u, 0);
+                lista.map((b, i) => ({ i, resto: quiere[i] * N / D - unidades[i], at: b.at || '' }))
+                    .sort((x, y) => y.resto - x.resto || x.at.localeCompare(y.at))
+                    .forEach(x => { if (faltan > 0 && x.resto > 0) { unidades[x.i]++; faltan--; } });
+            }
+            const reparto = lista.map((b, i) => ({ ...b, unidades: unidades[i], paga: unidades[i] * precio }));
+            const asignadas = unidades.reduce((s, u) => s + u, 0);
+            return { total, precio, reparto, asignadas, sobran: N - asignadas };
         }
 
         function _tarjetaBolsa(a, me) {
@@ -8057,7 +8076,9 @@
                 : (mio.unidades > 0
                     ? '<div style="color:var(--green);font-weight:700;font-size:13px;">Metiste ' + mio.amount + '. Si cerrara ahorita te tocan ' + mio.unidades + ' ' + item + ' a ' + precio + ' c/u = ' + mio.paga + ' totopos.</div>' +
                       (mio.amount > mio.paga ? '<div style="font-size:12px;color:var(--slate);">Los otros ' + (mio.amount - mio.paga) + ' no se te cobrarían.</div>' : '')
-                    : '<div style="color:#F5B83D;font-weight:700;font-size:13px;">Metiste ' + mio.amount + ', pero ahorita no alcanza ni para 1 (cada una va en ' + precio + '). Si se queda así, no se te cobra nada.</div>') +
+                    : '<div style="color:#F5B83D;font-weight:700;font-size:13px;">Metiste ' + mio.amount + (mio.amount >= precio
+                        ? ', pero a ' + precio + ' c/u hay más pedidos que unidades y ahorita no te toca. Mete más para asegurar la tuya.'
+                        : ', pero ahorita no alcanza ni para 1 (cada una va en ' + precio + ').') + ' Si se queda así, no se te cobra nada.</div>') +
                   '<div style="font-size:12px;color:var(--slate);">Ojo: el precio por unidad sube entre más totopos metan todos. Tus ' + mio.amount + ' quedan apartados hasta el cierre.</div>';
             const accion = terminada
                 ? '<div style="font-size:12px;color:var(--slate);">⏰ La subasta terminó. El director hará el reparto.</div>'
@@ -8070,7 +8091,7 @@
                 '<div style="text-align:center;font-weight:700;font-size:15px;">' + item + '</div>' +
                 (a.descripcion ? '<div style="text-align:center;font-size:12px;color:var(--slate);">' + escapeHtml(a.descripcion) + '</div>' : '') +
                 '<div style="text-align:center;margin:8px 0;font-weight:900;color:var(--gold);">' + N + ' unidades en bolsa · precio mínimo ' + a.minBid + ' c/u</div>' +
-                '<div class="info-box" style="font-size:12px;line-height:1.5;margin-bottom:8px;">ℹ️ Las ' + N + ' unidades se reparten según los totopos que mete cada quien: si metes el 10% de la bolsa, te toca el 10%. Todos pagan <b>el mismo precio</b> por unidad (la bolsa entre ' + N + ', nunca menos de ' + a.minBid + '). Solo unidades enteras: lo que no alcance para una no se te cobra.</div>' +
+                '<div class="info-box" style="font-size:12px;line-height:1.5;margin-bottom:8px;">ℹ️ Las ' + N + ' unidades se reparten según los totopos que mete cada quien: entre más metes, más te toca. Todos pagan <b>el mismo precio</b> por unidad: el más alto al que todavía se reparten las ' + N + ' (nunca menos de ' + a.minBid + '). Solo unidades enteras: lo que no alcance para una no se te cobra.</div>' +
                 '<div style="text-align:center;font-size:13px;font-weight:700;">Bolsa actual: ' + total + ' totopos · precio por unidad hoy: ' + precio + '</div>' +
                 '<div style="text-align:center;font-size:11px;color:var(--slate);margin-bottom:8px;">' + reparto.length + ' agentes en la bolsa · Cierra ' + new Date(a.endsAtMs).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }) + '</div>' +
                 '<div style="display:flex;flex-direction:column;gap:6px;">' + estado + accion + '</div></div>';
