@@ -3824,7 +3824,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.86.0';
+        window.APP_HTML_VERSION = 'v4.87.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -8068,6 +8068,19 @@
             return { total, precio, reparto, asignadas, sobran: N - asignadas };
         }
 
+        // Total minimo que tendria que meter `me` para tener al menos `meta` unidades, simulando el reparto con las
+        // ofertas de hoy. `subenOtros`: ids que en la simulacion meten un poco mas (para ver si mi lugar esta seguro).
+        function _cuantoParaBolsa(a, me, meta, subenOtros) {
+            const inc = a.increment || 1, bids = { ...(a.bids || {}) };
+            (subenOtros || []).forEach(id => { bids[id] = { ...bids[id], amount: Number(bids[id].amount) + inc }; });
+            const yo = bids[me], desde = Math.max(yo ? Number(yo.amount) : 0, a.minBid);
+            const unidadesCon = m => _repartoBolsa({ ...a, bids: { ...bids, [me]: { ...(yo || { name: me, at: new Date().toISOString() }), amount: m } } }).reparto.find(x => x.id === me)?.unidades || 0;
+            for (let m = desde, k = 0; k <= 400; k++, m += inc) if (unidadesCon(m) >= meta) return m;
+            const paso = Math.max(inc, _repartoBolsa(a).precio);   // si hace falta mucho mas, busca en saltos de 1 unidad
+            for (let m = desde + 400 * inc, k = 0; k <= 200; k++, m += paso) if (unidadesCon(m) >= meta) return m;
+            return null;
+        }
+
         function _tarjetaBolsa(a, me) {
             const eId = escapeHtml(a._id), N = a.unidades, item = _nombreSubasta(a);
             const { total, precio, reparto } = _repartoBolsa(a), mio = reparto.find(r => r.id === me);
@@ -8075,19 +8088,27 @@
             const min = _minMulti(a, me);
             const disponible = (state.karma || 0) - _karmaComprometido + (mio ? mio.amount : 0);
             const puedo = !terminada && disponible >= min;
-            const estado = !mio ? ''
+            // Cuanto meter: para entrar (si no me toca) o para asegurar lo mio (si hay empatados fuera que podrian subir).
+            const paraUna = !terminada && (!mio || !mio.unidades) ? _cuantoParaBolsa(a, me, 1) : null;
+            const fuera = mio && mio.unidades ? reparto.filter(x => x.id !== me && x.unidades < Math.floor(x.amount / precio)).map(x => x.id) : [];
+            const seguro = !terminada && fuera.length ? _cuantoParaBolsa(a, me, mio.unidades, fuera) : null;
+            const enRiesgo = !terminada && fuera.length > 0 && seguro !== mio.amount;
+            const sugerido = Math.max(min, (enRiesgo ? seguro : paraUna) || 0);
+            const meteX = x => x ? ' Mete <b>' + x + '</b> o más para que te toque 1.' : ' Mete más para que te toque 1.';
+            const estado = !mio ? (paraUna ? '<div style="font-size:13px;font-weight:700;">Para que te toque al menos 1 hoy: mete ' + paraUna + ' o más.</div>' : '')
                 : (mio.unidades > 0
                     ? '<div style="color:var(--green);font-weight:700;font-size:13px;">Metiste ' + mio.amount + '. Si cerrara ahorita te tocan ' + mio.unidades + ' ' + item + ' a ' + precio + ' c/u = ' + mio.paga + ' totopos.</div>' +
-                      (mio.amount > mio.paga ? '<div style="font-size:12px;color:var(--slate);">Los otros ' + (mio.amount - mio.paga) + ' no se te cobrarían.</div>' : '')
-                    : '<div style="color:#F5B83D;font-weight:700;font-size:13px;">Metiste ' + mio.amount + (mio.amount >= precio
-                        ? ', pero a ' + precio + ' c/u hay más pedidos que unidades y ahorita no te toca. Mete más para asegurar la tuya.'
-                        : ', pero ahorita no alcanza ni para 1 (cada una va en ' + precio + ').') + ' Si se queda así, no se te cobra nada.</div>') +
+                      (mio.amount > mio.paga ? '<div style="font-size:12px;color:var(--slate);">Los otros ' + (mio.amount - mio.paga) + ' no se te cobrarían.</div>' : '') +
+                      (enRiesgo ? '<div style="color:var(--gold-l);font-weight:700;font-size:12px;">⚠️ Vas en el límite: hay empatados que se quedaron fuera y, si meten un poco más, te tocarían menos.' + (seguro ? ' Mete <b>' + seguro + '</b> o más para asegurar tus ' + mio.unidades + '.' : ' Mete un poco más para asegurarlas.') + '</div>' : '')
+                    : '<div style="color:var(--gold-l);font-weight:700;font-size:13px;">Metiste ' + mio.amount + (mio.amount >= precio
+                        ? ', pero a ' + precio + ' c/u hay más pedidos que unidades y quedaste fuera en el desempate (gana quien metió más y, si empatan, quien entró primero).' + meteX(paraUna)
+                        : ', pero ahorita no alcanza ni para 1 (cada una va en ' + precio + ').' + meteX(paraUna)) + ' Si se queda así, no se te cobra nada.</div>') +
                   '<div style="font-size:12px;color:var(--slate);">Ojo: el precio por unidad sube entre más totopos metan todos. Tus ' + mio.amount + ' quedan apartados hasta el cierre.</div>';
             const accion = terminada
                 ? '<div style="font-size:12px;color:var(--slate);">⏰ La subasta terminó. El director hará el reparto.</div>'
                 : (mio ? '<div style="font-size:12px;">Escribe tu <b>nuevo total</b> en la bolsa (hoy tienes ' + mio.amount + '):</div>' : '') +
                   '<div style="display:flex;gap:8px;align-items:center;">' +
-                  '<input type="number" id="puja-' + eId + '" min="' + min + '" step="1" value="' + min + '" style="flex:1;min-width:0;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:inherit;">' +
+                  '<input type="number" id="puja-' + eId + '" min="' + min + '" step="1" value="' + sugerido + '" style="flex:1;min-width:0;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:inherit;">' +
                   '<button class="btn btn-sm ' + (puedo ? 'btn-green' : '') + '" ' + (puedo ? '' : 'disabled') + ' onclick="pujarSubasta(\'' + eId + '\')">' + (!puedo ? 'Totopos insuficientes' : mio ? '⬆️ Subir mi total' : '💰 Meter a la bolsa') + '</button></div>' +
                   '<div style="font-size:11px;color:var(--slate);">' + _lineaSaldoSubasta(min, disponible, _karmaComprometido - (mio ? mio.amount : 0), 'Cantidad') + '</div>';
             return _abrirTarjetaSubasta('bolsa', 'Entre más metes, más te toca · todos al mismo precio') + _imgSubasta(a, true) +
