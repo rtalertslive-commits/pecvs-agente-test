@@ -3824,7 +3824,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.85.0';
+        window.APP_HTML_VERSION = 'v4.86.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -8053,11 +8053,14 @@
             let unidades = quiere.slice();
             if (D > N) {
                 // A ese precio se piden mas de las que hay: a cada quien su parte proporcional; las que quedan por
-                // redondeo, a quien le falto mas para la siguiente (empate: quien entro primero).
+                // redondeo, a quien le falto mas para la siguiente. Empate: quien metio mas; si siguen, quien entro
+                // primero (su PRIMERA oferta, para que subir nunca te haga perder lugar).
                 unidades = quiere.map(q => Math.floor(q * N / D));
                 let faltan = N - unidades.reduce((s, u) => s + u, 0);
-                lista.map((b, i) => ({ i, resto: quiere[i] * N / D - unidades[i], at: b.at || '' }))
-                    .sort((x, y) => y.resto - x.resto || x.at.localeCompare(y.at))
+                const primera = {};
+                (a.history || []).forEach(h => { if (h && h.id && h.at && (!primera[h.id] || h.at < primera[h.id])) primera[h.id] = h.at; });
+                lista.map((b, i) => ({ i, resto: quiere[i] * N / D - unidades[i], amount: b.amount, at: primera[b.id] || b.at || '' }))
+                    .sort((x, y) => y.resto - x.resto || y.amount - x.amount || x.at.localeCompare(y.at))
                     .forEach(x => { if (faltan > 0 && x.resto > 0) { unidades[x.i]++; faltan--; } });
             }
             const reparto = lista.map((b, i) => ({ ...b, unidades: unidades[i], paga: unidades[i] * precio }));
