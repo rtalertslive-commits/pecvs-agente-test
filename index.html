@@ -3824,7 +3824,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.87.0';
+        window.APP_HTML_VERSION = 'v4.88.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -7975,7 +7975,6 @@
         const _nombreSubasta = a => escapeHtml((a.nombre || '').replace(/[.\s]+$/, ''));   // sin punto final: va dentro de frases
 
         const _ESTILO_SUBASTA = {
-            pieza:   { color: '#D4AF37', texto: '#2A1F00', etiqueta: '🔨 SUBASTA · 1 PIEZA' },
             persona: { color: '#E8833A', texto: '#2B1200', etiqueta: '🏆 SUBASTA · 1 POR PERSONA' },
             bolsa:   { color: '#14A38B', texto: '#FFFFFF', etiqueta: '🫙 BOLSA · REPARTO PROPORCIONAL' }
         };
@@ -8220,7 +8219,7 @@
                       '<input type="number" id="puja-' + eId + '" min="' + min + '" step="1" value="' + min + '" style="flex:1;min-width:0;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:inherit;">' +
                       '<button class="btn btn-sm ' + (puedo ? 'btn-green' : '') + '" ' + (puedo ? '' : 'disabled') + ' onclick="pujarSubasta(\'' + eId + '\')">' + (puedo ? '🔨 Pujar' : 'Totopos insuficientes') + '</button></div>' +
                       '<div style="font-size:11px;color:var(--slate);">' + _lineaSaldoSubasta(min, disponible, _karmaComprometido, 'Puja') + '</div>';
-                return _abrirTarjetaSubasta('pieza', 'Gana la oferta más alta') +
+                return _abrirTarjetaSubasta('persona', 'La oferta más alta gana') +
                     (a.imageUrl
                         ? '<img src="' + escapeHtml(a.imageUrl) + '" alt="' + escapeHtml(a.nombre || '') + '" loading="lazy" onclick="openImagePreview(this.src)" style="display:block;margin:0 auto;width:160px;height:160px;max-width:100%;object-fit:cover;border-radius:10px;border:1px solid rgba(212,175,55,0.35);cursor:zoom-in;">'
                         : '<div style="text-align:center;font-size:36px;">' + escapeHtml(a.emoji || '🔨') + '</div>') +
