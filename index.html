@@ -3824,7 +3824,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.89.0';
+        window.APP_HTML_VERSION = 'v4.90.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -8137,7 +8137,13 @@
                 : (participe && a.status === 'closed') ? '<div style="color:var(--slate);font-size:12px;margin-top:2px;">Con lo que metiste no alcanzó para 1. No se te cobró nada.</div>' : '';
             return '<div class="card" style="margin-bottom:14px;display:flex;gap:12px;align-items:center;">' + _imgSubasta(a, false) +
                 '<div style="min-width:0;"><div style="font-weight:700;font-size:13px;">Subasta terminada: ' + item + ' (bolsa de ' + a.unidades + ')</div>' +
-                '<div style="font-size:13px;color:' + color + ';">' + linea + '</div>' + nota + '</div></div>';
+                '<div style="font-size:13px;color:' + color + ';">' + linea + '</div>' + nota +
+                (a.status === 'closed' && gs.length
+                    ? '<details style="margin-top:6px;font-size:12px;"><summary style="cursor:pointer;font-weight:700;">Ver a quién le tocó (' + gs.length + ')</summary>' +
+                      '<ol style="margin:6px 0 0 18px;padding:0;line-height:1.6;">' +
+                      gs.slice().sort((x, y) => y.unidades - x.unidades || y.amount - x.amount).map(g => '<li>' + escapeHtml(g.name || '') + (g.id === me ? ' <b>(tú)</b>' : '') + ' — ' + g.unidades + ' unidades, pagó ' + g.amount + '</li>').join('') +
+                      '</ol></details>'
+                    : '') + '</div></div>';
         }
 
         async function _pujarMulti(id) {
