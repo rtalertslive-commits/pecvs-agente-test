@@ -2837,14 +2837,14 @@
         <div id="tab-tienda" class="tab-panel">
             <!-- Sub-tabs -->
             <div id="tienda-subtabs" style="display:flex; gap:6px; margin-bottom:16px; border-bottom: 1px solid var(--border); padding-bottom:2px;">
-                <button id="ts-btn-comprar" onclick="switchTiendaSubtab('comprar')" style="flex:1; padding:10px; background:rgba(32, 85, 154, 0.15); border:1px solid rgba(32, 85, 154, 0.4); border-radius:8px 6px 0 0; color:var(--gold-l); font-weight:700; font-size:13px; cursor:pointer;">🛒 Comprar</button>
+                <button id="ts-btn-comprar" onclick="switchTiendaSubtab('comprar')" style="flex:1; padding:10px; background:rgba(32, 85, 154, 0.15); border:1px solid rgba(32, 85, 154, 0.4); border-radius:8px 6px 0 0; color:var(--gold-l); font-weight:700; font-size:13px; cursor:pointer;">🛒 Items</button>
+                <button id="ts-btn-subastas" onclick="switchTiendaSubtab('subastas')" style="flex:1; padding:10px; background:transparent; border: 1px solid var(--border); border-radius:8px 6px 0 0; color:rgba(var(--vk), 0.7); font-weight:600; font-size:13px; cursor:pointer;">🔨 Subastas</button>
                 <button id="ts-btn-solicitudes" onclick="switchTiendaSubtab('solicitudes')" style="flex:1; padding:10px; background:transparent; border: 1px solid var(--border); border-radius:8px 6px 0 0; color:rgba(var(--vk), 0.7); font-weight:600; font-size:13px; cursor:pointer;">📜 Mis solicitudes</button>
                 <button id="ts-btn-actividad" onclick="switchTiendaSubtab('actividad')" style="flex:1; padding:10px; background:transparent; border: 1px solid var(--border); border-radius:8px 6px 0 0; color:rgba(var(--vk), 0.7); font-weight:600; font-size:13px; cursor:pointer;">🔥 Actividad</button>
             </div>
 
             <!-- Sub-view: COMPRAR -->
             <div id="ts-view-comprar">
-                <div id="subastas-box"></div>
                 <div class="card">
                     <p class="card-title"><i class="fa fa-store"></i> Canjea tus Totopos</p>
                     <p style="font-size:12px;color:var(--slate);margin-bottom:12px;">Selecciona un item y solicita el canje. El director lo aprobará.</p>
@@ -2852,6 +2852,11 @@
                         <div class="empty-state"><i class="fa fa-spinner fa-spin"></i> Cargando...</div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Sub-view: SUBASTAS -->
+            <div id="ts-view-subastas" style="display:none;">
+                <div id="subastas-box"></div>
             </div>
 
             <!-- Sub-view: MIS SOLICITUDES -->
@@ -3497,6 +3502,7 @@
         :root[data-tema="claro"] #kpiEfectividad { background: #dde5ef !important; }
         :root[data-tema="claro"] #ts-btn-comprar { color: #061837 !important; background: #dce4ee !important; }
         :root[data-tema="claro"] #ts-view-comprar div.card { background: #dde5ef !important; }
+        :root[data-tema="claro"] #ts-view-subastas div.card { background: #dde5ef !important; }
         :root[data-tema="claro"] nav.bottom-nav button.bn-btn i.fa.fa-book-open { color: #071d49 !important; }
         :root[data-tema="claro"] #tab-charts div.card { background: #dde5ef !important; }
         :root[data-tema="claro"] #foro-body { background: #dde5ef !important; }
@@ -3824,7 +3830,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.90.0';
+        window.APP_HTML_VERSION = 'v4.91.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -7986,6 +7992,66 @@
                 '<div style="font-size:12px;font-weight:700;margin-top:6px;">' + frase + '</div></div>';
         }
 
+        // Alias anonimo por orden de llegada a ESTA subasta: A..Z, AA, AB... (como columnas de Excel).
+        function _letraSubasta(n) { let s = ''; for (n++; n > 0; n = Math.floor((n - 1) / 26)) s = String.fromCharCode(65 + (n - 1) % 26) + s; return s; }
+        function _aliasSubasta(a) {
+            const primera = {};
+            (a.history || []).forEach(h => { if (h && h.id && (!(h.id in primera) || (h.at || '') < primera[h.id])) primera[h.id] = h.at || ''; });
+            Object.entries(a.bids || {}).forEach(([id, b]) => { if (!(id in primera)) primera[id] = b.at || ''; });
+            const alias = {};
+            Object.keys(primera).sort((x, y) => primera[x].localeCompare(primera[y]) || x.localeCompare(y)).forEach((id, i) => { alias[id] = 'Pujador ' + _letraSubasta(i); });
+            return alias;
+        }
+        // filas: [{ id, amount, dentro, extra?, barra? }] ya ordenadas; corte: indice de la primera fila fuera (-1 = sin linea).
+        // Se ven los primeros 5, los de alrededor del corte y mi fila; el resto en "Ver ranking completo".
+        function _rankingSubastaHtml(a, filas, me, corte, textoCorte) {
+            if (!filas.length) return '';
+            const alias = _aliasSubasta(a);
+            const fila = (f, i) => {
+                const yo = f.id === me;
+                const est = yo ? 'background:rgba(55,138,221,0.18);font-weight:700;' : f.dentro ? 'background:rgba(29,158,117,0.14);' : 'color:var(--slate);';
+                return '<div style="display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:2px 6px;align-items:center;font-size:12px;padding:5px 8px;border-radius:6px;' + est + '">' +
+                    '<span style="opacity:0.7;text-align:right;">' + (i + 1) + '</span><span>' + (yo ? '👤 Tú' : escapeHtml(alias[f.id] || 'Pujador')) + '</span>' +
+                    '<span>' + f.amount + (f.extra ? ' · ' + f.extra : '') + '</span>' +
+                    (f.barra != null ? '<div style="grid-column:2 / 4;height:5px;border-radius:3px;background:rgba(var(--vk),0.10);"><div style="width:' + f.barra + '%;height:5px;border-radius:3px;background:' + (yo ? '#378ADD' : '#1D9E75') + ';"></div></div>' : '') +
+                    '</div>';
+            };
+            const linea = '<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--gold-l);margin:3px 0;"><span style="flex:1;border-top:1px dashed currentColor;"></span>' + textoCorte + '<span style="flex:1;border-top:1px dashed currentColor;"></span></div>';
+            const pinta = idx => {
+                let h = '', prev = -1, cortada = false;
+                idx.forEach(i => {
+                    if (prev >= 0 && i > prev + 1) h += '<div style="text-align:center;font-size:11px;color:var(--slate);line-height:1;">⋯</div>';
+                    if (corte >= 0 && !cortada && i >= corte) { h += linea; cortada = true; }
+                    h += fila(filas[i], i); prev = i;
+                });
+                return h;
+            };
+            const ver = new Set([0, 1, 2, 3, 4]);
+            if (corte >= 0) [corte - 2, corte - 1, corte, corte + 1].forEach(i => ver.add(i));
+            const mi = filas.findIndex(f => f.id === me); if (mi >= 0) ver.add(mi);
+            const todos = filas.map((_, i) => i), idx = todos.filter(i => ver.has(i));
+            return '<div style="margin:8px 0;">' +
+                '<div style="font-size:11px;font-weight:700;letter-spacing:0.5px;color:var(--slate);margin-bottom:4px;">RANKING DE PUJAS · ANÓNIMO</div>' + pinta(idx) +
+                (idx.length < filas.length ? '<details style="margin-top:4px;font-size:12px;"><summary style="cursor:pointer;font-weight:700;">Ver ranking completo (' + filas.length + ')</summary>' + pinta(todos) + '</details>' : '') +
+                '</div>';
+        }
+        function _rankingUna(a, me) {   // 1 pieza: la mejor puja de cada quien
+            const mejor = {};
+            (a.history || []).forEach(h => { if (h && h.id && (!(h.id in mejor) || Number(h.amount) > mejor[h.id])) mejor[h.id] = Number(h.amount) || 0; });
+            const filas = Object.entries(mejor).map(([id, amount]) => ({ id, amount })).sort((x, y) => y.amount - x.amount);
+            filas.forEach((r, i) => { r.dentro = i === 0; });
+            return _rankingSubastaHtml(a, filas, me, filas.length > 1 ? 1 : -1, 'arriba gana hoy');
+        }
+        function _rankingMulti(a, me) {
+            const rk = _rankingSubasta(a), N = a.unidades;
+            return _rankingSubastaHtml(a, rk.map((b, i) => ({ id: b.id, amount: b.amount, dentro: i < N })), me, rk.length > N ? N : -1, rk.length > N ? 'corte: ' + rk[N - 1].amount : '');
+        }
+        function _rankingBolsa(a, me, r) {
+            const filas = r.reparto.slice().sort((x, y) => y.unidades - x.unidades || y.amount - x.amount), max = Math.max(1, ...filas.map(x => x.amount));
+            const corte = filas.findIndex(x => !x.unidades);
+            return _rankingSubastaHtml(a, filas.map(x => ({ id: x.id, amount: x.amount, dentro: x.unidades > 0, extra: x.unidades + ' pzas', barra: Math.round(x.amount / max * 100) })), me, corte, 'abajo no alcanza hoy');
+        }
+
         function _imgSubasta(a, grande) {
             return a.imageUrl
                 ? (grande ? '<img src="' + escapeHtml(a.imageUrl) + '" alt="' + escapeHtml(a.nombre || '') + '" loading="lazy" onclick="openImagePreview(this.src)" style="display:block;margin:0 auto;width:160px;height:160px;max-width:100%;object-fit:cover;border-radius:10px;border:1px solid rgba(212,175,55,0.35);cursor:zoom-in;">'
@@ -7999,6 +8065,7 @@
             const terminada = Date.now() >= a.endsAtMs;
             const min = _minMulti(a, me);
             const disponible = (state.karma || 0) - _karmaComprometido + (dentro ? yo.amount : 0);
+            const rankingHtml = _rankingMulti(a, me);
             const puedo = !terminada && disponible >= min;
             const estado = !yo ? ''
                 : dentro && rk.length >= N && i === N - 1
@@ -8019,7 +8086,7 @@
                 '<div class="info-box" style="font-size:12px;line-height:1.5;margin-bottom:8px;">ℹ️ Ganan las ' + N + ' ofertas más altas. Ofrecer más <b>NO</b> te da más unidades: solo asegura tu lugar para llevarte 1 ' + item + '. Si ganas, pagas lo que ofreciste.</div>' +
                 (!dentro && !terminada ? '<div style="text-align:center;font-size:13px;font-weight:700;">Para entrar hoy necesitas: ' + min + ' totopos</div>' : '') +
                 '<div style="text-align:center;font-size:11px;color:var(--slate);margin-bottom:8px;">' + rk.length + ' agentes pujando · Cierra ' + new Date(a.endsAtMs).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }) + '</div>' +
-                '<div style="display:flex;flex-direction:column;gap:6px;">' + estado + accion + '</div></div>';
+                rankingHtml + '<div style="display:flex;flex-direction:column;gap:6px;">' + estado + accion + '</div></div>';
         }
 
         function _resultadoMulti(a, me) {
@@ -8088,7 +8155,8 @@
 
         function _tarjetaBolsa(a, me) {
             const eId = escapeHtml(a._id), N = a.unidades, item = _nombreSubasta(a);
-            const { total, precio, reparto } = _repartoBolsa(a), mio = reparto.find(r => r.id === me);
+            const _r = _repartoBolsa(a), { total, precio, reparto } = _r, mio = reparto.find(r => r.id === me);
+            const rankingHtml = _rankingBolsa(a, me, _r);
             const terminada = Date.now() >= a.endsAtMs;
             const min = _minMulti(a, me);
             const disponible = (state.karma || 0) - _karmaComprometido + (mio ? mio.amount : 0);
@@ -8123,7 +8191,7 @@
                 '<div class="info-box" style="font-size:12px;line-height:1.5;margin-bottom:8px;">ℹ️ Las ' + N + ' unidades se reparten según los totopos que mete cada quien: entre más metes, más te toca. Todos pagan <b>el mismo precio</b> por unidad: el más alto al que todavía se reparten las ' + N + ' (nunca menos de ' + a.minBid + '). Solo unidades enteras: lo que no alcance para una no se te cobra.</div>' +
                 '<div style="text-align:center;font-size:13px;font-weight:700;">Bolsa actual: ' + total + ' totopos · precio por unidad hoy: ' + precio + '</div>' +
                 '<div style="text-align:center;font-size:11px;color:var(--slate);margin-bottom:8px;">' + reparto.length + ' agentes en la bolsa · Cierra ' + new Date(a.endsAtMs).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }) + '</div>' +
-                '<div style="display:flex;flex-direction:column;gap:6px;">' + estado + accion + '</div></div>';
+                rankingHtml + '<div style="display:flex;flex-direction:column;gap:6px;">' + estado + accion + '</div></div>';
         }
 
         function _resultadoBolsa(a, me) {
@@ -8193,7 +8261,9 @@
             const box = document.getElementById('subastas-box');
             if (!box) return;
             try { await renderMisSolicitudes(); } catch {}   // refresca _subastas y lo comprometido
-            if (!_subastas.length && !_subastasTerminadas.length) { box.innerHTML = ''; return; }
+            const btnSub = document.getElementById('ts-btn-subastas');
+            if (btnSub) btnSub.textContent = '🔨 Subastas' + (_subastas.length ? ' (' + _subastas.length + ')' : '');
+            if (!_subastas.length && !_subastasTerminadas.length) { box.innerHTML = '<div class="card"><div class="empty-state"><i class="fa fa-gavel"></i> No hay subastas por ahora.</div></div>'; return; }
             const me = user.email || user.uid;
             const resultados = _subastasTerminadas.map(a => {
                 if (a.tipo === 'bolsa') return _resultadoBolsa(a, me);
@@ -8215,6 +8285,7 @@
                 if (a.tipo === 'bolsa') return _tarjetaBolsa(a, me);
                 if (_multiSubasta(a)) return _tarjetaMulti(a, me);
                 const eId = escapeHtml(a._id);
+                const rankingHtml = _rankingUna(a, me);
                 const terminada = Date.now() >= a.endsAtMs;
                 const lidero = a.topBidderId === me;
                 const min = a.topBid > 0 ? a.topBid + a.increment : a.minBid;
@@ -8240,7 +8311,7 @@
                     '<div style="text-align:center;margin:8px 0;font-weight:900;color:var(--gold);">' +
                     (a.topBid > 0 ? 'Puja más alta: ' + a.topBid + ' totopos' : 'Sin pujas todavía') + '</div>' +
                     '<div style="text-align:center;font-size:11px;color:var(--slate);margin-bottom:8px;">Cierra ' + new Date(a.endsAtMs).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }) + '</div>' +
-                    '<div style="display:flex;flex-direction:column;gap:6px;">' + estado + accion + '</div></div>';
+                    rankingHtml + '<div style="display:flex;flex-direction:column;gap:6px;">' + estado + accion + '</div></div>';
             }).join('') + resultados;
         }
 
@@ -8340,7 +8411,7 @@
 
         // ─── SUB-TABS DE LA TIENDA (Comprar / Mis solicitudes / Actividad) ────────
         window.switchTiendaSubtab = function (which) {
-            const tabs = ['comprar', 'solicitudes', 'actividad'];
+            const tabs = ['comprar', 'subastas', 'solicitudes', 'actividad'];
             tabs.forEach(t => {
                 const view = document.getElementById('ts-view-' + t);
                 const btn  = document.getElementById('ts-btn-' + t);
@@ -8362,7 +8433,8 @@
             });
             if (which === 'actividad') { renderActividadTab(); }
             if (which === 'solicitudes') renderMisSolicitudes();
-            if (which === 'comprar') { renderTiendaItems(); renderSubastas(); }
+            if (which === 'comprar') renderTiendaItems();
+            if (which === 'subastas') renderSubastas();
         };
 
         // Tiempo relativo en español ("hace 5 min", "hace 2 h", "hace 3 días").
