@@ -3830,7 +3830,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.92.0';
+        window.APP_HTML_VERSION = 'v4.93.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -8177,16 +8177,16 @@
             const seguro = !terminada && fuera.length ? _cuantoParaBolsa(a, me, mio.unidades, fuera) : null;
             const enRiesgo = !terminada && fuera.length > 0 && seguro !== mio.amount;
             const sugerido = Math.max(min, (enRiesgo ? seguro : paraUna) || 0);
-            const meteX = x => x ? ' Mete <b>' + x + '</b> o más para que te toque 1.' : ' Mete más para que te toque 1.';
+            const meteX = x => x ? ' Sube a <b>' + x + ' totopos</b> para que te alcance 1 unidad.' : ' Sube tu total para que te alcance 1 unidad.';
             const estado = !mio ? (paraUna ? '<div style="font-size:13px;font-weight:700;">Para que te toque al menos 1 hoy: mete ' + paraUna + ' o más.</div>' : '')
                 : (mio.unidades > 0
                     ? '<div style="color:var(--green);font-weight:700;font-size:13px;">Metiste ' + mio.amount + '. Si cerrara ahorita te tocan ' + mio.unidades + ' ' + item + ' a ' + precio + ' c/u = ' + mio.paga + ' totopos.</div>' +
                       (mio.amount > mio.paga ? '<div style="font-size:12px;color:var(--slate);">Los otros ' + (mio.amount - mio.paga) + ' no se te cobrarían.</div>' : '') +
-                      (enRiesgo ? '<div style="color:var(--gold-l);font-weight:700;font-size:12px;">⚠️ Vas en el límite: hay empatados que se quedaron fuera y, si meten un poco más, te tocarían menos.' + (seguro ? ' Mete <b>' + seguro + '</b> o más para asegurar tus ' + mio.unidades + '.' : ' Mete un poco más para asegurarlas.') + '</div>' : '')
+                      (enRiesgo ? '<div style="color:var(--gold-l);font-weight:700;font-size:12px;">⚠️ Vas en el límite: hay empatados que se quedaron fuera y, si meten un poco más, te tocarían menos.' + (seguro ? ' Sube a <b>' + seguro + ' totopos</b> para asegurar tus ' + mio.unidades + '.' : ' Sube un poco tu total para asegurarlas.') + '</div>' : '')
                     : '<div style="color:var(--gold-l);font-weight:700;font-size:13px;">Metiste ' + mio.amount + (mio.amount >= precio
                         ? ', pero a ' + precio + ' c/u hay más pedidos que unidades y quedaste fuera en el desempate (gana quien metió más y, si empatan, quien entró primero).' + meteX(paraUna)
                         : ', pero ahorita no alcanza ni para 1 (cada una va en ' + precio + ').' + meteX(paraUna)) + ' Si se queda así, no se te cobra nada.</div>') +
-                  '<div style="font-size:12px;color:var(--slate);">Ojo: el precio por unidad sube entre más totopos metan todos. Tus ' + mio.amount + ' quedan apartados hasta el cierre.</div>';
+                  '<div style="font-size:12px;color:var(--slate);">Ojo: el precio por unidad puede subir entre más totopos metan todos. Tus ' + mio.amount + ' quedan apartados hasta el cierre.</div>';
             const accion = terminada
                 ? '<div style="font-size:12px;color:var(--slate);">⏰ La subasta terminó. El director hará el reparto.</div>'
                 : (mio ? '<div style="font-size:12px;">Escribe tu <b>nuevo total</b> en la bolsa (hoy tienes ' + mio.amount + '):</div>' : '') +
@@ -8198,8 +8198,8 @@
                 '<div style="text-align:center;font-weight:700;font-size:15px;">' + item + '</div>' +
                 (a.descripcion ? '<div style="text-align:center;font-size:12px;color:var(--slate);">' + escapeHtml(a.descripcion) + '</div>' : '') +
                 '<div style="text-align:center;margin:8px 0;font-weight:900;color:var(--gold);">' + N + ' unidades en bolsa · precio mínimo ' + a.minBid + ' c/u</div>' +
-                '<div class="info-box" style="font-size:12px;line-height:1.5;margin-bottom:8px;">ℹ️ Las ' + N + ' unidades se reparten según los totopos que mete cada quien: entre más metes, más te toca. Todos pagan <b>el mismo precio</b> por unidad: el más alto al que todavía se reparten las ' + N + ' (nunca menos de ' + a.minBid + '). Solo unidades enteras: lo que no alcance para una no se te cobra.</div>' +
-                '<div style="text-align:center;font-size:13px;font-weight:700;">Bolsa actual: ' + total + ' totopos · precio por unidad hoy: ' + precio + '</div>' +
+                '<div class="info-box" style="font-size:12px;line-height:1.5;margin-bottom:8px;">ℹ️ Las ' + N + ' unidades se reparten proporcionalmente según los totopos que mete cada quien: entre más metes, más unidades te tocan.<br>Mientras la bolsa no pase de <b>' + (N * a.minBid).toLocaleString('es-MX') + ' totopos</b>, cada unidad cuesta <b>' + a.minBid + '</b>. Si más gente mete y la bolsa crece, el precio por unidad puede subir para todos por igual.</div>' +
+                '<div style="text-align:center;font-size:13px;font-weight:700;">Bolsa actual: ' + total.toLocaleString('es-MX') + ' totopos · precio por unidad hoy: ' + precio + '</div>' +
                 '<div style="text-align:center;font-size:11px;color:var(--slate);margin-bottom:8px;">' + reparto.length + ' agentes en la bolsa · Cierra ' + new Date(a.endsAtMs).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }) + '</div>' +
                 rankingHtml + '<div style="display:flex;flex-direction:column;gap:6px;">' + estado + accion + '</div></div>';
         }
