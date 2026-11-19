@@ -3830,7 +3830,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.93.0';
+        window.APP_HTML_VERSION = 'v4.94.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -8181,11 +8181,11 @@
             const estado = !mio ? (paraUna ? '<div style="font-size:13px;font-weight:700;">Para que te toque al menos 1 hoy: mete ' + paraUna + ' o más.</div>' : '')
                 : (mio.unidades > 0
                     ? '<div style="color:var(--green);font-weight:700;font-size:13px;">Metiste ' + mio.amount + '. Si cerrara ahorita te tocan ' + mio.unidades + ' ' + item + ' a ' + precio + ' c/u = ' + mio.paga + ' totopos.</div>' +
-                      (mio.amount > mio.paga ? '<div style="font-size:12px;color:var(--slate);">Los otros ' + (mio.amount - mio.paga) + ' no se te cobrarían.</div>' : '') +
+                      (mio.amount > mio.paga ? '<div style="font-size:12px;color:var(--slate);">Los otros ' + (mio.amount - mio.paga) + ' totopos se te regresan a tu balance al final de la subasta.</div>' : '') +
                       (enRiesgo ? '<div style="color:var(--gold-l);font-weight:700;font-size:12px;">⚠️ Vas en el límite: hay empatados que se quedaron fuera y, si meten un poco más, te tocarían menos.' + (seguro ? ' Sube a <b>' + seguro + ' totopos</b> para asegurar tus ' + mio.unidades + '.' : ' Sube un poco tu total para asegurarlas.') + '</div>' : '')
                     : '<div style="color:var(--gold-l);font-weight:700;font-size:13px;">Metiste ' + mio.amount + (mio.amount >= precio
                         ? ', pero a ' + precio + ' c/u hay más pedidos que unidades y quedaste fuera en el desempate (gana quien metió más y, si empatan, quien entró primero).' + meteX(paraUna)
-                        : ', pero ahorita no alcanza ni para 1 (cada una va en ' + precio + ').' + meteX(paraUna)) + ' Si se queda así, no se te cobra nada.</div>') +
+                        : ', pero ahorita no alcanza ni para 1 (cada una va en ' + precio + ').' + meteX(paraUna)) + ' Si no, esos ' + mio.amount + ' totopos de cualquier manera se te regresan a tu balance al final de la subasta.</div>') +
                   '<div style="font-size:12px;color:var(--slate);">Ojo: el precio por unidad puede subir entre más totopos metan todos. Tus ' + mio.amount + ' quedan apartados hasta el cierre.</div>';
             const accion = terminada
                 ? '<div style="font-size:12px;color:var(--slate);">⏰ La subasta terminó. El director hará el reparto.</div>'
@@ -8212,7 +8212,7 @@
             else if (!gs.length) { linea = 'A nadie le alcanzó ni para 1 unidad.'; color = 'var(--slate)'; }
             else { linea = '🏆 Se repartieron ' + u + ' entre ' + gs.length + ' agentes, a ' + a.precioFinal + ' c/u.'; color = 'var(--gold)'; }
             const nota = mio ? '<div style="color:var(--green);font-weight:700;font-size:12px;margin-top:2px;">🏆 ¡Te tocaron ' + mio.unidades + ' ' + item + '! Se descontaron ' + mio.amount + ' totopos y tu premio queda por entregar.</div>'
-                : (participe && a.status === 'closed') ? '<div style="color:var(--slate);font-size:12px;margin-top:2px;">Con lo que metiste no alcanzó para 1. No se te cobró nada.</div>' : '';
+                : (participe && a.status === 'closed') ? '<div style="color:var(--slate);font-size:12px;margin-top:2px;">Con lo que metiste no alcanzó para 1. Tus ' + (Number(a.bids[me].amount) || 0) + ' totopos regresaron a tu balance.</div>' : '';
             return '<div class="card" style="margin-bottom:14px;display:flex;gap:12px;align-items:center;">' + _imgSubasta(a, false) +
                 '<div style="min-width:0;"><div style="font-weight:700;font-size:13px;">Subasta terminada: ' + item + ' (bolsa de ' + a.unidades + ')</div>' +
                 '<div style="font-size:13px;color:' + color + ';">' + linea + '</div>' + nota +
