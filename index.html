@@ -3830,7 +3830,7 @@
         // versión PUBLICADA y no la que el usuario estaba corriendo: con el HTML viejo
         // en cache del SW, el header decía v3.35.0 mientras la app ejecutaba v3.30.0.
         // Eso hacía imposible saber si un cambio había llegado o no.
-        window.APP_HTML_VERSION = 'v4.91.0';
+        window.APP_HTML_VERSION = 'v4.92.0';
 
         // Escape hatch manual. La detección automática de abajo depende de varias
         // capas (SW activo, cache, sessionStorage) y cuando alguna falla el usuario
@@ -8031,10 +8031,20 @@
             const mi = filas.findIndex(f => f.id === me); if (mi >= 0) ver.add(mi);
             const todos = filas.map((_, i) => i), idx = todos.filter(i => ver.has(i));
             return '<div style="margin:8px 0;">' +
-                '<div style="font-size:11px;font-weight:700;letter-spacing:0.5px;color:var(--slate);margin-bottom:4px;">RANKING DE PUJAS · ANÓNIMO</div>' + pinta(idx) +
-                (idx.length < filas.length ? '<details style="margin-top:4px;font-size:12px;"><summary style="cursor:pointer;font-weight:700;">Ver ranking completo (' + filas.length + ')</summary>' + pinta(todos) + '</details>' : '') +
+                '<div style="font-size:11px;font-weight:700;letter-spacing:0.5px;color:var(--slate);margin-bottom:4px;">RANKING DE PUJAS · ANÓNIMO</div>' +
+                (idx.length < filas.length
+                    ? '<div class="rk-corto">' + pinta(idx) + '</div><div class="rk-todo" style="display:none;">' + pinta(todos) + '</div>' +
+                      '<button type="button" onclick="_verRankingCompleto(this)" data-n="' + filas.length + '" style="margin-top:4px;background:none;border:none;padding:4px 0;font-size:12px;font-weight:700;color:inherit;cursor:pointer;">▸ Ver ranking completo (' + filas.length + ')</button>'
+                    : pinta(idx)) +
                 '</div>';
         }
+        // Cambia entre la lista corta y la completa (una en lugar de la otra, sin repetir lugares).
+        window._verRankingCompleto = function (btn) {
+            const caja = btn.parentNode, todo = caja.querySelector('.rk-todo'), abrir = todo.style.display === 'none';
+            todo.style.display = abrir ? '' : 'none';
+            caja.querySelector('.rk-corto').style.display = abrir ? 'none' : '';
+            btn.textContent = abrir ? '▴ Ver menos' : '▸ Ver ranking completo (' + btn.dataset.n + ')';
+        };
         function _rankingUna(a, me) {   // 1 pieza: la mejor puja de cada quien
             const mejor = {};
             (a.history || []).forEach(h => { if (h && h.id && (!(h.id in mejor) || Number(h.amount) > mejor[h.id])) mejor[h.id] = Number(h.amount) || 0; });
